@@ -1,8 +1,10 @@
 # Claude Code skills
 
-Eight skills I built for [Claude Code](https://claude.com/claude-code) and use every day.
-They are workflow skills: they change *how* the agent works on a problem, not what domain it
-works in. Nothing here is tied to a particular language, framework, or company.
+Ten skills I built for [Claude Code](https://claude.com/claude-code) and use every day.
+Most are workflow skills: they change *how* the agent works on a problem, not what domain it
+works in. Two (`presentation-design`, `notion-router`) are domain skills instead, built around a
+specific kind of deliverable or tool. Nothing here is tied to a particular language, framework,
+or company.
 
 Install what you like, ignore the rest. Each skill is a self-contained folder.
 
@@ -42,6 +44,17 @@ session-handoff     hand off cleanly before /clear
 `project-partner` bundles the top two layers. `big-project` sits over all of it as a working-style layer,
 and `answer-format` governs the shape of every reply along the way - it is the one skill here that is not
 tied to a phase of work.
+
+---
+
+## Domain skills
+
+Not part of the pipeline above - each is a standalone skill for a specific kind of work.
+
+| Skill | Trigger | What it does |
+|---|---|---|
+| **presentation-design** | (auto) | Design principles for every deck, talk, or pitch: one idea per slide, real hard-won lessons on logos/SVGs/video embedding, typography that scales to the room, live-demo pacing, and a feedback loop that folds every correction back into the skill. Ready to use as-is. |
+| **notion-router** | (auto) | Routes incoming notes, tasks, and ideas into the right place in *your* Notion workspace, and retrieves context from it. This one is a **template**, not a ready skill - it ships with a placeholder routing table and workspace map; fork it and fill in `references/notion-map-template.md` with your own pages and databases before it does anything useful. See its own `README.md` for the adaptation steps. |
 
 ---
 

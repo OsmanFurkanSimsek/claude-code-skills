@@ -1,6 +1,6 @@
 # Claude Code skills
 
-Seven skills I built for [Claude Code](https://claude.com/claude-code) and use every day.
+Eight skills I built for [Claude Code](https://claude.com/claude-code) and use every day.
 They are workflow skills: they change *how* the agent works on a problem, not what domain it
 works in. Nothing here is tied to a particular language, framework, or company.
 
@@ -18,6 +18,7 @@ Install what you like, ignore the rest. Each skill is a self-contained folder.
 | **live-document** | `/live-document` | Sets up project memory that survives across sessions: a thin auto-loading `CLAUDE.md` plus a living `PROJECT.md` that future sessions maintain by *reconciling* it, not appending to it. This is the fix for "I keep losing context between sessions". |
 | **project-partner** | `/project-partner` | The combined front door: scoping (`elon`) plus cross-session memory (`live-document`) in one skill, for when you are starting something substantial and do not want to pick. |
 | **session-handoff** | `/session-handoff` | Produces a fixed-structure end-of-session summary (decisions, shipped changes, key files, running background jobs, verification steps, deferrals, open questions) so a fresh agent can pick up from the summary alone. Chat-only, writes no files. |
+| **answer-format** | `/answer-format` | Fixes the shape of every substantial reply: **Summary** (what happened, plain words), then **Why** (reasoning, numbers, trade-offs), then **What you should do** last. Putting the actions at the bottom means you never hunt for your next step, and you can scroll up for the reasoning only when you want it. Includes paste-ready text for Claude desktop's personal-preferences box, where an always-loaded rule beats skill triggering. |
 | **big-project** | `/big-project` | A thin personal working-style layer: answer format, one-action-per-line steps, no unilateral decisions, versioned code with full QA, validate-in-a-playground first. It delegates the real machinery to the three skills above rather than re-implementing it. Fork this one and put *your* preferences in `references/preferences.md`. |
 
 ### How they fit together
@@ -38,7 +39,9 @@ live-document       keep the state across sessions
 session-handoff     hand off cleanly before /clear
 ```
 
-`project-partner` bundles the top two layers; `big-project` sits over all of it as a style layer.
+`project-partner` bundles the top two layers. `big-project` sits over all of it as a working-style layer,
+and `answer-format` governs the shape of every reply along the way - it is the one skill here that is not
+tied to a phase of work.
 
 ---
 
@@ -73,8 +76,11 @@ you have edited one.
 
 ### Claude desktop app
 
-`project-partner.skill` is the same skill packaged as a desktop-app bundle. Upload it in the
-desktop app's skill settings rather than copying the folder.
+`project-partner.skill` and `answer-format.skill` are those two skills packaged as desktop-app
+bundles. Upload them in the desktop app's skill settings rather than copying the folders.
+`answer-format` is the one most worth having there - see its `references/desktop-setup.md` for
+the paste-ready preferences text that makes the format apply to every reply, not just the ones
+where the skill happens to trigger.
 
 ---
 

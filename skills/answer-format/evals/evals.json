@@ -1,0 +1,94 @@
+{
+  "skill_name": "answer-format",
+  "evals": [
+    {
+      "id": 1,
+      "name": "work-report-full-shape",
+      "prompt": "I asked you earlier to speed up the dashboard. You changed the caching layer in src/cache.ts from FIFO eviction to LRU and raised the TTL from 60s to 300s, and you measured warm-cache load time dropping from 1.4s to 0.6s. You did not test a cold start. Tell me what you did.",
+      "expected_output": "A three-section reply: Summary (plain words, says it is faster, states the unverified cold start), Why (FIFO-vs-LRU reasoning, the staleness trade-off, the changed file), and What you should do LAST with numbered one-action-per-line steps, commands in code blocks, ending with the staleness judgment call handed back to the user.",
+      "files": [],
+      "expectations": [
+        "Uses the three headings Summary, Why, and What you should do, in that order",
+        "The actions section is the LAST thing in the reply - no sign-off, caveat, or extra text after the final numbered step",
+        "Summary is in plain language and states the measured result (1.4s to 0.6s)",
+        "Summary or Why explicitly states that cold start was NOT tested rather than glossing over it",
+        "Why explains the FIFO-to-LRU reasoning AND names the staleness trade-off (1 minute becomes 5 minutes)",
+        "Every numbered step contains exactly one action and begins with a concrete verb",
+        "Shell commands appear inside code blocks rather than inline in prose",
+        "The steps ask the user to decide on the staleness trade-off rather than deciding it for them",
+        "Contains no long-dash character"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "pure-question-no-steps",
+      "prompt": "Quick one - does this project use pnpm or npm? There's a pnpm-lock.yaml in the root, no package-lock.json, and package.json has \"packageManager\": \"pnpm@9.1.0\".",
+      "expected_output": "A short direct answer (pnpm) with the evidence, and NO numbered steps section, because the user has nothing to do. The practical consequence of mixing package managers may be given as a sentence.",
+      "files": [],
+      "expectations": [
+        "Answers 'pnpm' within the first two sentences",
+        "Does NOT emit a numbered 'What you should do' list - there is no work for the user",
+        "Does not pad a one-fact answer with the full three-section scaffolding",
+        "Cites the lockfile and/or the packageManager field as evidence",
+        "Contains no long-dash character"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "failure-report-bad-news-first",
+      "prompt": "How did the database migration go? Context: schema changes, new tables, and the backfill script are all done and tested, but step 4 of 6 fails because 1,847 rows in orders reference a customer_id that does not exist in customers. Nothing has been written to production.",
+      "expected_output": "Summary leads with the failure, not with the progress. Why lays out the orphaned-rows cause and the options with trade-offs, and states a recommendation without deciding for the user. Actions last, including an explicit line confirming nothing else needs doing / no production data changed.",
+      "files": [],
+      "expectations": [
+        "The FIRST sentence of the Summary states that the migration failed or does not work yet, before mentioning what succeeded",
+        "Names the concrete cause: 1,847 orphaned rows in orders whose customer_id is missing from customers",
+        "Presents more than one option with the trade-off of each, rather than silently picking one",
+        "Gives a recommendation while leaving the decision to the user",
+        "Reassures explicitly that production data was not modified / the migration is paused",
+        "The actions section is last and every step is a single action",
+        "Contains no long-dash character"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "chunked-handoff-not-twenty-steps",
+      "prompt": "Walk me through setting up the Acme CLI end to end: installing it, logging in, configuring the default workspace, running the initial sync, verifying the sync, and then scheduling it nightly. I'm at my keyboard now.",
+      "expected_output": "A first chunk of roughly 5-10 steps only, ending with an explicit instruction to come back, rather than one long list covering all six stages. Should mention roughly how long the whole thing takes.",
+      "files": [],
+      "expectations": [
+        "The numbered list contains no more than about 10 steps - it does not dump the entire six-stage procedure at once",
+        "The chunk ends with an explicit 'come back and tell me' style step so the hand-off has a defined stopping point",
+        "States or estimates how long the overall task takes",
+        "Each step is one action beginning with a concrete verb",
+        "Commands appear in code blocks",
+        "Contains no long-dash character"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "nothing-to-do-said-plainly",
+      "prompt": "Did that last push go through? Everything is committed and pushed on both repos, working trees clean, CI is green.",
+      "expected_output": "Confirms the push succeeded, and states plainly that there is nothing for the user to do rather than omitting the section or inventing filler steps.",
+      "files": [],
+      "expectations": [
+        "Confirms the push succeeded and CI is green",
+        "States plainly that there is nothing to do (e.g. 'Nothing to do - this is finished') rather than omitting the section entirely",
+        "Does NOT invent filler steps to populate the actions section",
+        "Contains no long-dash character"
+      ]
+    },
+    {
+      "id": 6,
+      "name": "no-trigger-verbatim-artifact",
+      "prompt": "Write me a Python function that takes a list of dicts and returns them grouped by the 'category' key. Just the function, nothing else.",
+      "expected_output": "The requested function only. The skill should NOT impose Summary/Why/What-you-should-do scaffolding on a verbatim artifact the user asked for, and explicitly asked to receive with nothing else.",
+      "files": [],
+      "expectations": [
+        "Returns the requested Python function",
+        "Does NOT wrap the answer in Summary / Why / What you should do headings",
+        "Respects 'just the function, nothing else' - no numbered steps appended",
+        "Contains no long-dash character"
+      ]
+    }
+  ]
+}

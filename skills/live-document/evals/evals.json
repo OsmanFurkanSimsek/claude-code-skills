@@ -1,0 +1,61 @@
+{
+  "skill_name": "live-document",
+  "evals": [
+    {
+      "id": 0,
+      "name": "blank-new-project-setup",
+      "prompt": "I'm starting a new side project: a small CLI tool in Python that watches a folder and auto-converts any new HEIC photos to JPG. I work on it in bursts and keep forgetting where I left off between sessions. The working folder is empty right now except for this. Help me set things up so I never lose the thread.",
+      "expected_output": "Runs an adaptive interview (asks focused questions about goal/done, scope, constraint, current state) BEFORE creating anything, summarizes back and asks for confirmation, then scaffolds a thin root CLAUDE.md (with the live-document:start/end markers and a start-of-session protocol) plus a populated PROJECT.md with the 8 living sections. Does not create a third tracking file.",
+      "files": [],
+      "expectations": []
+    },
+    {
+      "id": 1,
+      "name": "existing-claude-md-append",
+      "prompt": "This repo already has a CLAUDE.md with my coding conventions in it. I want to add a self-maintaining living project doc so future sessions remember the project state, but DO NOT lose anything that's already in CLAUDE.md.",
+      "expected_output": "Detects the existing CLAUDE.md, preserves every existing line, and APPENDS a delimited <!-- live-document:start -->...<!-- live-document:end --> bootstrap block at the end. Creates/augments PROJECT.md. The original conventions content is byte-for-byte intact above the appended block.",
+      "files": ["fixtures/existing-claude-md/CLAUDE.md"],
+      "expectations": []
+    },
+    {
+      "id": 2,
+      "name": "midstream-project-md-curation",
+      "prompt": "We've been building this for a few weeks and there's already a PROJECT.md tracking it, but it's gotten messy and out of date and I'm not sure it reflects reality anymore. Can you bring it back in line with where we actually are and make sure it'll stay maintained going forward?",
+      "expected_output": "Enters curation/augment behavior rather than overwriting: reads the existing PROJECT.md in full, updates Current state / Plan / Open questions in place to reflect now, compacts obsolete detail and merges repetition WITHOUT losing any locked decision or lesson, and ensures the start-of-session protocol is in place (appends the CLAUDE.md block if missing) so it stays self-maintained.",
+      "files": ["fixtures/midstream-project/PROJECT.md", "fixtures/midstream-project/CLAUDE.md"],
+      "expectations": []
+    },
+    {
+      "id": 3,
+      "name": "routine-update-reconciles-not-appends",
+      "prompt": "Quick update on the invoice parser: Globex parsing is done now (100%, shipped this morning), and we made the switch to xlsx output official - finance signed off, one sheet per vendor, CSV is dead. Also the rounding bug is fixed, we moved the totals to Decimal. Bring PROJECT.md up to date.",
+      "expected_output": "Updates PROJECT.md by reconciling in place, not appending: the current-state/progress text is rewritten so Globex reads as done (the '80% there' line is gone), the CSV output decision is REPLACED by the xlsx decision (the old CSV line no longer appears anywhere), finished todos (Globex, xlsx switch, rounding fix) are removed from the todo list rather than left alongside new text, the resolved rounding note is deleted or folded into a lesson (sum floats -> use Decimal), and at most one milestone-level change-log line is added. FAILS if the update is append-only: superseded content (CSV decision, 80% Globex, open rounding todo) still present with new lines merely stacked below or beside it, or if a per-item diary of lines is appended instead of sections being rewritten.",
+      "files": ["fixtures/midstream-project/PROJECT.md", "fixtures/midstream-project/CLAUDE.md"],
+      "expectations": []
+    },
+    {
+      "id": 4,
+      "name": "real-handoff-writes-next-actions-pair",
+      "prompt": "Finance approved the xlsx output. Now I have to set up the monthly delivery myself: create the shared folder, give the finance group read access, and schedule the parser with Windows Task Scheduler. I've never used Task Scheduler - walk me through all of it.",
+      "expected_output": "Delivers Action mode in chat (Summary, Reasoning, numbered Steps in super simple language) AND, because this is a real multi-step handoff, writes a Next Actions file pair in next-actions/ at the project root: <YYYY-MM-DD_HH-MM>-next-actions.md plus a same-stem .html. Both files carry TLDR paragraph first, then reasoning including alternatives considered and why this path won, then the steps; the .html is fully self-contained (inline CSS/JS, no external URLs) with an interactive step checklist. Announces both file paths in one chat line. FAILS if no file pair is written, the filenames lack the date-time prefix, the files live outside next-actions/, the TLDR is not first, or the .html loads any external resource.",
+      "files": ["fixtures/midstream-project/PROJECT.md", "fixtures/midstream-project/CLAUDE.md"],
+      "expectations": []
+    },
+    {
+      "id": 5,
+      "name": "trivial-ask-stays-chat-only",
+      "prompt": "Quick one: what's the command to run the parser's tests again?",
+      "expected_output": "Answers briefly in chat (the test command, one line of context at most). Does NOT write a Next Actions file pair, does not create next-actions/, and does not deliver multi-part ceremony for a one-command ask. FAILS if any next-actions file is created or the answer balloons into a chunked step plan.",
+      "files": ["fixtures/midstream-project/PROJECT.md", "fixtures/midstream-project/CLAUDE.md"],
+      "expectations": []
+    },
+    {
+      "id": 6,
+      "name": "messy-root-propose-then-move",
+      "prompt": "Back on the weather dashboard. Give me a quick status from the project doc and let's continue where we left off.",
+      "expected_output": "Reads PROJECT.md and reports status; notices the messy project root (3 loose .png screenshots, 2 loose example scripts, 2 loose report files - the tidiness tripwire) and proposes a FULL move list grouping them into screenshots/, code-examples/, and reports/, then asks ONE yes/no confirmation and STOPS - no file is moved before the user says yes. CLAUDE.md, PROJECT.md, and dashboard.py are never in the move list. FAILS if it moves or renames any file without the confirmation, proposes moving the living docs or the source file, or finishes the status update without mentioning the mess at all.",
+      "files": ["fixtures/messy-root/CLAUDE.md", "fixtures/messy-root/PROJECT.md", "fixtures/messy-root/dashboard.py", "fixtures/messy-root/screenshot-2026-07-10-login.png", "fixtures/messy-root/screenshot-2026-07-12-chart.png", "fixtures/messy-root/screenshot-2026-07-14-error.png", "fixtures/messy-root/example-api-call.py", "fixtures/messy-root/example-cache-check.py", "fixtures/messy-root/weekly-report-2026-07-06.md", "fixtures/messy-root/weekly-report-2026-07-13.md"],
+      "expectations": []
+    }
+  ]
+}

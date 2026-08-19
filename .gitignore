@@ -1,0 +1,25 @@
+# Nothing from a live Claude setup belongs in this repo.
+# These are listed defensively: if a sync script is ever pointed at the wrong
+# directory, git refuses to stage the sensitive parts.
+*.db
+*.db-wal
+*.db-shm
+*.sqlite*
+.credentials.json
+config.json
+**/credentials.json
+**/auth.json
+*.token
+*.tokens
+*.pem
+*.key
+plans/
+projects/
+get-shit-done/
+claude-mem/
+LAST_SNAPSHOT.txt
+
+# OS / editor cruft
+Thumbs.db
+.DS_Store
+*.swp

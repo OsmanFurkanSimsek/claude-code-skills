@@ -1,0 +1,101 @@
+{
+  "skill_name": "project-partner",
+  "evals": [
+    {
+      "id": 0,
+      "name": "interview-gate-before-scaffolding",
+      "prompt": "I want to create a personal finance tracker app. Let's build it.",
+      "expected_output": "Runs the System2 + Elon Step 1 interview in small focused batches (goal/done, scope, dominant constraint, requirement A/B/C tagging) and creates NOTHING until the user has answered and confirmed a summarized understanding. FAILS if it scaffolds CLAUDE.md/PROJECT.md, proposes an architecture, or writes any code before the interview gate is passed.",
+      "files": [],
+      "expectations": []
+    },
+    {
+      "id": 1,
+      "name": "elon-one-step-per-turn",
+      "prompt": "Help me scope this feature: an export-to-Excel function for our analytics dashboard.",
+      "expected_output": "Applies the five-step algorithm as a coach: starts by questioning requirements (who asked for each, A/B/C tags, magic-wand probe), asks in small batches, and runs ONE step per turn, waiting for answers before moving on. FAILS if it dumps all five steps at once, skips the questioning, or just implements the export.",
+      "files": [],
+      "expectations": []
+    },
+    {
+      "id": 2,
+      "name": "curation-reconciles-not-appends",
+      "prompt": "Quick update on the invoice parser: Globex parsing is done now (100%, shipped this morning), and we made the switch to xlsx output official - finance signed off, CSV is dead. Also the rounding bug is fixed with Decimal totals. Bring PROJECT.md up to date.",
+      "expected_output": "Reconciles PROJECT.md in place: the '80% there' Globex line is gone (reads as done), the CSV decision is REPLACED by the xlsx decision, finished todos are removed, the resolved rounding note is folded into a lesson, at most one milestone change-log line is added. FAILS if the update is append-only (old lines still present with new ones stacked below).",
+      "files": ["fixtures/midstream/PROJECT.md", "fixtures/midstream/CLAUDE.md"],
+      "expectations": []
+    },
+    {
+      "id": 3,
+      "name": "action-mode-summary-reasoning-steps",
+      "prompt": "I need to connect Power BI to our on-prem SQL Server. Walk me through setting up the gateway.",
+      "expected_output": "Either (a) answers in Action mode - Summary (1-2 plain sentences), then Reasoning, then numbered Steps in super simple language, one concrete action per step, chunked 5-10 steps per turn with a confirm request - or (b) first asks a short round of genuinely blocking clarifying questions (gateway mode, host machine, auth), per the System2 ask-before-assuming rule, with steps to follow after answers. FAILS if steps come first without structure, 20+ steps are dumped at once, or it asks non-blocking questions just to look busy.",
+      "files": [],
+      "expectations": []
+    },
+    {
+      "id": 4,
+      "name": "answer-mode-tldr-no-steps",
+      "prompt": "What's the difference between a star schema and a snowflake schema?",
+      "expected_output": "Answers in Answer mode: a TLDR of 1-3 plain sentences first, then the detail (trade-offs, when to use which). NO numbered steps section, since the user has nothing to do. FAILS if it adds action steps or launches an interview for a simple knowledge question.",
+      "files": [],
+      "expectations": []
+    },
+    {
+      "id": 5,
+      "name": "negative-no-elon-on-bugfix",
+      "prompt": "This function throws IndexError when the list is empty - fix it: def last(xs): return xs[-1]",
+      "expected_output": "Handles it as a small fix: either fixes it directly (guard for empty list) or asks one focused question about the desired empty-list behavior (raise clearer error vs return default) before fixing. Does NOT run the five-step algorithm, an interview, or scaffold any files. FAILS if it applies Elon/System2 project ceremony or proposes a project setup for a one-line fix.",
+      "files": [],
+      "expectations": []
+    },
+    {
+      "id": 6,
+      "name": "negative-no-trigger-on-lookup",
+      "prompt": "What does this regex match: ^\\d{3}-\\d{2}$",
+      "expected_output": "Gives a direct answer (three digits, hyphen, two digits, anchored). No interview, no five-step coaching, no file scaffolding. FAILS if any project-partner ceremony is applied to a quick lookup.",
+      "files": [],
+      "expectations": []
+    },
+    {
+      "id": 7,
+      "name": "e2e-coexistence-not-hijacked",
+      "prompt": "Bring the project docs up to date: we finished the data-model page today and validated the measures against the July extract.",
+      "expected_output": "Curates PROJECT.md's canonical sections (Current state, Change log) while leaving the e2e-owned structures alone: the <!-- e2e-state --> marker in CLAUDE.md is untouched, and the ## Research notes / ## Execution plan sections' structure is left to the active e2e flow (their rows may be updated per the e2e format, never restructured). FAILS if the marker is modified/removed or the e2e sections are restructured/deleted.",
+      "files": ["fixtures/e2e-managed/CLAUDE.md", "fixtures/e2e-managed/PROJECT.md"],
+      "expectations": []
+    },
+    {
+      "id": 8,
+      "name": "no-filesystem-session-summary",
+      "prompt": "We're chatting in the Claude app with no file access. Set up project memory for my master's thesis project so we don't lose context between chats.",
+      "expected_output": "Recognizes there is no persistent file system: skips scaffolding CLAUDE.md/PROJECT.md and instead runs the interview, then maintains a running session summary in the conversation and tells the user to paste it at the start of the next session. FAILS if it pretends to write files or skips the memory mechanism entirely.",
+      "files": [],
+      "expectations": []
+    },
+    {
+      "id": 9,
+      "name": "self-heal-old-style-block",
+      "prompt": "Quick status update: step 3 (the import script) is done and tested.",
+      "expected_output": "While touching the project, self-heals the outdated CLAUDE.md live-document block: the old-style maintenance items (recognizable by 'after any answer or change' / missing 'Tripwire') are replaced with the current wording, PRESERVING every other line and the start/end markers. Also reconciles the status update into PROJECT.md. FAILS if it rewrites the whole CLAUDE.md, drops non-block content, or leaves the old-style items while claiming maintenance is done.",
+      "files": ["fixtures/old-style-block/CLAUDE.md", "fixtures/old-style-block/PROJECT.md"],
+      "expectations": []
+    },
+    {
+      "id": 10,
+      "name": "real-handoff-writes-next-actions-pair",
+      "prompt": "Finance signed off on the xlsx output and confirmed the numbers are good for the clean vendors. Next I have to do a manual chore myself every month: on the 1st, regenerate the workbook and upload it to our finance SharePoint at https://contoso.sharepoint.com/sites/finance (I can already open that site fine). Walk me through setting up a recurring monthly reminder for this in classic desktop Outlook - I've never made one.",
+      "expected_output": "Delivers Action mode in chat (Summary, Reasoning, numbered Steps in super simple language) AND, because this is a real multi-step handoff with no blocking unknowns (destination, access, tool, and schedule are all given), writes a Next Actions file pair in next-actions/ at the project root: <YYYY-MM-DD_HH-MM>-next-actions.md plus a same-stem .html. Both files carry TLDR paragraph first, then reasoning including alternatives considered and why this path won, then the steps; the .html is fully self-contained (inline CSS/JS, no external URLs) with an interactive step checklist. Announces both file paths in one chat line. FAILS if no file pair is written, the filenames lack the date-time prefix, the files live outside next-actions/, the TLDR is not first, or the .html loads any external resource.",
+      "files": ["fixtures/midstream/PROJECT.md", "fixtures/midstream/CLAUDE.md"],
+      "expectations": []
+    },
+    {
+      "id": 11,
+      "name": "elon-scoping-end-no-doc-offer",
+      "prompt": "That wraps the five-step scoping of the vendor-mismatch report feature: we keep only the weekly mismatch summary (A, asked by Maria in finance), we deleted the per-invoice drilldown and the email digest (both B, pure convention), it's one extra sheet reusing the existing output writer, I'll demo a rough version to Maria this Friday, and nothing is worth automating yet. Pre-mortem: the risk is stale vendor mappings, cheap fix is a warning row whenever a vendor id is unknown.",
+      "expected_output": "Closes the Elon scoping by reconciling the outcome straight into PROJECT.md (kept summary + warning-row mitigation into Decisions locked or Plan; deleted drilldown and digest into Scope and non-goals with one-line whys; Friday demo into Current state and next action) WITHOUT asking any document question, then confirms the update in one line. FAILS if it asks whether to keep the outcome in chat vs write a separate document, offers to save an elon-*.md, creates any new tracking file, or asks permission before updating PROJECT.md.",
+      "files": ["fixtures/midstream/PROJECT.md", "fixtures/midstream/CLAUDE.md"],
+      "expectations": []
+    }
+  ]
+}

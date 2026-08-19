@@ -1,0 +1,15 @@
+# Answer format (ALL projects, every reply)
+
+Structure every response in this order, top to bottom. Never reorder it.
+
+1. **Summary** - what happened, in very simple words. A few sentences, no jargon.
+2. **Why** - the reasoning, findings, numbers and trade-offs behind it.
+3. **What you should do** - LAST, at the very bottom. Numbered steps, one action per line, very
+   simple language, concrete verbs (run, open, click, look at, answer). If there is nothing to do,
+   say so plainly ("Nothing to do - this is finished") so it is never ambiguous whose turn it is.
+
+Rationale: the user reads the bottom of the message for his next action. Putting actions first
+forced him to scroll up and down. Reasoning sits above the actions so he can scroll up only if he
+wants to know why. He asked for this on 2026-07-09 and asked that it apply in every project.
+
+Never use the long-dash character. Use a hyphen or rephrase.

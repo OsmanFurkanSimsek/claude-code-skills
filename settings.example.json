@@ -1,0 +1,40 @@
+{
+  "permissions": {
+    "deny": [
+      "Bash(sudo rm *)",
+      "Bash(sudo rm -rf*)",
+      "Bash(format *)",
+      "Bash(diskpart*)",
+      "Bash(mkfs*)",
+      "Bash(dd if=*)",
+      "Bash(curl * | sh*)",
+      "Bash(curl * | bash*)",
+      "Bash(wget * | sh*)",
+      "Bash(wget * | bash*)",
+      "Bash(iwr * | iex*)",
+      "Bash(irm * | iex*)",
+      "Bash(Invoke-Expression*)",
+      "Bash(npm publish*)",
+      "Bash(npm unpublish*)",
+      "Bash(yarn publish*)",
+      "Bash(pnpm publish*)",
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./**/.env)",
+      "Read(./**/.env.*)",
+      "Read(./secrets/**)",
+      "Read(~/.ssh/**)",
+      "Read(~/.aws/**)",
+      "Read(~/.gnupg/**)",
+      "Read(~/.azure/**)",
+      "Read(~/.config/gcloud/**)"
+    ]
+  },
+  "model": "opus",
+  "effortLevel": "xhigh",
+  "statusLine": {
+    "type": "command",
+    "command": "powershell -NoProfile -ExecutionPolicy Bypass -File %USERPROFILE%/.claude/statusline.ps1"
+  },
+  "theme": "light"
+}

@@ -1,0 +1,117 @@
+{
+  "skill_name": "e2e",
+  "evals": [
+    {
+      "id": 0,
+      "name": "fresh-build-bootstraps-before-discovery",
+      "prompt": "/e2e build a small Python CLI tool that converts CSV files to JSON",
+      "expected_output": "Runs Phase 0: classifies track=build, detects greenfield, and creates BOTH living docs (CLAUDE.md with an <!-- e2e-state: --> marker and a PROJECT.md skeleton) BEFORE Phase 1 starts, then asks the greenfield discovery question (run Office Hours + CEO Review?) and WAITS. FAILS if it starts implementing code, skips the bootstrap, creates PLAN.md/RESEARCH.md/design-*.md, or advances past Phase 0 without a user go-ahead.",
+      "files": [],
+      "expectations": []
+    },
+    {
+      "id": 1,
+      "name": "deliverable-track-classification",
+      "prompt": "Build a Q3 churn analysis report end to end for our leadership team.",
+      "expected_output": "Triggers the e2e pipeline (not a quick answer): classifies track=deliverable (or asks the one Build-vs-Deliverable question only if genuinely ambiguous), stands up CLAUDE.md marker + PROJECT.md skeleton, then gates before Phase 1. FAILS if it just writes the report directly or classifies it as Build without reason.",
+      "files": [],
+      "expectations": []
+    },
+    {
+      "id": 2,
+      "name": "resume-from-marker-midrun",
+      "prompt": "/e2e",
+      "expected_output": "Reads the e2e-state marker in CLAUDE.md, announces it is resuming from Phase 6 (execute), step 2 of 5, track=build, summarizes what is already done from PROJECT.md, and WAITS for confirmation before proceeding. FAILS if it restarts discovery, re-creates the living docs, ignores the marker, or starts working on step 2 without confirmation.",
+      "files": ["fixtures/resume-midrun/CLAUDE.md", "fixtures/resume-midrun/PROJECT.md"],
+      "expectations": []
+    },
+    {
+      "id": 3,
+      "name": "flags-parsed-and-honored",
+      "prompt": "/e2e --coverage 90/80 --skip-discovery add a REST API wrapper around our existing parser library",
+      "expected_output": "Parses both flags: skips Phases 1-2 entirely (no Office Hours / CEO Review questions), bootstraps the living docs with the marker pointing at phase=elon, and records/mentions the 90/80 coverage gate for Phase 7. FAILS if it runs discovery anyway, ignores the coverage values, or treats the flags as part of the build target.",
+      "files": [],
+      "expectations": []
+    },
+    {
+      "id": 4,
+      "name": "step-boundary-gating",
+      "prompt": "I just confirmed step 2 works (the config loader; its tests pass).",
+      "expected_output": "Flips step 2 to done in the Execution plan master table AND its detail block, updates Current state, bumps the CLAUDE.md marker to step=3 of=5, reports the living-doc update in one line, then checkpoints ('Step 2 of 5 complete... move to step 3?') and STOPS. FAILS if it begins implementing step 3 in the same turn or advances without an explicit go for step 3. (Do not put an ambiguous 'Continue' in this prompt: that reads as the explicit go for step 3, which makes implement-step-3-then-gate compliant and untestable.)",
+      "files": ["fixtures/resume-midrun/CLAUDE.md", "fixtures/resume-midrun/PROJECT.md"],
+      "expectations": []
+    },
+    {
+      "id": 5,
+      "name": "silent-file-writes-no-permission-seeking",
+      "prompt": "OK, those are my answers to the Office Hours questions: it's for my own team of 6 analysts, the pain is manual weekly copy-paste from three systems, and I pick approach B (the minimal pipeline).",
+      "expected_output": "Distills the Office Hours outcome straight into PROJECT.md's canonical sections WITHOUT asking permission to write (never 'Should I update PROJECT.md?'), announces the update in one line, bumps the marker to phase=ceo-review, and checkpoints for the go-ahead to Phase 2. FAILS if it asks permission before writing files or dumps the outcome only into chat without updating PROJECT.md.",
+      "files": ["fixtures/office-hours-midway/CLAUDE.md", "fixtures/office-hours-midway/PROJECT.md"],
+      "expectations": []
+    },
+    {
+      "id": 6,
+      "name": "legacy-multifile-layout-preserved",
+      "prompt": "/e2e",
+      "expected_output": "Detects the legacy layout (PLAN.md present), resumes under it: PLAN.md stays the execution tracker for the life of the run, no ## Execution plan section is added to any file, and no migration to the consolidated two-file layout happens. FAILS if it migrates, deletes or rewrites PLAN.md's structure, or treats the project as a fresh run.",
+      "files": ["fixtures/legacy-run/CLAUDE.md", "fixtures/legacy-run/PLAN.md"],
+      "expectations": []
+    },
+    {
+      "id": 7,
+      "name": "negative-typo-fix-does-not-trigger",
+      "prompt": "There's a typo in README.md - it says 'teh' instead of 'the'. Fix it.",
+      "expected_output": "Does NOT invoke the e2e pipeline: just fixes the typo directly. FAILS if it starts Phase 0, asks discovery questions, creates living docs, or mentions running the twelve phases for this.",
+      "files": [],
+      "expectations": []
+    },
+    {
+      "id": 8,
+      "name": "negative-debugging-does-not-trigger",
+      "prompt": "My test_parser.py is failing with a KeyError on line 40, can you debug it?",
+      "expected_output": "Does NOT invoke the e2e pipeline: debugs the failing test directly. FAILS if it bootstraps living docs, classifies a track, or routes the request into the twelve phases.",
+      "files": [],
+      "expectations": []
+    },
+    {
+      "id": 9,
+      "name": "critical-review-findings-not-autoapplied",
+      "prompt": "We're at the critical review now - run it.",
+      "expected_output": "Runs/spawns a READ-ONLY critical review (reviewer reports, does not edit), presents findings grouped by severity, then asks the USER which findings to apply before touching any file. FAILS if it starts fixing findings without the user picking them, or lets the reviewer subagent edit files.",
+      "files": ["fixtures/critical-review/CLAUDE.md", "fixtures/critical-review/PROJECT.md"],
+      "expectations": []
+    },
+    {
+      "id": 10,
+      "name": "coverage-gate-soft-fails",
+      "prompt": "Phase 7 update: the full suite is green (48 tests), but coverage came out at 72% lines / 61% branches.",
+      "expected_output": "Surfaces the gap against the 80/70 default target (naming under-covered areas if known) and asks the soft-fail question: add tests, lower the threshold for this project, or accept as-is and continue. Does NOT silently advance to Phase 8 and does NOT hard-block. FAILS if it advances without asking or declares the gate passed.",
+      "files": ["fixtures/quality-pass/CLAUDE.md", "fixtures/quality-pass/PROJECT.md"],
+      "expectations": []
+    },
+    {
+      "id": 11,
+      "name": "phase8-blocker-blocks-phase9",
+      "prompt": "The playtest went mostly fine, let's move on to the critical review.",
+      "expected_output": "Refuses to advance to Phase 9 while the playtest checklist still has an open blocker row (the totals mismatch): per the hard rule, every blocker and annoying item must be fixed and re-verified first. Offers to fix the blocker now. FAILS if it proceeds to the critical review with the blocker open.",
+      "files": ["fixtures/phase8-blocker/CLAUDE.md", "fixtures/phase8-blocker/PROJECT.md"],
+      "expectations": []
+    },
+    {
+      "id": 12,
+      "name": "phase8-handoff-writes-next-actions-pair",
+      "prompt": "Step 5 is confirmed done, and the whole quality pass is green: 48 tests passing, coverage 86% lines / 74% branches, smoke test fine. Go ahead with Phase 8.",
+      "expected_output": "Flips the remaining execution rows and Phase 7 to done, bumps the marker to phase=human-playtest, and runs the Phase 8 hand-off: since taskcli is a CLI with real user-facing flows, it tells the user what to exercise AND writes a Next Actions file pair in next-actions/ (<YYYY-MM-DD_HH-MM>-next-actions.md + same-stem self-contained interactive .html; TLDR first, then reasoning with alternatives, then super-simple steps) walking the user through exercising the product and reporting OK/nit/annoying/blocker per flow. Announces the file paths, then WAITS for the user's feedback. FAILS if no dated pair is written, the pair lacks the TLDR-first structure, or it advances to Phase 9 without the user's playtest feedback.",
+      "files": ["fixtures/quality-pass/CLAUDE.md", "fixtures/quality-pass/PROJECT.md"],
+      "expectations": []
+    },
+    {
+      "id": 13,
+      "name": "elon-finish-folds-into-projectmd-silently",
+      "prompt": "Pre-mortem answer: the most likely failure is that I stop using clipnote because typing a tag takes too long, so the cheap prevention is defaulting the tag to 'inbox' when I omit it. And drop the search command - grep on notes.md is enough. That closes the five steps.",
+      "expected_output": "Closes Phase 3 without asking any document question: summarizes the five-step outcome, folds it into PROJECT.md silently (cuts like cloud sync / tray app / export / search to Scope and non-goals with one-line whys; survivors, the single-file simplification, and the default-tag mitigation to Decisions locked; pre-mortem pending line deleted from Open questions), bumps the CLAUDE.md marker to phase=research, reports the living-doc update in one line, then checkpoints ('Phase 3 complete... Move to Phase 4 (Research)?') and WAITS. FAILS if it asks whether to keep the outcome in chat vs write a separate document, offers to save an elon-*.md (or any file beyond the two living docs), asks permission before updating PROJECT.md, or starts Phase 4 research without a go.",
+      "files": ["fixtures/elon-finish/CLAUDE.md", "fixtures/elon-finish/PROJECT.md"],
+      "expectations": []
+    }
+  ]
+}

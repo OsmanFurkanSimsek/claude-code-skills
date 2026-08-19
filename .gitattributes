@@ -1,0 +1,5 @@
+# Normalize line endings so `sync-skills.ps1` (which copies from a Windows
+# %USERPROFILE% path) does not produce CRLF-only churn in every diff.
+* text=auto eol=lf
+*.png binary
+*.skill binary

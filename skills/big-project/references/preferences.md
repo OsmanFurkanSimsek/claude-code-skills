@@ -14,6 +14,8 @@ Order every reply: (1) **Summary** in plain words, what happened; (2) **Why**, t
 
 **How to apply:** when the owner has nothing to do (a pure question), drop the steps section and lead with a 1-3 sentence TLDR instead.
 
+The step list is **live across the conversation**, not a per-message artifact: if the owner asks a question about step 3 of five, answer it and then re-show the whole list with 1-2 struck through, 3 marked current, and the rest pending. Keep the original numbers stable while the list is valid, so "step 3" keeps meaning what he meant; renumber cleanly from 1 only when the plan genuinely changes, and say so. The `answer-format` skill owns this rule in full - invoke it when installed rather than re-deriving the detail here.
+
 ## 2. End every completing reply with the two-step context-handoff block
 
 Every chat reply that completes work ends with, filled in:
@@ -24,7 +26,7 @@ Every chat reply that completes work ends with, filled in:
 
 **Why:** the owner clears context often. He must never have to ask whether it is safe to clear or what to paste next. This is his signature rule, corrected more than once - follow it literally.
 
-**How to apply:** the block closes the chat reply itself, not only the walkthrough file. See `walkthrough-and-handoff.md` for the template. For a heavy explicit wrap-up ("summarize before I clear"), use the `session-handoff` skill's full summary instead.
+**How to apply:** the block closes the chat reply itself, not only the walkthrough file. Place it INSIDE the `What you should do` list as its final numbered steps - it is two actions for the owner, so it belongs in the actions section rather than appended after it. That satisfies this rule and the answer-format rule that nothing follows the numbered list. See `walkthrough-and-handoff.md` for the template. For a heavy explicit wrap-up ("summarize before I clear"), use the `session-handoff` skill's full summary instead.
 
 ## 3. No unilateral owner decisions
 

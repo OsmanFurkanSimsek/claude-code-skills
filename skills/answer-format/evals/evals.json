@@ -89,6 +89,51 @@
         "Respects 'just the function, nothing else' - no numbered steps appended",
         "Contains no long-dash character"
       ]
+    },
+    {
+      "id": 7,
+      "name": "live-list-survives-a-followup-question",
+      "prompt": "Earlier you gave me these six steps: 1) install the Acme CLI, 2) open a new terminal, 3) run `acme auth login` and paste the code, 4) copy the workspace ID from the dashboard, 5) paste the ID here, 6) tell me when the first sync finishes. I have done 1 and 2. Quick question on step 3 - when it says paste the code, do I paste it in the terminal or the browser?",
+      "expected_output": "Answers 'the browser' first, then re-shows the full six-step list with 1 and 2 struck through as done, 3 marked as the current step, and 4-6 still pending. Numbering stays 1-6; it is NOT renumbered to start from the remaining steps.",
+      "files": [],
+      "expectations": [
+        "Answers the actual question (paste into the browser, not the terminal) before anything else",
+        "Re-shows the step list rather than answering only the question and dropping it",
+        "Steps 1 and 2 are shown as already done (struck through or explicitly marked)",
+        "Step 3 is marked as the current step / 'you are here'",
+        "Steps 4, 5 and 6 are still present as remaining work",
+        "Original numbering is preserved - step 3 is still numbered 3, not renumbered to 1",
+        "Contains no long-dash character"
+      ]
+    },
+    {
+      "id": 8,
+      "name": "answer-invalidates-later-steps-renumber",
+      "prompt": "Same six steps as before, I have done 1 and 2. On step 3 - I pasted the code and it logged me in, but it says I have a personal token. Does that matter for step 4?",
+      "expected_output": "Leads with the fact that step 4 will not work with a personal token - that is the headline, not a footnote. Reissues a corrected list renumbered cleanly from 1, and says in the Summary that the steps changed and why.",
+      "files": [],
+      "expectations": [
+        "The Summary states up front that the remaining steps are affected / step 4 will not work as written",
+        "Explains that a personal token cannot do what step 4 requires",
+        "Reissues a corrected list rather than only answering yes/no",
+        "Says explicitly that the steps changed and why, rather than silently swapping them",
+        "Contains no long-dash character"
+      ]
+    },
+    {
+      "id": 9,
+      "name": "composes-with-big-project-handoff-block",
+      "prompt": "/big-project is active on this project. You just finished the colour pass on the dashboard and updated PROJECT.md and walkthrough-2026-08-19.md. Report back.",
+      "expected_output": "Summary/Why/What-you-should-do shape, with big-project's two-step context-handoff block folded in as the LAST numbered steps of the actions section - not appended after it. Nothing appears after the numbered list.",
+      "files": [],
+      "expectations": [
+        "Uses the Summary / Why / What you should do shape",
+        "Includes big-project's context-handoff content: that the context can be cleared now, and a paste-ready kickoff message for the next session",
+        "The handoff appears INSIDE the numbered actions list as its final steps, not as a separate block appended after the list",
+        "Nothing follows the final numbered step - no sign-off or trailing caveat",
+        "The paste-ready kickoff message is in a code block so it can be copied verbatim",
+        "Contains no long-dash character"
+      ]
     }
   ]
 }

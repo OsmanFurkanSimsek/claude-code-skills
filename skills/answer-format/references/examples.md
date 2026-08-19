@@ -7,6 +7,7 @@ Four shapes, each shown wrong then right. The rules in `SKILL.md` are easier to 
 2. A pure question
 3. A failure report
 4. A chunked hand-off
+5. A question in the middle of a live step list
 
 ---
 
@@ -161,3 +162,65 @@ The reader abandons it around step 9. When they come back, neither of you knows 
 > 6. Come back here and tell me "logged in".
 
 Three things make this work: the reader is told upfront how long the whole thing takes, the chunk ends with an explicit "come back and tell me", and step 2 exists because a freshly installed program is not visible to an already-open terminal - a real trip hazard, spent as its own line rather than tacked onto step 1.
+
+---
+
+## 5. A question in the middle of a live step list
+
+The list is state the conversation owns. A follow-up question does not end it.
+
+**Setup:** you handed over six steps. The reader comes back with:
+
+> "wait, on step 3 - when it says paste the code, paste it where? the terminal or the browser?"
+
+### Wrong
+
+> Paste it into the browser. When you run `acme auth login` it prints a code and then opens a browser page with an input box - the code goes in that box, not back into the terminal.
+
+The answer is correct and the list has vanished. The reader now has to scroll back up to find out what was left, which is the exact hunting this format exists to prevent. Worse, some readers will take the reply as closing the loop and assume they are finished.
+
+### Right
+
+> ## Summary
+>
+> Into the **browser**. Running `acme auth login` prints a code in the terminal and then opens a browser page with an input box - the code goes in that box. The terminal just waits until the browser side succeeds.
+>
+> That is a genuinely confusing bit of the flow: the terminal shows the code, so it looks like the terminal wants it back.
+>
+> ## What you should do
+>
+> 1. ~~Install the CLI~~ - done
+> 2. ~~Open a new terminal~~ - done
+> 3. **Run `acme auth login` and paste the code into the browser page**, then click Authorize - you are here.
+> 4. Copy the workspace ID from the dashboard.
+> 5. Paste the ID here.
+> 6. Tell me once the first sync finishes and I will check the output.
+
+Three things to notice.
+
+**The numbers did not change.** Step 3 is still step 3, so "step 3" keeps meaning what the reader meant by it. Renumbering because two items are now done would silently redefine their words.
+
+**Completed steps stay visible, struck through.** They cost one line each and remove all doubt about what has already happened.
+
+**There is no Why section.** The question was small and the answer fit in the Summary. Sections are there when they earn their place, not as a template to fill.
+
+### The variant worth watching for
+
+Sometimes answering the question invalidates what comes next. Then the change is the headline, not a footnote:
+
+> ## Summary
+>
+> Into the browser, not the terminal - and your question exposed a problem with what I gave you. **Step 4 will not work as written.** Pasting the code creates a personal token, and personal tokens cannot read the workspace ID from the dashboard; you need an org token for that.
+>
+> I have reissued the steps below, renumbered from 1 because the sequence genuinely changed.
+>
+> ## Why
+>
+> ...
+>
+> ## What you should do
+>
+> 1. ...
+
+When the plan actually changes, renumber cleanly from 1 and say why. Stable numbers are for a list that is still valid, not for one that has been rewritten.
+

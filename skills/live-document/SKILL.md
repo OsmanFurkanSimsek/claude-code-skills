@@ -85,9 +85,9 @@ Pick the mode with one test: does the user need to DO something themselves?
 - Before delivering the next chunk, update PROJECT.md first: the full chunk list with status markers lives in Plan / workstreams, the active chunk is named in Current state and next action, and failures go to Lessons.
 - After each PROJECT.md update, tell the user explicitly: everything is documented in PROJECT.md, so you can clear the context whenever you want and a fresh session will continue from the next chunk.
 
-**Next Actions file pair** - a real handoff (about 3+ steps the user must do themselves, or ANY chunk of the chunking rule) also gets a durable copy the user can open outside the chat. Write `next-actions/<YYYY-MM-DD_HH-MM>-next-actions.md` plus a same-stem interactive `.html` at the project root, following `references/next-actions-template.md` exactly (TLDR paragraph first, then reasoning with the alternatives considered and why this path won, then the steps in the same super-simple language). Every handoff gets a NEW dated pair; keep every old pair - the folder is the history and the date-time prefix finds the latest. Announce both paths in one chat line. Trivial asks (one command, one click) stay chat-only.
+**Next Actions file** - a real handoff (about 3+ steps the user must do themselves, or ANY chunk of the chunking rule) also gets a durable copy the user can open outside the chat. Write an interactive, self-contained `next-actions/<YYYY-MM-DD_HH-MM>-next-actions.html` at the project root, following `references/next-actions-template.md` exactly (TLDR paragraph first, then reasoning with the alternatives considered and why this path won, then the steps in the same super-simple language). Every handoff gets a NEW dated file; keep every old one - the folder is the history and the date-time prefix finds the latest. Announce the path in one chat line. Trivial asks (one command, one click) stay chat-only.
 
-The standing test for this section: the user always knows what we are doing, why we are doing it, and exactly what to do next, a context clear at any chunk boundary loses nothing, and every real handoff leaves a dated Next Actions pair behind.
+The standing test for this section: the user always knows what we are doing, why we are doing it, and exactly what to do next, a context clear at any chunk boundary loses nothing, and every real handoff leaves a dated Next Actions file behind.
 
 ## Mode detection (do this first, on every invocation)
 
@@ -208,7 +208,7 @@ staleness are bugs. There is **no size limit** - a big project may legitimately 
      contract lacks the `Tripwire` item, replace the whole comment with the current one from the
      template.
    - Format rule: if the block's Hard rules have no bullet containing the words "Summary, then Reasoning", insert the current chunk-delivery bullet from `references/claude-md-block.md` right after the "Ask before assuming" rule.
-   - Next Actions rule: if the block's Hard rules have no bullet containing the words "Next Actions", insert the two current bullets (Next Actions file pair + tidy root) from `references/claude-md-block.md` right after the "Summary, then Reasoning" bullet.
+   - Next Actions rule: if the block's Hard rules have no bullet containing the words "Next Actions", insert the two current bullets (Next Actions file + tidy root) from `references/claude-md-block.md` right after the "Summary, then Reasoning" bullet.
    - For e2e-managed projects, never touch the `e2e-state` marker or `PLAN.md`.
 
 **Folder tidiness - part of every curation pass.** The project root is part of the living setup: a

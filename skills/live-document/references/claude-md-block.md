@@ -38,10 +38,10 @@ Owner: <owner>. Project: <one line>. Dominant rule: <the one constraint that gov
   Big work goes in chunks of 5-10 steps, ONE chunk per turn; wait for confirmation, update
   PROJECT.md first (chunk statuses in Plan / workstreams, active chunk in Current state), then say
   the context can be cleared safely. Answers with nothing to do: TLDR first, then detail, no steps.
-- Real handoffs (3+ steps or any chunk) also get a Next Actions file pair in `next-actions/`:
-  <YYYY-MM-DD_HH-MM>-next-actions.md + an interactive self-contained .html (TLDR paragraph, then
-  reasoning with alternatives, then simple steps). Keep every dated pair - the date-time prefix
-  finds the latest - and announce both paths in chat.
+- Real handoffs (3+ steps or any chunk) also get a Next Actions file in `next-actions/`:
+  an interactive self-contained <YYYY-MM-DD_HH-MM>-next-actions.html (TLDR paragraph, then
+  reasoning with alternatives, then simple steps). Keep every dated file - the date-time prefix
+  finds the latest - and announce the path in chat.
 - Keep the project root tidy: file new screenshots / code examples / reports / next-action files
   into their subfolders; when 3+ loose files of one kind sit at root, propose a move list and tidy
   after ONE confirmation (never move source or config files silently).
@@ -63,5 +63,5 @@ Owner: <owner>. Project: <one line>. Dominant rule: <the one constraint that gov
   Actions + tidy-root bullets, and any project-specific guardrails agreed during the interview.
 - Self-heal cue (Next Actions): a block whose Hard rules have no bullet containing "Next Actions"
   predates the 2026-07-17 revision; on next touch, Curation mode inserts the two bullets above
-  (Next Actions file pair + tidy root) right after the "Summary, then Reasoning" bullet.
+  (Next Actions file + tidy root) right after the "Summary, then Reasoning" bullet.
 - If a `CLAUDE.md` already exists, this block goes at the END, leaving all prior content untouched.

@@ -1,34 +1,33 @@
-# `next-actions-template.md` - the Next Actions file pair
+# `next-actions-template.md` - the Next Actions file
 
 Read this before writing a Next Actions handoff. It defines the naming rule, the content
-structure, and the two templates (.md and interactive .html). The chat message still follows the
-Communication format (Summary / Reasoning / Steps); the file pair is an additional durable copy
-the user can open later, outside the chat.
+structure, and the interactive `.html` template. The chat message still follows the
+Communication format (Summary / Reasoning / Steps); the file is an additional durable copy the
+user can open later, outside the chat.
 
-## When a pair is written (recap; the trigger lives in SKILL.md)
+## When a file is written (recap; the trigger lives in SKILL.md)
 
 A real handoff in Action mode: about 3+ steps the user must do themselves, or ANY chunk of the
 chunking rule. Trivial asks (one command, one click) stay chat-only. Each chunk delivery gets a
-NEW pair - never overwrite or edit an earlier pair; the folder is the history.
+NEW file - never overwrite or edit an earlier one; the folder is the history.
 
 ## Location and naming
 
-Both files go in a `next-actions/` folder at the project root (create it if missing):
+The file goes in a `next-actions/` folder at the project root (create it if missing):
 
 ```
-next-actions/YYYY-MM-DD_HH-MM-next-actions.md
 next-actions/YYYY-MM-DD_HH-MM-next-actions.html
 ```
 
 `YYYY-MM-DD_HH-MM` is the creation date and time (24h, local time), e.g.
 `2026-07-17_15-40-next-actions.html`. The sortable prefix is how the user finds the latest file -
-never omit it, never reuse a previous timestamp. Keep every old pair; do not archive or delete.
+never omit it, never reuse a previous timestamp. Keep every old file; do not archive or delete.
 
-After writing both files, announce them in ONE chat line, e.g.:
-"Wrote next-actions/2026-07-17_15-40-next-actions.md + .html - open the .html in your browser to
-tick steps off as you go."
+After writing the file, announce it in ONE chat line, e.g.:
+"Wrote next-actions/2026-07-17_15-40-next-actions.html - open it in your browser to tick steps
+off as you go."
 
-## Content structure (same order in both files)
+## Content structure
 
 1. **TLDR** - one plain paragraph: what the user needs to do and why it matters right now. No
    jargon. A reader who reads only this paragraph should still know what to do.
@@ -39,34 +38,6 @@ tick steps off as you go."
 4. **Steps** - numbered, one action per step, super simple language, concrete verbs (run, open,
    click, type, look at). Where relevant, say what the user should see if it worked. Same bar as
    the chat Steps rule: "configure the connector" is a bug; spell out every click.
-
-## The .md template
-
-```markdown
-# Next Actions - <project name>
-
-> Created <YYYY-MM-DD HH:MM>. Newest file in `next-actions/` wins; older files are history.
-
-## TLDR
-
-<one plain paragraph: what to do and why it matters now>
-
-## Reasoning
-
-- **Why this is next:** <plain words>
-- **Alternatives considered:** <option A - why not; option B - why not>
-- **Why this path:** <the deciding reason>
-
-## What you need to understand
-
-<optional; delete the section if nothing needs explaining>
-
-## Steps
-
-- [ ] 1. <action>. You should see: <check>.
-- [ ] 2. <action>.
-- [ ] 3. <action>. You should see: <check>.
-```
 
 ## The .html template
 
@@ -214,7 +185,6 @@ character anywhere in the content.
 
 ## Quality bar
 
-- The .md and .html carry the SAME content; the .html adds interactivity, not extra information.
 - Steps in the file must be at least as concrete as the chat version - the file is what the user
   opens tomorrow when the chat is gone.
 - Long content still fits: the layout is single-column and readable at phone width; code snippets

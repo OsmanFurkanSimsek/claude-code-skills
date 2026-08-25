@@ -35,9 +35,9 @@
     },
     {
       "id": 4,
-      "name": "real-handoff-writes-next-actions-pair",
+      "name": "real-handoff-writes-next-actions-file",
       "prompt": "Finance approved the xlsx output. Now I have to set up the monthly delivery myself: create the shared folder, give the finance group read access, and schedule the parser with Windows Task Scheduler. I've never used Task Scheduler - walk me through all of it.",
-      "expected_output": "Delivers Action mode in chat (Summary, Reasoning, numbered Steps in super simple language) AND, because this is a real multi-step handoff, writes a Next Actions file pair in next-actions/ at the project root: <YYYY-MM-DD_HH-MM>-next-actions.md plus a same-stem .html. Both files carry TLDR paragraph first, then reasoning including alternatives considered and why this path won, then the steps; the .html is fully self-contained (inline CSS/JS, no external URLs) with an interactive step checklist. Announces both file paths in one chat line. FAILS if no file pair is written, the filenames lack the date-time prefix, the files live outside next-actions/, the TLDR is not first, or the .html loads any external resource.",
+      "expected_output": "Delivers Action mode in chat (Summary, Reasoning, numbered Steps in super simple language) AND, because this is a real multi-step handoff, writes ONE Next Actions file in next-actions/ at the project root: <YYYY-MM-DD_HH-MM>-next-actions.html. It carries TLDR paragraph first, then reasoning including alternatives considered and why this path won, then the steps; it is fully self-contained (inline CSS/JS, no external URLs) with an interactive step checklist. Announces the file path in one chat line. FAILS if no file is written, a separate .md is also written, the filename lacks the date-time prefix, the file lives outside next-actions/, the TLDR is not first, or the .html loads any external resource.",
       "files": ["fixtures/midstream-project/PROJECT.md", "fixtures/midstream-project/CLAUDE.md"],
       "expectations": []
     },
@@ -45,7 +45,7 @@
       "id": 5,
       "name": "trivial-ask-stays-chat-only",
       "prompt": "Quick one: what's the command to run the parser's tests again?",
-      "expected_output": "Answers briefly in chat (the test command, one line of context at most). Does NOT write a Next Actions file pair, does not create next-actions/, and does not deliver multi-part ceremony for a one-command ask. FAILS if any next-actions file is created or the answer balloons into a chunked step plan.",
+      "expected_output": "Answers briefly in chat (the test command, one line of context at most). Does NOT write a Next Actions file, does not create next-actions/, and does not deliver multi-part ceremony for a one-command ask. FAILS if any next-actions file is created or the answer balloons into a chunked step plan.",
       "files": ["fixtures/midstream-project/PROJECT.md", "fixtures/midstream-project/CLAUDE.md"],
       "expectations": []
     },

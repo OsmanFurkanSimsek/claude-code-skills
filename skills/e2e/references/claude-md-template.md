@@ -67,10 +67,10 @@ Owner: <owner>. Project: <one line>. Dominant rule: <the one constraint that gov
   Big work goes in chunks of 5-10 steps, ONE chunk per turn; wait for confirmation, update
   PROJECT.md first (chunk statuses in Plan / workstreams, active chunk in Current state), then say
   the context can be cleared safely. Answers with nothing to do: TLDR first, then detail, no steps.
-- Real handoffs (3+ steps or any chunk) also get a Next Actions file pair in `next-actions/`:
-  <YYYY-MM-DD_HH-MM>-next-actions.md + an interactive self-contained .html (TLDR paragraph, then
-  reasoning with alternatives, then simple steps). Keep every dated pair - the date-time prefix
-  finds the latest - and announce both paths in chat.
+- Real handoffs (3+ steps or any chunk) also get a Next Actions file in `next-actions/`:
+  an interactive self-contained <YYYY-MM-DD_HH-MM>-next-actions.html (TLDR paragraph, then
+  reasoning with alternatives, then simple steps). Keep every dated file - the date-time prefix
+  finds the latest - and announce the path in chat.
 - Keep the project root tidy: file new screenshots / code examples / reports / next-action files
   into their subfolders; when 3+ loose files of one kind sit at root, propose a move list and tidy
   after ONE confirmation (never move source or config files silently).
@@ -88,7 +88,7 @@ Owner: <owner>. Project: <one line>. Dominant rule: <the one constraint that gov
 - **Keep it thin.** Target ~one screen. CLAUDE.md is auto-loaded into every session, so length costs tokens forever. If you're tempted to add architecture decisions, conventions, or a change log here, that content belongs in **PROJECT.md** instead.
 - **The `e2e-state` marker is the single most important line.** Do not omit it. Do not reformat it. Include `track=<build|deliverable>`. Other tooling parses it. Update it every time you advance a phase or step in Phase 6 (Execute).
 - **The `<!-- live-document:start/end -->` block is required.** It is what makes maintenance self-sustaining after the e2e run and what lets the `/live-document` skill recognize the project. Fill the Owner / Project / Dominant rule / Hard rules slots from discovery. Do not delete the markers.
-- **Self-heal cue (Next Actions):** a block whose Hard rules have no bullet containing "Next Actions" predates the 2026-07-17 revision; on resume, insert the two bullets above (Next Actions file pair + tidy root) right after the "Summary, then Reasoning" bullet.
+- **Self-heal cue (Next Actions):** a block whose Hard rules have no bullet containing "Next Actions" predates the 2026-07-17 revision; on resume, insert the two bullets above (Next Actions file + tidy root) right after the "Summary, then Reasoning" bullet.
 - **The "Shipped" section is empty until Phase 12** - leave the placeholder.
 - **If the project already has a CLAUDE.md when `/e2e` starts**, merge thoughtfully: keep their existing content, add the `e2e-state` marker and the workflow contract, append the live-document block at the end if it isn't already there, and put any vision/decisions into PROJECT.md rather than bloating CLAUDE.md. Do not overwrite their content without asking.
 ```

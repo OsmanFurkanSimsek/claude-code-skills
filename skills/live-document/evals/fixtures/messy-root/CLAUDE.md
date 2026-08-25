@@ -33,10 +33,10 @@ Dominant rule: stay under the free-tier API quota (1000 calls/day); cache aggres
   Big work goes in chunks of 5-10 steps, ONE chunk per turn; wait for confirmation, update
   PROJECT.md first (chunk statuses in Plan / workstreams, active chunk in Current state), then say
   the context can be cleared safely. Answers with nothing to do: TLDR first, then detail, no steps.
-- Real handoffs (3+ steps or any chunk) also get a Next Actions file pair in `next-actions/`:
-  <YYYY-MM-DD_HH-MM>-next-actions.md + an interactive self-contained .html (TLDR paragraph, then
-  reasoning with alternatives, then simple steps). Keep every dated pair - the date-time prefix
-  finds the latest - and announce both paths in chat.
+- Real handoffs (3+ steps or any chunk) also get a Next Actions file in `next-actions/`:
+  an interactive self-contained <YYYY-MM-DD_HH-MM>-next-actions.html (TLDR paragraph, then
+  reasoning with alternatives, then simple steps). Keep every dated file - the date-time prefix
+  finds the latest - and announce the path in chat.
 - Keep the project root tidy: file new screenshots / code examples / reports / next-action files
   into their subfolders; when 3+ loose files of one kind sit at root, propose a move list and tidy
   after ONE confirmation (never move source or config files silently).

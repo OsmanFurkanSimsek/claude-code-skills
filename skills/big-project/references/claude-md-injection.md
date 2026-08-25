@@ -2,7 +2,7 @@
 
 The owner's **delta** hard-rules: the rules `live-document` does not already carry. Add these to a project's `CLAUDE.md` hard-rules list (inside the `<!-- live-document:start -->` block if present, otherwise in the project's own hard-rules section).
 
-**Insert only what is absent.** `live-document` already provides: ask-before-assuming, Summary/Reasoning/Steps chunk-delivery, Next Actions file pairs, tidy-root, and no-long-dash. Never duplicate those. Re-running `big-project` self-heals by adding only the missing bullets below.
+**Insert only what is absent.** `live-document` already provides: ask-before-assuming, Summary/Reasoning/Steps chunk-delivery, Next Actions files, tidy-root, and no-long-dash. Never duplicate those. Re-running `big-project` self-heals by adding only the missing bullets below.
 
 ## Bullets to inject
 

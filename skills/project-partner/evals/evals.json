@@ -83,9 +83,9 @@
     },
     {
       "id": 10,
-      "name": "real-handoff-writes-next-actions-pair",
+      "name": "real-handoff-writes-next-actions-file",
       "prompt": "Finance signed off on the xlsx output and confirmed the numbers are good for the clean vendors. Next I have to do a manual chore myself every month: on the 1st, regenerate the workbook and upload it to our finance SharePoint at https://contoso.sharepoint.com/sites/finance (I can already open that site fine). Walk me through setting up a recurring monthly reminder for this in classic desktop Outlook - I've never made one.",
-      "expected_output": "Delivers Action mode in chat (Summary, Reasoning, numbered Steps in super simple language) AND, because this is a real multi-step handoff with no blocking unknowns (destination, access, tool, and schedule are all given), writes a Next Actions file pair in next-actions/ at the project root: <YYYY-MM-DD_HH-MM>-next-actions.md plus a same-stem .html. Both files carry TLDR paragraph first, then reasoning including alternatives considered and why this path won, then the steps; the .html is fully self-contained (inline CSS/JS, no external URLs) with an interactive step checklist. Announces both file paths in one chat line. FAILS if no file pair is written, the filenames lack the date-time prefix, the files live outside next-actions/, the TLDR is not first, or the .html loads any external resource.",
+      "expected_output": "Delivers Action mode in chat (Summary, Reasoning, numbered Steps in super simple language) AND, because this is a real multi-step handoff with no blocking unknowns (destination, access, tool, and schedule are all given), writes ONE Next Actions file in next-actions/ at the project root: <YYYY-MM-DD_HH-MM>-next-actions.html. It carries TLDR paragraph first, then reasoning including alternatives considered and why this path won, then the steps; it is fully self-contained (inline CSS/JS, no external URLs) with an interactive step checklist. Announces the file path in one chat line. FAILS if no file is written, a separate .md is also written, the filename lacks the date-time prefix, the file lives outside next-actions/, the TLDR is not first, or the .html loads any external resource.",
       "files": ["fixtures/midstream/PROJECT.md", "fixtures/midstream/CLAUDE.md"],
       "expectations": []
     },

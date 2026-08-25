@@ -52,7 +52,7 @@ Read `references/preferences.md` in full at the start of every `big-project` ses
 - `PROJECT.md` and the thin `CLAUDE.md`: created and curated by `live-document`. `big-project` only injects hard-rules bullets, never rewrites the living doc.
 - Ordinary completing replies end with the lightweight two-step handoff block (from `references/walkthrough-and-handoff.md`).
 - An explicit "wrap up session" / "summarize before I clear" invokes `session-handoff` for the full seven-section summary.
-- Multi-step manual work for the owner gets a numbered `.md` walkthrough per `references/walkthrough-and-handoff.md`, plus `live-document`'s Next Actions file pair.
+- Multi-step manual work for the owner gets a numbered `.md` walkthrough per `references/walkthrough-and-handoff.md`, plus `live-document`'s Next Actions file.
 - Never hijack an active `e2e` or `gsd` flow; stay additive.
 
 ## When NOT to use

@@ -99,9 +99,9 @@
     },
     {
       "id": 12,
-      "name": "phase8-handoff-writes-next-actions-pair",
+      "name": "phase8-handoff-writes-next-actions-file",
       "prompt": "Step 5 is confirmed done, and the whole quality pass is green: 48 tests passing, coverage 86% lines / 74% branches, smoke test fine. Go ahead with Phase 8.",
-      "expected_output": "Flips the remaining execution rows and Phase 7 to done, bumps the marker to phase=human-playtest, and runs the Phase 8 hand-off: since taskcli is a CLI with real user-facing flows, it tells the user what to exercise AND writes a Next Actions file pair in next-actions/ (<YYYY-MM-DD_HH-MM>-next-actions.md + same-stem self-contained interactive .html; TLDR first, then reasoning with alternatives, then super-simple steps) walking the user through exercising the product and reporting OK/nit/annoying/blocker per flow. Announces the file paths, then WAITS for the user's feedback. FAILS if no dated pair is written, the pair lacks the TLDR-first structure, or it advances to Phase 9 without the user's playtest feedback.",
+      "expected_output": "Flips the remaining execution rows and Phase 7 to done, bumps the marker to phase=human-playtest, and runs the Phase 8 hand-off: since taskcli is a CLI with real user-facing flows, it tells the user what to exercise AND writes a Next Actions file in next-actions/ (<YYYY-MM-DD_HH-MM>-next-actions.html, self-contained and interactive; TLDR first, then reasoning with alternatives, then super-simple steps) walking the user through exercising the product and reporting OK/nit/annoying/blocker per flow. Announces the file path, then WAITS for the user's feedback. FAILS if no dated file is written, a separate .md is also written, the file lacks the TLDR-first structure, or it advances to Phase 9 without the user's playtest feedback.",
       "files": ["fixtures/quality-pass/CLAUDE.md", "fixtures/quality-pass/PROJECT.md"],
       "expectations": []
     },

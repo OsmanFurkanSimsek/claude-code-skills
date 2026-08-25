@@ -1,10 +1,11 @@
 # Claude Code skills
 
-Ten skills I built for [Claude Code](https://claude.com/claude-code) and use every day.
+Thirteen skills I built for [Claude Code](https://claude.com/claude-code) and use every day.
 Most are workflow skills: they change *how* the agent works on a problem, not what domain it
-works in. Two (`presentation-design`, `notion-router`) are domain skills instead, built around a
-specific kind of deliverable or tool. Nothing here is tied to a particular language, framework,
-or company.
+works in. Five (`presentation-design`, `notion-router`, `feature-triage`, `tracking-docs`,
+`life-analysis`) are domain skills instead, built around a specific kind of deliverable or tool -
+four of those ship as fill-in **templates**, because their value is a map only you can draw.
+Nothing here is tied to a particular language, framework, or company.
 
 Install what you like, ignore the rest. Each skill is a self-contained folder.
 
@@ -55,6 +56,9 @@ Not part of the pipeline above - each is a standalone skill for a specific kind 
 |---|---|---|
 | **presentation-design** | (auto) | Design principles for every deck, talk, or pitch: one idea per slide, real hard-won lessons on logos/SVGs/video embedding, typography that scales to the room, live-demo pacing, and a feedback loop that folds every correction back into the skill. Ready to use as-is. |
 | **notion-router** | (auto) | Routes incoming notes, tasks, and ideas into the right place in *your* Notion workspace, and retrieves context from it. This one is a **template**, not a ready skill - it ships with a placeholder routing table and workspace map; fork it and fill in `references/notion-map-template.md` with your own pages and databases before it does anything useful. See its own `README.md` for the adaptation steps. |
+| **feature-triage** | (auto) | Triages a planning cycle's feature requests (hundreds per quarter) for relevance to your specialty using a fleet of classifier subagents: a canary gate before any fleet spend, tiered two-pass triage, an arbitration ladder for contested rows, verification gates that distrust the subagents, and a retro loop that learns from your corrections every cycle. A **template** - fill in `references/classification-template.md` with your own relevance rules first. |
+| **tracking-docs** | (auto) | Documents analytics-tracking events for an app portfolio with a gatekeeper workflow: resolve the app from a registry, interview for the *why*, ground every parameter against what is already documented, propose the full page, write only after an explicit yes, and hard-stop after every write. A **template** - fill in `references/app-registry-template.md` with your own apps and conventions first. |
+| **life-analysis** | (auto) | Turns your personal life-tracking data in Notion into one self-contained interactive HTML report: trends, a correlation matrix, distilled journal synthesis (patterns, never chronology), and a closing "So What / Then What" mentor section with the beliefs your own data refutes. Read-only by rule. A **template** - fill in `references/data-sources-template.md` with your own databases first. |
 
 ---
 
@@ -118,13 +122,18 @@ next thing you need is at the bottom of the message where your eyes already are.
 lines added/removed, elapsed time, and the current project. Wire it up via the `statusLine` block
 in `settings.example.json`.
 
+**`backup-setup.ps1`** - snapshots your `~/.claude` essentials (skills, hooks, agents, settings,
+per-project memory) into a **private** git repo, so a dead machine costs you a clone instead of a
+rebuild. It deliberately excludes `config.json` (your API key lives there) and credential files -
+read the header comment before first use, and keep that repo private forever.
+
 ---
 
 ## Notes
 
 - **Windows-first.** I work on Windows, so the helper scripts are PowerShell and some paths use
   `%USERPROFILE%`. The skills themselves are plain Markdown and work anywhere; only `install.ps1`,
-  `sync-skills.ps1`, and `statusline.ps1` are Windows-specific.
+  `sync-skills.ps1`, `backup-setup.ps1`, and `statusline.ps1` are Windows-specific.
 - **Some skills reference each other.** `system2thinker` hands off to `live-document`;
   `big-project` delegates to `live-document`, `session-handoff`, and `e2e`; `project-partner`
   subsumes `elon` and `live-document`. They degrade gracefully if a partner skill is missing, but

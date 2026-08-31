@@ -154,6 +154,14 @@ every ID anyway - never omit one, never flip to Yes to be safe.
 the cycle) -> relevant to you (a small fraction) -> decided/committed (a fraction of that). Each
 stage is a different number; never conflate them.
 
+**A gate that a known-bad output can pass is not a gate.** Write each one so it can actually FAIL
+on the defect it exists to catch, and prove that by running it against a known-bad case once. A
+presence or substring check ("the new text appears exactly once") is the classic trap: a mangled,
+misplaced, or wrongly-encoded value satisfies it perfectly. Prefer assertions with teeth - the
+prior value survives intact as a prefix, the structure or markup count is unchanged, the new text
+starts where it should, the declared format is unchanged. And when a defect does get through, fix
+the ASSERTION, not just the instance; otherwise the next run reproduces it.
+
 ## Feedback loop - how this gets smarter every cycle
 
 Run this after the user's human review ("review done"), at least once per cycle:
@@ -179,6 +187,25 @@ The append-only failure mode is why this protocol exists: an example store that 
 corrections without removing what they contradict ends up asserting both verdicts for the same
 feature, and the classifier obeys whichever it read last. Replace, never stack. And never shrink
 the miss-scan queue to look tidy - in production it is where the real misses get caught.
+
+### Observed is not handled
+
+When a run surfaces an anomaly - "a few items behaved differently", "this one needed a workaround",
+"the output looked slightly off" - that observation is closed ONLY by one of:
+
+1. fixing it in the same session, or
+2. putting it to the user as an explicit open decision.
+
+A line in `retro_diff.md` does not close it. A reassuring footnote in a handoff document definitely
+does not close it. When a defect surfaces days later, the information needed to prevent it was
+usually in the room the whole time; what failed was the routing, not the analysis.
+
+Two rules fall out of that:
+
+- **Never state how something behaves or renders without having looked at it.** An inference
+  written in the voice of a verification ("it still renders correctly") is how a real defect
+  survives review.
+- **When a defect gets through, fix the gate, not just the instance** - see Verification gates.
 
 ## Adapting this template
 

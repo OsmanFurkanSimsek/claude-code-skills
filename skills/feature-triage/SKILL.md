@@ -144,6 +144,30 @@ into its own context - subagents fetch their own data.
    send anything. A result that updates the numbers but leaves a stale chart or an empty summary
    row is an unfinished job, not a checkpoint to ask permission at.
 
+## Drafting a follow-up message
+
+Phase A's advisory and phase B's per-owner follow-ups both end in a message a human has to send.
+Three rules, each learned by breaking it:
+
+- **Never ask what your own analysis already settled.** The easy version is "don't ask what the
+  ticket already answers" - it wastes the recipient's time and signals the ticket was not read. The
+  hard version is the same test turned on YOUR OWN findings: if the run already proved the answer,
+  that finding becomes the PREMISE of a sharper question, never the question itself. State what you
+  worked out, then ask the one thing only they know.
+- **A link must already answer what the message claims it answers.** Before citing a documentation
+  page, open it and confirm it contains the thing being cited. Write the documentation FIRST, then
+  send the message that links it. A link to a page that does not hold the answer costs the
+  recipient's time and your credibility at once.
+- **Show the draft as plain text, not a blockquote.** A draft exists to be copied out of the
+  terminal and pasted somewhere else; blockquote markers render as a bar down the left of every
+  line and get selected along with the text. Use plain paragraphs between horizontal rules - no
+  `>`, no bullet markers, no leading spaces, no code fence - in chat AND in the run file. Quoting a
+  message already SENT, as a historical record, is fine; a draft someone still has to copy is not.
+
+All three run on the OUTGOING message, not only on the human's draft of it. The observed failure
+mode was stating these rules while critiquing someone's draft and then breaking them in the
+replacement.
+
 ## Classifier subagent contract (dispatch prompt template)
 
 > You classify <cycle> feature requests for <your specialty> relevance. Read
@@ -185,9 +209,22 @@ stage is a different number; never conflate them.
 on the defect it exists to catch, and prove that by running it against a known-bad case once. A
 presence or substring check ("the new text appears exactly once") is the classic trap: a mangled,
 misplaced, or wrongly-encoded value satisfies it perfectly. Prefer assertions with teeth - the
-prior value survives intact as a prefix, the structure or markup count is unchanged, the new text
-starts where it should, the declared format is unchanged. And when a defect does get through, fix
-the ASSERTION, not just the instance; otherwise the next run reproduces it.
+prior value survives intact as a prefix, the markup or structure count moves by EXACTLY what the
+change should add and nothing is removed, the new text starts where it should, the declared format
+is unchanged. And when a defect does get through, fix the ASSERTION, not just the instance;
+otherwise the next run reproduces it.
+
+**The mirror-image failure: a gate a CORRECT output cannot pass is just as broken.** Assert a
+DELTA, not sameness. "The markup count is unchanged" sounds strict and is wrong the moment the
+right fix legitimately adds markup - it then blocks the correct answer, and a check that blocks the
+correct answer teaches whoever hits it to switch it off. Give every assertion a pass band that the
+intended change fits and the known defect does not.
+
+**A declared format is a CLAIM; the content is the EVIDENCE.** Metadata about what a field holds -
+a format flag, a content type, a column type - can disagree with the bytes actually in it, and when
+they disagree the content wins. Read the flag, then LOOK at the value and mirror what is really
+there. Writing markdown into a field that reports "markdown" but contains a wall of markup produces
+a correctly-declared, visibly-broken result.
 
 ## Feedback loop - how this gets smarter every cycle
 

@@ -71,6 +71,14 @@ write process if the user then explicitly asks to change something.
    - Search the app's existing event pages for parameters that already cover what this event
      needs, and reuse them verbatim - don't create a synonym for an established name.
    - Treat a parameter as genuinely new only if nothing documented fits.
+   - **Express a new DIMENSION through the keys you already have before minting one.** A proposed
+     key like `license_type` almost always fits the existing vocabulary: the which-action key, the
+     what-the-user-chose key (which may legitimately carry two facts comma separated, e.g.
+     `'30 days, licensed'`), or the which-surface-fired-it key. Prefer a fact that is already
+     implicit - an event that only ever fires in the un-licensed state needs no licence key - or
+     one that already exists downstream, such as a warehouse column recording it for every paid
+     action, over a parameter that restates it. Reusing an existing key with a NEW VALUE never
+     needs approval; a new key is a last resort and still does.
    - **If a genuinely new parameter is needed, stop and ask permission before including it**:
      list each one (name + one-line meaning + why nothing existing fits), show which existing
      parameters you ARE reusing, and wait for confirmation. Approval of the overall event is NOT
@@ -109,6 +117,13 @@ the result into your registry's per-app notes where they differ by app:
   parameter (`start` / `success` / `fail` / `opt-in` / `opt-out`...), with `subtype` for context
   within a type. Do not mint a new event name per step. A `fail` always carries a descriptive
   failure reason sourced from the real error, not a placeholder.
+- **Generic events are reused, never re-invented.** Some events are deliberately documented as
+  shared across the whole app - an export, a list sort, a column-visibility change, a filter. A new
+  surface reuses the event and adds a new value to its which-surface-fired-it parameter; a
+  surface-specific variant of a generic event is a defect, not a design choice, and the generic
+  page should say so in its own text. The converse also holds: before reusing a name, check what it
+  already MEANS in your docs - a name established for one purpose collides if you stretch it over a
+  second.
 - **One error field, not two**: pick one canonical failure parameter and never emit two synonyms
   on the same event.
 - **Core context parameters**: define the small set every event carries (product/device

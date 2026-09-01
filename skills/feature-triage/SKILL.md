@@ -31,6 +31,16 @@ your corrections.
 4. Recall-first: uncertainty = `No` + `Confidence: Low` (which surfaces in the human miss-scan
    queue), never a silent drop. Errors become `No / Low / "review manually"` rows.
 5. Echo the resolved cycle name + phase and get the user's confirmation BEFORE querying anything.
+6. **Do the mode's whole job, and nothing outside it - without asking either way.** Two failures,
+   opposite directions, same root:
+   - *Too much*: re-pulling or re-classifying items nobody asked about. Anything outside the
+     current mode's step list is OUT OF SCOPE, not an offer - do not do it and do not ask about it.
+   - *Too little*: finishing part of a mode's checklist (e.g. updating a table but leaving a
+     summary figure or chart stale) and stopping to ask whether to finish. Every step in the
+     mode's list is mandatory and runs unprompted; a half-updated result is a defect, not a
+     checkpoint.
+   The test before reporting done: is every line of the mode's definition-of-done ticked, and did
+   anything happen that is not in the list? Both answers must be clean.
 
 ## Files
 
@@ -107,15 +117,32 @@ into its own context - subagents fetch their own data.
 
 ## Phase B workflow (post-decision)
 
+> **Phase B is a lookup, not a re-run.** Items were already classified in phase A and reviewed by
+> a human. Phase B reads the one extra field that records the decision outcome for rows that
+> already exist, and finishes the result. No classification runs in phase B - ever. No canary
+> gate, no subagents, no triage.
+>
+> **The cutoff closes the list.** Items that join the cycle AFTER the phase-A pull are OUT OF
+> SCOPE for that cycle, full stop - do not pull them, do not classify them, do not offer to. They
+> come back on their own in the next cycle's phase-A pull if they still carry a request. The
+> "everything minus what phase A pulled" set is not a to-do list; it is not even worth computing
+> beyond a single count kept for the record.
+
 1. Confirm the cycle + that the decision outcome is visible. Locate phase-A state.
 2. Pull both sets: all items, and the prioritized/committed subset.
-3. **New items** since phase A -> classify via the same pipeline (canary gate only if the rules
-   changed). Append the Yes rows; date-tag new Low-No rows in the miss-scan section.
-4. **Decision flags**: for every existing row, set prioritized True/False by ID membership. Touch
-   nothing else. Verify the flagged count equals the intersection.
-5. **Watch list**: relevant-but-not-prioritized rows -> a "watch next cycle" list.
-6. Update the funnel, refresh the advisory to the prioritized set, write `report_b.md`, hand off.
-   Any per-owner follow-up messages are DRAFTS only - never send anything.
+3. **Decision flags**: for every existing row, set prioritized True/False by ID membership. Touch
+   nothing else. Verify the flagged count equals the intersection, and diff every other column
+   against a pre-run snapshot to prove nothing else moved. An item with no recorded decision
+   counts as NOT prioritized - don't leave it blank.
+4. **Filter the working view** down to relevant-and-prioritized (keep an unfiltered view too, as
+   the safety net).
+5. **Watch list**: relevant-but-not-prioritized rows -> a "watch next cycle" list, grouped by why
+   (decided No / no decision recorded / moved to a later cycle).
+6. **Finish the result completely, without asking**: the funnel with updated counts and ratio, any
+   chart or figure that visualizes it (regenerated, not left stale), the advisory re-scoped to the
+   prioritized set, and `report_b.md`. Any per-owner follow-up messages are DRAFTS only - never
+   send anything. A result that updates the numbers but leaves a stale chart or an empty summary
+   row is an unfinished job, not a checkpoint to ask permission at.
 
 ## Classifier subagent contract (dispatch prompt template)
 

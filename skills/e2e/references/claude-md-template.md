@@ -42,22 +42,23 @@ The real, single source of truth is `PROJECT.md` in this same folder.
 Owner: <owner>. Project: <one line>. Dominant rule: <the one constraint that governs every change>.
 
 ### Do this every session, without being told
-1. Read `PROJECT.md` in full BEFORE acting. The user should never have to ask you to.
-2. After meaningful work, update `PROJECT.md` by RECONCILING it, not appending to it: rewrite the
-   sections the work touched (Current state always; a new durable choice REPLACES the decision it
-   supersedes in Decisions locked; an answered Open question is deleted, its answer folded into a
-   decision). Change log = milestones only, 1-3 lines each (what shipped + commit + outcome, never
-   verification narratives or review blow-by-blow); when adding an entry, compact any older entry
-   still over 3 lines - by then its durable content lives in Decisions/Lessons, not in the log.
-3. Lock the feedback: when the user corrects course or something fails, record what was tried,
-   what failed, and the lesson in Lessons (deduped).
+1. The SessionStart hook injects `PROJECT.md` Tier 1 (goal, scope, the Map, current state, open
+   questions, decisions index). Read a Tier 2 section (Plan, Change log, Lessons, Research notes,
+   Execution plan) when the task touches it, and ALWAYS before editing `PROJECT.md`.
+2. After meaningful work, update `PROJECT.md` by RECONCILING it, not appending to it: Current
+   state always; a new durable choice REPLACES the one it supersedes in Decisions locked (rule +
+   who/when + pointer, max 4 lines); an answered Open question is deleted and folded into a
+   decision. Change log = milestones only, one entry per date, 1-3 lines each, entries older than
+   14 days shrink to 1 line.
+3. Lock the feedback - home rule: a project lesson's full story goes to `PROJECT.md` Lessons (max
+   8 lines) and its memory file is a pointer; an owner preference goes to memory in full. Never two
+   stories of one lesson. Keep the Map current whenever a file or folder is added, moved, or archived.
 4. Before saving, sweep the whole file: delete or merge everything now redundant, resolved, stale,
-   or duplicated. PROJECT.md is re-read in full every session, so every stale line is paid for on
-   every read. Tripwire: Change log over ~30 lines, any entry over 3 lines, or an append-only
-   diff - compact in THIS edit, not later. Deleting a line that no longer earns its place is
-   REQUIRED maintenance, not data loss (real decisions and lessons are compacted or moved, never
-   dropped). One source of truth; never create a second tracking file (PROJECT.md is the only
-   tracker; its Execution plan section carries execution state).
+   or duplicated - a line may leave only when its home is named and exists. Tripwires are enforced
+   by hooks: the lint blocks a malformed `PROJECT.md` write, the Stop gate will not end a turn that
+   edited project files until `PROJECT.md` is reconciled and lints clean, and one compaction is
+   held while a reconcile is pending. One source of truth; never a second tracking file (the
+   Execution plan section carries execution state).
 
 ### Hard rules
 - Dominant constraint: <restate the one rule that governs every decision>.
@@ -80,7 +81,8 @@ Owner: <owner>. Project: <one line>. Dominant rule: <the one constraint that gov
 
 ## Shipped (filled in at Phase 12)
 
-<!-- Phase 12 appends here -->
+<!-- Phase 12 writes TWO lines here: "Concluded <date>." and "What shipped and the current state
+live in PROJECT.md, Current state and next action." CLAUDE.md never carries project state. -->
 ```
 
 ## Notes for the writer (i.e., the calling skill)
@@ -89,6 +91,7 @@ Owner: <owner>. Project: <one line>. Dominant rule: <the one constraint that gov
 - **The `e2e-state` marker is the single most important line.** Do not omit it. Do not reformat it. Include `track=<build|deliverable>`. Other tooling parses it. Update it every time you advance a phase or step in Phase 6 (Execute).
 - **The `<!-- live-document:start/end -->` block is required.** It is what makes maintenance self-sustaining after the e2e run and what lets the `/live-document` skill recognize the project. Fill the Owner / Project / Dominant rule / Hard rules slots from discovery. Do not delete the markers.
 - **Self-heal cue (Next Actions):** a block whose Hard rules have no bullet containing "Next Actions" predates the 2026-07-17 revision; on resume, insert the two bullets above (Next Actions file + tidy root) right after the "Summary, then Reasoning" bullet.
-- **The "Shipped" section is empty until Phase 12** - leave the placeholder.
+- **The "Shipped" section is empty until Phase 12** - leave the placeholder; at Phase 12 it becomes a two-line pointer, never a summary (a summary here goes stale and duplicates PROJECT.md).
+- **Self-heal cue (home rule, 2026-09-02):** a block whose items 1-4 lack the phrase "home rule" predates the two-tier / hooks revision; on resume, replace items 1-4 with the current ones above.
 - **If the project already has a CLAUDE.md when `/e2e` starts**, merge thoughtfully: keep their existing content, add the `e2e-state` marker and the workflow contract, append the live-document block at the end if it isn't already there, and put any vision/decisions into PROJECT.md rather than bloating CLAUDE.md. Do not overwrite their content without asking.
 ```

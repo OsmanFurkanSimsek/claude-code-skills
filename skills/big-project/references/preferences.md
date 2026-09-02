@@ -20,7 +20,7 @@ The step list is **live across the conversation**, not a per-message artifact: i
 
 Every chat reply that completes work ends with, filled in:
 
-> 1. You can clear the context NOW. Everything important is saved in PROJECT.md and `<the live walkthrough file>`.
+> 1. You can clear the context NOW. Everything important is saved in PROJECT.md, memory, the skill files, and `<the live walkthrough file>`.
 > 2. Start a fresh session and paste exactly this message:
 > `<the exact paste-ready kickoff message for the next agent>`
 
@@ -76,15 +76,15 @@ Before any long or expensive run, tell the owner how long you expect it to take.
 
 ## 9. Save feedback to memory the same turn
 
-When the owner gives a correction or something fails, write it to a durable feedback memory immediately - what was tried, what failed, the lesson.
+When the owner gives a correction or something fails, persist it immediately under the home rule: a project lesson's full story goes to `PROJECT.md` Lessons (max 8 lines) and its memory file is a pointer (frontmatter + Why/How-to-apply + "Full story: PROJECT.md § Lessons › <title>"); an owner preference about how to work goes to memory in full. Never two stories of one lesson.
 
-**Why:** a correction that is not persisted gets repeated, which erodes trust.
+**Why:** a correction that is not persisted gets repeated, which erodes trust - and a correction persisted twice drifts.
 
 ## 10. Single source of truth, reconcile not append
 
-One living `PROJECT.md`, re-read in full each session; edits rewrite and delete stale lines rather than pile on. Never a second tracking file.
+One living `PROJECT.md` in two tiers: Tier 1 (goal, scope, the Map, current state, open questions, decisions index) is injected every session by the SessionStart hook under a hard budget; Tier 2 (plan, change log, lessons in full, research notes) is read on demand and may grow. Edits rewrite and delete stale lines rather than pile on, but a line leaves only when its home is named and exists; the Map stays current with every move or archive. Never a second tracking file. The PROJECT.md hooks enforce this.
 
-**Why:** every stale line is paid for on every read.
+**Why:** more context beats no context, but bloat loses to optimal context - and every Tier 1 line is paid for on every read.
 
 **How to apply:** this is owned by the `live-document` skill - delegate to it and follow its update algorithm.
 

@@ -28,7 +28,7 @@ Use for any work the owner must do himself. **The walkthrough IS `live-document`
 1. ...
 
 ## Context handoff (per the standing rule)
-1. You can clear the context NOW. Everything important is saved in PROJECT.md and this file.
+1. You can clear the context NOW. Everything important is saved in PROJECT.md, memory, the skill files, and this file.
 2. Start a fresh session and paste exactly this message:
    > <exact paste-ready kickoff message for the next agent>
 ```
@@ -42,7 +42,7 @@ Use for any work the owner must do himself. **The walkthrough IS `live-document`
 Every chat reply that finishes work ends with this, filled in. It also closes every walkthrough file, but the file alone is not enough - the block must be the end of the chat reply itself.
 
 ```markdown
-1. You can clear the context NOW. Everything important is saved in PROJECT.md and <the live walkthrough file>.
+1. You can clear the context NOW. Everything important is saved in PROJECT.md, memory, the skill files, and <the live walkthrough file>.
 2. Start a fresh session and paste exactly this message:
    > <exact paste-ready kickoff message for the next agent>
 ```
@@ -50,9 +50,9 @@ Every chat reply that finishes work ends with this, filled in. It also closes ev
 ### Filled example
 
 ```markdown
-1. You can clear the context NOW. Everything important is saved in PROJECT.md and `next-actions/2026-07-22_15-30-next-actions.html`.
+1. You can clear the context NOW. Everything important is saved in PROJECT.md, memory, the skill files, and `next-actions/2026-07-22_15-30-next-actions.html`.
 2. Start a fresh session and paste exactly this message:
-   > Continue the project in this folder. Read PROJECT.md in full, then open the newest file in `next-actions/`. We just finished mapping source B's columns onto the existing model; the next action is the capped 500-row validation run described in Part C of that walkthrough. Predict the run time before I start it.
+   > Continue the project in this folder. The hook injected PROJECT.md Tier 1; read its Lessons and Change log, then open the newest file in `next-actions/`. We just finished mapping source B's columns onto the existing model; the next action is the capped 500-row validation run described in Part C of that walkthrough. Predict the run time before I start it.
 ```
 
 ### What makes the kickoff message good

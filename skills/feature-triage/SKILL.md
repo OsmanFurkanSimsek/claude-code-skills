@@ -195,8 +195,17 @@ once in phase A, append to them here, and never reconstruct either from your doc
 ## Drafting a follow-up message
 
 Phase A's advisory and phase B's per-owner follow-ups both end in a message a human has to send.
-Three rules, each learned by breaking it:
+Four rules, each learned by breaking it:
 
+- **Match message altitude to what the recipient already knows.** A first-round message to an owner
+  who has not seen the analysis yet earns real per-item questions: what is genuinely unknown, where
+  the data will live and whether you get access, what ships this cycle versus what is only a
+  foundation. Implementation detail (exact toggles, counting semantics, audit-log location) stays in
+  the tracker, not the message - cut it even from an otherwise-good draft. Once you have personally
+  reviewed the item with that owner (a call, a prior round), the message drops an altitude level
+  again: one plain status line per item ("already planned", "on/off setting, tracked like the rest",
+  "spec coming"), at most one or two real open questions, no proposal, no ownership question. Group
+  identical statuses under one line instead of repeating the same sentence per item.
 - **Never ask what your own analysis already settled.** The easy version is "don't ask what the
   ticket already answers" - it wastes the recipient's time and signals the ticket was not read. The
   hard version is the same test turned on YOUR OWN findings: if the run already proved the answer,

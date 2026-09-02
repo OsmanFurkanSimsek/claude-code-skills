@@ -14,11 +14,11 @@ The owner's **delta** hard-rules: the rules `live-document` does not already car
 - Ship each code iteration as a NEW numbered file the owner swaps in (`..._v3.py`, never in-place); move retired versions to `superseded/`. QA shows ALL processed rows as in-place display grids, never extra tables or exported files.
 - No long comment header at the top of a code file: top = a few lines max; every explanatory or version note sits next to (or below) the code section it concerns.
 - Predict run duration before any long or expensive run (use a measured rate when one exists); record the measured actual afterward.
-- Save feedback to memory the same turn: when the owner corrects course or something fails, record what was tried, what failed, and the lesson.
+- Save feedback the same turn, under the home rule: a project lesson's full story goes to PROJECT.md Lessons and its memory file is a pointer; an owner preference goes to memory in full. Never two stories of one lesson.
 - Smallest viable change first: row caps, stage toggles, and capped runs against a playground before any full or production run; production is a one-line switch flipped only after approval.
 - No guesswork: facts that feed a deliverable (mappings, categories, numbers) come from real data or an authoritative source, never asserted from model memory.
 - Division of labor: the agent plans and writes code/artifacts as files; the owner executes in his environment and reports results back. Assume no direct access to that environment.
-- Context-handoff rule - follow it LITERALLY: EVERY chat reply that completes work must END with this filled-in block: "1. You can clear the context NOW. Everything important is saved in PROJECT.md and <the live walkthrough file>. 2. Start a fresh session and paste exactly this message:" followed by the exact paste-ready kickoff message for the next agent. The block closes the reply itself, not only the walkthrough file.
+- Context-handoff rule - follow it LITERALLY: EVERY chat reply that completes work must END with this filled-in block: "1. You can clear the context NOW. Everything important is saved in PROJECT.md, memory, the skill files, and <the live walkthrough file>. 2. Start a fresh session and paste exactly this message:" followed by the exact paste-ready kickoff message for the next agent. The block closes the reply itself, not only the walkthrough file.
 ```
 
 ## Applying the payload

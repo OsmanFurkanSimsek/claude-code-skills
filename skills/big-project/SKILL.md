@@ -1,6 +1,6 @@
 ---
 name: big-project
-description: Use when the owner types /big-project, or is starting or resuming a substantial multi-session project and wants it run the way he likes to work - "set this up the way I like", "run this like my big projects", "my usual way of working", "apply my working style". Applies the owner's durable working-style profile (Summary/Why/What-you-should-do answer format; the two-step context-handoff block that ends every completing reply; no unilateral owner decisions; .md timestamped-superseding walkthroughs; numbered one-action steps; versioned code + full QA; predict-run-duration; save-feedback-to-memory same turn; validate-in-a-playground first; assistant-plans / owner-executes division of labor). Composes with live-document (PROJECT.md + CLAUDE.md), session-handoff (clear-time summary), and e2e (full rigor), and DELEGATES their machinery instead of re-implementing it. Do NOT use for one-off edits, bug fixes, quick lookups, or a single small change.
+description: Use when the owner types /big-project, or is starting or resuming a substantial multi-session project and wants it run the way he likes to work - "set this up the way I like", "run this like my big projects", "my usual way of working", "apply my working style". Applies the owner's durable working-style profile (Summary/Why/What-you-should-do answer format; the two-step context-handoff block that ends every completing reply; no unilateral owner decisions; one dated HTML Next Actions walkthrough per handoff, never a .md twin; numbered one-action steps; versioned code + full QA; predict-run-duration; save-feedback-to-memory same turn; validate-in-a-playground first; assistant-plans / owner-executes division of labor). Composes with live-document (PROJECT.md + CLAUDE.md), session-handoff (clear-time summary), and e2e (full rigor), and DELEGATES their machinery instead of re-implementing it. Do NOT use for one-off edits, bug fixes, quick lookups, or a single small change.
 ---
 
 # big-project
@@ -30,7 +30,7 @@ Read `references/preferences.md` in full at the start of every `big-project` ses
    - No living doc and the owner wants full rigor -> tell him `/e2e` is the heavier path and let him choose; the profile still applies on top.
    - No living doc, normal path -> invoke `Skill(live-document)` to scaffold `PROJECT.md` + the thin `CLAUDE.md`. Do not write those files yourself.
    - Living doc already present -> layer on top only; touch nothing the `live-document` or `e2e` marker owns.
-3. **Inject the owner's delta into the project `CLAUDE.md`.** Apply the hard-rules bullets and the two-step handoff block from `references/claude-md-injection.md` into the project's hard-rules list. **Insert only what is absent** - `live-document` already carries ask-before-assuming, Summary/Reasoning/Steps, Next Actions pairs, tidy-root, and no-long-dash, so never duplicate those. Re-running the skill self-heals: it adds only missing rules.
+3. **Inject the owner's delta into the project `CLAUDE.md`.** Apply the hard-rules bullets and the two-step handoff block from `references/claude-md-injection.md` into the project's hard-rules list. **Insert only what is absent** - `live-document` already carries ask-before-assuming, Summary/Reasoning/Steps, the single Next Actions HTML file, tidy-root, and no-long-dash, so never duplicate those. Re-running the skill self-heals: it adds only missing rules.
 4. **Announce** in one line what was injected, then follow the profile for the rest of the session.
 
 ## Always-on enforcement (short list; full list in `references/preferences.md`)
@@ -52,7 +52,7 @@ Read `references/preferences.md` in full at the start of every `big-project` ses
 - `PROJECT.md` and the thin `CLAUDE.md`: created and curated by `live-document`. `big-project` only injects hard-rules bullets, never rewrites the living doc.
 - Ordinary completing replies end with the lightweight two-step handoff block (from `references/walkthrough-and-handoff.md`).
 - An explicit "wrap up session" / "summarize before I clear" invokes `session-handoff` for the full seven-section summary.
-- Multi-step manual work for the owner gets a numbered `.md` walkthrough per `references/walkthrough-and-handoff.md`, plus `live-document`'s Next Actions file.
+- Multi-step manual work for the owner gets exactly ONE file: `live-document`'s interactive `next-actions/<YYYY-MM-DD_HH-MM>-next-actions.html`. Its content follows the walkthrough outline in `references/walkthrough-and-handoff.md`. Never a `.md` twin, never a separate `NEXT STEPS ... .md` (owner, 2026-09-02: "HTML files are enough").
 - Never hijack an active `e2e` or `gsd` flow; stay additive.
 
 ## When NOT to use

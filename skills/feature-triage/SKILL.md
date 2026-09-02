@@ -41,6 +41,11 @@ your corrections.
      checkpoint.
    The test before reporting done: is every line of the mode's definition-of-done ticked, and did
    anything happen that is not in the list? Both answers must be clean.
+   **Corollary: the fix for "too much" is a narrower mode, never a blind spot.** A scope-limiting
+   rule must name the exact dimension that caused the waste. Narrowing along the wrong dimension -
+   a date instead of a decision, a folder instead of an owner - can turn a spend problem into a
+   silent recall hole while looking like the same fix. See the Phase B cutoff rule below for a
+   worked example of exactly that mistake and its correction.
 
 ## Files
 
@@ -122,11 +127,23 @@ into its own context - subagents fetch their own data.
 > already exist, and finishes the result. No classification runs in phase B - ever. No canary
 > gate, no subagents, no triage.
 >
-> **The cutoff closes the list.** Items that join the cycle AFTER the phase-A pull are OUT OF
-> SCOPE for that cycle, full stop - do not pull them, do not classify them, do not offer to. They
-> come back on their own in the next cycle's phase-A pull if they still carry a request. The
-> "everything minus what phase A pulled" set is not a to-do list; it is not even worth computing
-> beyond a single count kept for the record.
+> **The cutoff closes the list - for undecided late arrivals only.** A scope-limiting rule must
+> name the dimension it actually limits, not a proxy for it. The intuitive version - "anything that
+> joins the cycle after the phase-A pull is out of scope, full stop" - uses the wrong dimension
+> (the calendar date) and can silently hide items that matter: a late arrival that gets DECIDED
+> (prioritized, approved, funded - whatever your decision field is) is committed work someone is
+> about to build, and an undetected decided item is exactly the silent miss the recall-first rule
+> exists to prevent. The line runs along the DECISION, not the calendar:
+>
+> - A late arrival that is **NOT decided** is out of scope for the cycle, full stop - it returns on
+>   its own in next cycle's phase-A pull. Never bulk-classify these, never offer to.
+> - A late arrival that **IS decided** must be evaluated. That is the **Delta check** below, and it
+>   runs on its own, unprompted.
+>
+> What stays banned is what the cutoff rule was actually protecting against: re-classifying
+> anything already recorded, and dragging the whole late-arrival pool through the fleet. Phase B
+> itself still classifies nothing - the Delta check that runs ahead of it does, on the decided gap
+> only.
 
 1. Confirm the cycle + that the decision outcome is visible. Locate phase-A state.
 2. Pull both sets: all items, and the prioritized/committed subset.
@@ -143,6 +160,37 @@ into its own context - subagents fetch their own data.
    prioritized set, and `report_b.md`. Any per-owner follow-up messages are DRAFTS only - never
    send anything. A result that updates the numbers but leaves a stale chart or an empty summary
    row is an unfinished job, not a checkpoint to ask permission at.
+
+## Delta check (step 0 of every mode, and whenever asked "what changed since...")
+
+Item lists keep growing after the phase-A pull - new requests don't stop arriving just because the
+deadline passed. A mode that assumes the phase-A pull is still current is working from a stale
+list, and if a newcomer gets decided before anyone notices, that is a silent recall miss.
+
+1. **Snapshot.** Pull both sets again (all items; decided/committed items) and save dated snapshot
+   files (`runs/<cycle>/snapshots/<date>_all.txt`, `..._decided.txt`).
+2. **Diff** against a running register of everything ever judged this cycle, and report before
+   spending anything: `new` (never seen before), `gap` (decided but never judged - the only set
+   that gets classified), `left` (was in the register, no longer in the pull), and `kept_but_gone`
+   (`left` intersected with your relevant list - name these individually; an item the user is
+   actively working on must never vanish silently).
+3. **Canary gate** - this mode classifies, so the gate applies (unlike phase B, which classifies
+   nothing).
+4. **Classify the `gap` at full detail - no title-triage pass.** The set is small (tens, not
+   hundreds); triage exists to save reading at scale and buys nothing here, while recall-first says
+   read the description.
+5. **Gates**, same as phase A: batch ID diff (read the written JSONL, never trust a summary line),
+   consistency pass, arbitration pass on contested rows, spot check.
+6. **Register.** Append every classified row (`source: delta-<date>`). Append undecided newcomers
+   with a null verdict and a "seen, not evaluated" source so they don't resurface every day.
+7. **Write results**: new relevant rows join the SAME table as phase-A rows, tagged with when they
+   were added (not when the ticket was created); funnel counts and any chart updated; `kept_but_gone`
+   named on the page.
+8. **Report** and reconcile project state.
+
+A permanent per-cycle register (`{id, verdict, confidence, evaluated_on, source}`) plus dated
+snapshot files from every pull are what make "today vs. yesterday" answerable at all - build them
+once in phase A, append to them here, and never reconstruct either from your docs destination.
 
 ## Drafting a follow-up message
 
@@ -200,6 +248,7 @@ every ID anyway - never omit one, never flip to Yes to be safe.
 | Yes-rate plausibility | final Yes % sits in the band your history predicts | far above: the fleet is rescuing borderline items - inspect before writing. Far below: first check whether one large out-of-scope family explains it, then inspect the Low-No queue |
 | spot check | at most 1 in 10 disagrees | send every disagreement through the arbitration pass first; show the user only what the ladder cannot settle |
 | output counts | destination rows == Yes; miss-scan == Low-No | insert the missing rows by ID |
+| register completeness | the running register has no duplicate IDs, and its row count == phase-A count + every delta appended since | rebuild the register from the classified JSONL files; never from the docs destination |
 
 **The three-stage funnel** (keep the magnitudes in mind all run long): requested (everything in
 the cycle) -> relevant to you (a small fraction) -> decided/committed (a fraction of that). Each

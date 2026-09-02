@@ -6,12 +6,10 @@ Two templates the profile relies on: the numbered walkthrough (rule 5) and the t
 
 ## 1. Walkthrough template
 
-Use for any work the owner must do himself. File name: `NEXT STEPS YYYY-MM-DD HHMM - <topic>.md`, placed in the project's walkthrough folder (for example `next steps/` or `next-actions/`). When a newer walkthrough supersedes this one, add the `> SUPERSEDED` banner to the top of the old file - do not edit its steps.
+Use for any work the owner must do himself. **The walkthrough IS `live-document`'s Next Actions file**: one interactive, self-contained `next-actions/<YYYY-MM-DD_HH-MM>-next-actions.html` per handoff (HTML template in `live-document/references/next-actions-template.md`). Never write a `.md` twin next to it and never a separate `NEXT STEPS ... .md` - the owner retired that naming on 2026-09-02 ("Why do you create both MD and HTML for Next Actions? ... HTML files are enough."). Every handoff gets a NEW dated file; keep every old one - the date-time prefix says which is live, so no SUPERSEDED banner is needed. The outline below is the CONTENT the HTML carries, in this order.
 
 ```markdown
-> SUPERSEDED YYYY-MM-DD HHMM by "NEXT STEPS ... - <newer topic>.md"   (only on retired files)
-
-# NEXT STEPS YYYY-MM-DD HHMM - <topic>
+# <topic> - YYYY-MM-DD HH:MM
 
 ## Summary (plain words)
 <1-2 sentences: what we are doing.>
@@ -52,9 +50,9 @@ Every chat reply that finishes work ends with this, filled in. It also closes ev
 ### Filled example
 
 ```markdown
-1. You can clear the context NOW. Everything important is saved in PROJECT.md and "next steps/NEXT STEPS 2026-07-22 1530 - wire source B into the model.md".
+1. You can clear the context NOW. Everything important is saved in PROJECT.md and `next-actions/2026-07-22_15-30-next-actions.html`.
 2. Start a fresh session and paste exactly this message:
-   > Continue the project in this folder. Read PROJECT.md in full, then open the newest file in "next steps/". We just finished mapping source B's columns onto the existing model; the next action is the capped 500-row validation run described in Part C of that walkthrough. Predict the run time before I start it.
+   > Continue the project in this folder. Read PROJECT.md in full, then open the newest file in `next-actions/`. We just finished mapping source B's columns onto the existing model; the next action is the capped 500-row validation run described in Part C of that walkthrough. Predict the run time before I start it.
 ```
 
 ### What makes the kickoff message good

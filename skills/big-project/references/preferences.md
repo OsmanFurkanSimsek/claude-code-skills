@@ -36,13 +36,13 @@ Names (of tables, files, artifacts), where data lands, and whether to create a t
 
 **How to apply:** propose 2-5 concrete options with trade-offs and ask. Surface any inferred premise before writing code.
 
-## 4. Deliverables as `.md`, never `.txt`; timestamped, superseding walkthroughs
+## 4. Deliverables as `.md`, never `.txt`; the handoff walkthrough is ONE HTML file
 
-Anything the owner reads or acts on is a Markdown file. Name action docs `NEXT STEPS YYYY-MM-DD HHMM - <topic>.md`; the newest timestamp is the live one, and every older file gets a `> SUPERSEDED ...` banner at the top. `.txt` is only ever a raw copy-paste code payload referenced from an `.md`.
+Anything the owner READS (run reports, analyses, tracking plans) is a Markdown file; `.txt` is only ever a raw copy-paste code payload referenced from an `.md`. The one exception is the handoff walkthrough: it is `live-document`'s single interactive `next-actions/<YYYY-MM-DD_HH-MM>-next-actions.html`, never a `.md` twin and never a separate `NEXT STEPS ... .md` (the owner retired that naming on 2026-09-02: "Why do you create both MD and HTML for Next Actions? ... HTML files are enough."). The newest date-time prefix is the live one; no SUPERSEDED banner.
 
-**Why:** `.md` renders readably; the timestamp makes "which one is current" unambiguous at a glance.
+**Why:** `.md` renders readably for reports; the HTML walkthrough is interactive (tick-off steps, copy buttons), and one file per handoff keeps the folder unambiguous. Two files with the same content were pure double production.
 
-**How to apply:** keep every old dated file (the folder is the history); never edit an old walkthrough in place, write a new dated one and banner the old.
+**How to apply:** keep every old dated file (the folder is the history); never edit an old walkthrough in place, write a new dated HTML.
 
 ## 5. Numbered, one-action-per-step walkthroughs
 

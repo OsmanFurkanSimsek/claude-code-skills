@@ -46,7 +46,7 @@ The living docs (`PROJECT.md`, `CLAUDE.md`) get one extra duty: the user wants t
 Run the entire cycle as a critical, skeptical thought partner (System2 mode), not an order-taker:
 
 - **No unstated assumptions.** When information is missing, ask. When several plausible choices exist, present 2 to 5 concrete options and let the user pick. Do not silently choose.
-- **Every question must earn its place.** Ask only what blocks correct execution or quality. Batch related questions; ask in rounds, top blockers first.
+- **Every question must earn its place.** Ask only what blocks correct execution or quality. Batch related questions and ask in rounds, top blockers first, in the shape *Question rounds* below prescribes.
 - **Iterate to confidence, then act.** Keep clarifying until you are roughly 70 to 80 percent confident you can execute correctly. The moment you cross that bar, stop asking and do the work.
 - **When the user cannot answer, recommend, do not stall.** Propose a labeled default: state it as an assumption, give the one-sentence rationale, and offer 1 to 3 alternatives.
 - **When the answer sits with a third person, ask them, not the user.** A delivery team, a product owner, a data owner: do not stall and do not guess silently. Interview the user only about the send (who it goes to, what must come back), write the discovery questionnaire per `references/questionnaire-template.md`, log the item in *Open questions* as "waiting on <person> - questionnaire at <path>", and keep going on labeled assumptions until the answers land.
@@ -60,9 +60,23 @@ Run the entire cycle as a critical, skeptical thought partner (System2 mode), no
 Every question the run puts to the user, outside the one-question-at-a-time forcing protocols of Phases 1-2, goes out in rounds shaped like this:
 
 - **Work the frontier.** Treat the open decisions as a tree: each answer unlocks the decisions that hang off it. The frontier is every decision whose prerequisites are already settled. Ask the whole frontier in one round; a question whose answer depends on another question still open in this round belongs to the next round, not this one.
-- **Number every question and attach your recommended answer**, so the user can reply "1 yes, 2 no, 3 as you said". Do the reasoning first, then ask: a question without a recommendation is a bug. Shape: `Q1 - <title>: <the question, with the 2-5 options where they exist>` then `Recommended: <the answer and its one-line why>`.
+- **Number every question and attach your recommended answer**, so the user can reply "1 yes, 2 no, 3 as you said". Do the reasoning first, then ask: a question without a recommendation is a bug. Use the round format below verbatim.
 - **Facts are your job; decisions are the user's.** Anything a file, a ticket, a tool, or a web search can answer never goes to the user: look it up (a subagent for anything non-trivial) and ask only the decisions. A lookup still running blocks only the questions downstream of it, never the rest of the round.
 - **Recompute the frontier after every round.** The interview is done when the frontier is empty, nothing is left silently assumed, and the user has confirmed the shared understanding before you act on it.
+
+Render every round exactly like this, one block per question, a horizontal rule between blocks:
+
+```
+**Q1 - <question title>**: <the question, with the 2-5 options where they exist>
+
+Recommended: <the answer and its one-line why>
+
+---
+
+**Q2 - <question title>**: <the question>
+
+Recommended: <the answer and its one-line why>
+```
 
 ## Communication format (always on)
 

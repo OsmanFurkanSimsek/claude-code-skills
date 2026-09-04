@@ -13,7 +13,7 @@ The review's *shape* depends on the `track=` field in CLAUDE.md's marker:
 
 1. Read the `track=` field from CLAUDE.md's marker to pick the variant.
 2. Pick the reviewer subagent:
-   - **Build** → `superpowers:code-reviewer` (purpose-built for reviewing against a plan). If unavailable, use `general-purpose`.
+   - **Build** → `general-purpose` with the Build prompt below (superpowers 6.x removed its `code-reviewer` agent; an older install that still offers `superpowers:code-reviewer` may use it instead).
    - **Deliverable** → `general-purpose` (there's no purpose-built critical-reasoning agent; the prompt below supplies the lens).
 3. No flags, no model selection, no CLI to install. The reviewer is Claude.
 
@@ -23,7 +23,7 @@ Spawn the reviewer with a single Agent tool call. Pass the matching prompt below
 
 ```
 Agent(
-  subagent_type: "<superpowers:code-reviewer | general-purpose>",
+  subagent_type: "general-purpose",   # superpowers:code-reviewer only on an older superpowers install
   description: "Phase 9 critical review of <short project name>",
   prompt: <see the matching variant below>
 )

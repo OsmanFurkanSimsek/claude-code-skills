@@ -220,8 +220,16 @@ Four rules, each learned by breaking it:
   line and get selected along with the text. Use plain paragraphs between horizontal rules - no
   `>`, no bullet markers, no leading spaces, no code fence - in chat AND in the run file. Quoting a
   message already SENT, as a historical record, is fine; a draft someone still has to copy is not.
+- **When the gap is wider than a message, hand over a questionnaire instead.** One or two questions
+  per item stay a message. When an owner holds a whole block of facts you cannot settle alone, or
+  will answer async or in a booked meeting, write a discovery questionnaire per
+  `references/questionnaire-template.md`, on the requester's explicit ask: interview them only about
+  the send (who it goes to, what must come back), then most-important-first questions with an answer
+  stub under each, one idea per question, held to the same "never ask what the ticket or your own
+  analysis already answers" test. Sync the tracker to the SENT version and keep working on labeled
+  assumptions until the answers land.
 
-All three run on the OUTGOING message, not only on the human's draft of it. The observed failure
+All of these run on the OUTGOING message, not only on the human's draft of it. The observed failure
 mode was stating these rules while critiquing someone's draft and then breaking them in the
 replacement.
 

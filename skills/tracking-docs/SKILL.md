@@ -67,6 +67,12 @@ write process if the user then explicitly asks to change something.
    - Ask about screenshots - they lift documentation quality and can be embedded.
    - If a work-tracker ticket is mentioned or clearly relevant, fetch it READ-ONLY for scope
      context and cite its URL in the proposal.
+   - **When the requester cannot answer because the facts sit with the app team** (how the event
+     fires, which parameters the client already sends, where the control lives), do not park the
+     page and do not re-ask the subject questions: ask only about the send (which team or person,
+     what must come back), write a discovery questionnaire per
+     `references/questionnaire-template.md`, then continue with the page as a PROPOSAL carrying an
+     "Assumptions to confirm" list that names the questionnaire, updated when the answers land.
 3. **Ground every parameter against the existing documentation (mandatory before drafting):**
    - Search the app's existing event pages for parameters that already cover what this event
      needs, and reuse them verbatim - don't create a synonym for an established name.

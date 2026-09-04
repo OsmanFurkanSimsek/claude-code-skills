@@ -49,10 +49,20 @@ Run the entire cycle as a critical, skeptical thought partner (System2 mode), no
 - **Every question must earn its place.** Ask only what blocks correct execution or quality. Batch related questions; ask in rounds, top blockers first.
 - **Iterate to confidence, then act.** Keep clarifying until you are roughly 70 to 80 percent confident you can execute correctly. The moment you cross that bar, stop asking and do the work.
 - **When the user cannot answer, recommend, do not stall.** Propose a labeled default: state it as an assumption, give the one-sentence rationale, and offer 1 to 3 alternatives.
+- **When the answer sits with a third person, ask them, not the user.** A delivery team, a product owner, a data owner: do not stall and do not guess silently. Interview the user only about the send (who it goes to, what must come back), write the discovery questionnaire per `references/questionnaire-template.md`, log the item in *Open questions* as "waiting on <person> - questionnaire at <path>", and keep going on labeled assumptions until the answers land.
 - **Challenge happy-path thinking.** Surface hidden complexity, edge cases, and reasons an approach might fail.
 - **Justify, do not flatter.** If you disagree, say so and give a well-reasoned alternative with evidence. Correct mistakes and say why.
 - **Code-first for coding or calculation tasks.** Show the code or the steps, then the result, then a short summary. Show non-trivial math step by step; add a sanity check when relevant.
 - **Be concise, precise, analytical.** Avoid the long-dash character in user-facing prose.
+
+### Question rounds
+
+Every question the run puts to the user, outside the one-question-at-a-time forcing protocols of Phases 1-2, goes out in rounds shaped like this:
+
+- **Work the frontier.** Treat the open decisions as a tree: each answer unlocks the decisions that hang off it. The frontier is every decision whose prerequisites are already settled. Ask the whole frontier in one round; a question whose answer depends on another question still open in this round belongs to the next round, not this one.
+- **Number every question and attach your recommended answer**, so the user can reply "1 yes, 2 no, 3 as you said". Do the reasoning first, then ask: a question without a recommendation is a bug. Shape: `Q1 - <title>: <the question, with the 2-5 options where they exist>` then `Recommended: <the answer and its one-line why>`.
+- **Facts are your job; decisions are the user's.** Anything a file, a ticket, a tool, or a web search can answer never goes to the user: look it up (a subagent for anything non-trivial) and ask only the decisions. A lookup still running blocks only the questions downstream of it, never the rest of the round.
+- **Recompute the frontier after every round.** The interview is done when the frontier is empty, nothing is left silently assumed, and the user has confirmed the shared understanding before you act on it.
 
 ## Communication format (always on)
 
@@ -77,6 +87,8 @@ Pick the mode with one test: does the user need to DO something themselves?
 - After each PROJECT.md update, tell the user explicitly: everything is documented in PROJECT.md, so you can clear the context whenever you want and a fresh session will continue from the next chunk.
 
 **Next Actions file** - a real handoff (about 3+ steps the user must do themselves, or ANY chunk of the chunking rule) also gets a durable copy the user can open outside the chat. Write an interactive, self-contained `next-actions/<YYYY-MM-DD_HH-MM>-next-actions.html` at the project root, following `references/next-actions-template.md` exactly (TLDR paragraph first, then reasoning with the alternatives considered and why this path won, then the steps in the same super-simple language). Every handoff gets a NEW dated file; keep every old one - the folder is the history and the date-time prefix finds the latest. Announce the path in one chat line. Trivial asks (one command, one click, a bare "go/continue" checkpoint) stay chat-only. In this workflow the Phase 8 hand-off to the user is always a real handoff; a Phase 6 step qualifies whenever the user must do multi-step manual work.
+
+**Recap on request** - when the user asks where we are ("where are we", "remind me", "recap", "I lost the thread"), reply in Answer mode with a plain-English recap of 3-5 sentences: the request that started this session, what we are doing and why, what is already done, what comes next. Source it from PROJECT.md *Current state* plus the conversation; write no file, add no steps. If the previous reply was long, restate its substance shorter and simpler under the recap. Then continue from the last checkpoint.
 
 The standing test for this section: the user always knows what we are doing, why we are doing it, and exactly what to do next, a context clear at any chunk boundary loses nothing, and every real handoff leaves a dated Next Actions file behind.
 
@@ -319,7 +331,7 @@ Phase 7 asks "does it do what the plan said?" Phase 8 asks "is what the plan sai
 
 Spawn a **read-only Claude reviewer subagent** for a deep, independent pass - fresh eyes catch what the builder's own context glosses over. No external CLI. The reviewer **surfaces findings only**; fixes are applied by you, after the user picks them:
 
-- **Build track - code review.** Spawn `superpowers:code-reviewer` (or `general-purpose` if unavailable): reviews the source against PROJECT.md (goal, decisions locked, Execution plan) for bugs, security issues, design problems, plan deviations, code-quality concerns.
+- **Build track - code review.** Spawn a `general-purpose` agent with the code-review lens (superpowers 6.x no longer ships a `code-reviewer` agent; an older install that still offers `superpowers:code-reviewer` may use it): reviews the source against PROJECT.md (goal, decisions locked, Execution plan) for bugs, security issues, design problems, plan deviations, code-quality concerns.
 - **Deliverable track - critical-reasoning review.** Spawn a `general-purpose` agent with the critical lens: flaws in logic, unsupported or overstated claims, weak evidence, statistical/analytical errors, misleading visuals, structural and clarity problems, scope deviations. It reads the artifacts directly; for tool artifacts it cannot open (a `.pbix`, a binary deck), export the substance to text first - or run the critical pass inline yourself in max-thinking mode.
 
 Instruct the reviewer to be **read-only** (report, do not edit) and to group findings by severity (critical / important / nit) with file:line or section references. Exact prompt structures: `references/critical-review-protocol.md`.

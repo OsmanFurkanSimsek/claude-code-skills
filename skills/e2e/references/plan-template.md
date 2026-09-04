@@ -155,8 +155,9 @@ applies them.
 
 **Checklist:**
 - Spawn a read-only reviewer subagent with the prompt structure in
-  `references/critical-review-protocol.md` (Build or Deliverable variant): `superpowers:code-reviewer`
-  for Build, `general-purpose` for Deliverable. Instruct it to be read-only and report findings only.
+  `references/critical-review-protocol.md` (Build or Deliverable variant): `general-purpose` for
+  both tracks (the Build variant carries the code-review lens; `superpowers:code-reviewer` only on
+  an older superpowers install). Instruct it to be read-only and report findings only.
   For tool artifacts it can't open, export the substance to text first or run the pass inline in
   max-thinking mode.
 - Present findings grouped by severity. Ask the user which ones to fix - do NOT auto-apply.

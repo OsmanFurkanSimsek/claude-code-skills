@@ -90,6 +90,8 @@ Pick the mode with one test: does the user need to DO something themselves?
 
 **Next Actions file** - a real handoff (about 3+ steps the user must do themselves, or ANY chunk of the chunking rule) also gets a durable copy the user can open outside the chat. Write an interactive, self-contained `next-actions/<YYYY-MM-DD_HH-MM>-next-actions.html` at the project root, following `references/next-actions-template.md` exactly (TLDR paragraph first, then reasoning with the alternatives considered and why this path won, then the steps in the same super-simple language). Every handoff gets a NEW dated file; keep every old one - the folder is the history and the date-time prefix finds the latest. Announce the path in one chat line. Trivial asks (one command, one click) stay chat-only.
 
+**Recap on request** - when the user asks where we are ("where are we", "remind me", "recap", "I lost the thread"), reply in Answer mode with a plain-English recap of 3-5 sentences: the request that started this session, what we are doing and why, what is already done, what comes next. Source it from PROJECT.md *Current state* plus the conversation; write no file, add no steps. If the previous reply was long, restate its substance shorter and simpler under the recap.
+
 The standing test for this section: the user always knows what we are doing, why we are doing it, and exactly what to do next, a context clear at any chunk boundary loses nothing, and every real handoff leaves a dated Next Actions file behind.
 
 ## Mode detection (do this first, on every invocation)

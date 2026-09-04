@@ -64,6 +64,8 @@ Pick the mode with one test: does the user need to DO something themselves?
 
 **Next Actions file** - a real handoff (about 3+ steps the user must do themselves, or ANY chunk of the chunking rule) also gets a durable copy the user can open outside the chat. Write an interactive, self-contained `next-actions/<YYYY-MM-DD_HH-MM>-next-actions.html` at the project root, following `references/next-actions-template.md` exactly (TLDR paragraph first, then reasoning with the alternatives considered and why this path won, then the steps in the same super-simple language). Every handoff gets a NEW dated file; keep every old one - the folder is the history and the date-time prefix finds the latest. Announce the path in one chat line. Trivial asks (one command, one click) stay chat-only.
 
+**Recap on request** - when the user asks where we are ("where are we", "remind me", "recap", "I lost the thread"), reply in Answer mode with a plain-English recap of 3-5 sentences: the request that started this session, what we are doing and why, what is already done, what comes next. Source it from PROJECT.md *Current state* plus the conversation; write no file, add no steps. If the previous reply was long, restate its substance shorter and simpler under the recap.
+
 The standing test for this section: the user always knows what we are doing, why we are doing it, and exactly what to do next, a context clear at any chunk boundary loses nothing, and every real handoff leaves a dated Next Actions file behind.
 
 ---
@@ -108,7 +110,7 @@ The interview is System2 + Elon Step 1 running together. Gather in focused batch
 - Use the Magic-Wand probe: "If a magic wand made the perfect version exist tomorrow, what would it look like?"
 - Ask: which requirement, if removed, would actually break the thing? Which ones just feel load-bearing?
 
-Ask in small batches; wait for answers before continuing. After the user's answers, run Elon Steps 2-5 on the scoped work (see `references/elon-algorithm.md` for coaching questions per step). One step per turn; always wait for answers before moving on.
+Ask in small batches; wait for answers before continuing. When an answer sits with a third person (a team, a product owner, a data owner), do not stall on it and do not guess: interview the user only about the send (who, what must come back), write the discovery questionnaire per `references/questionnaire-template.md`, note the item under Open questions as waiting on that person, and continue on labeled assumptions. After the user's answers, run Elon Steps 2-5 on the scoped work (see `references/elon-algorithm.md` for coaching questions per step). One step per turn; always wait for answers before moving on.
 
 #### Phase 1.5 - Pre-mortem
 
@@ -155,7 +157,7 @@ Do this every session, without being told:
    - Format rule: if the block's Hard rules have no bullet containing the words "Summary, then Reasoning", insert the current chunk-delivery bullet from `references/claude-md-block.md` right after the "Ask before assuming" rule.
    - Next Actions rule: if the block's Hard rules have no bullet containing the words "Next Actions", insert the two current bullets (Next Actions file + tidy root) from `references/claude-md-block.md` right after the "Summary, then Reasoning" bullet.
 4. **Tidy the project root** - part of every curation pass; a root full of loose screenshots, scratch code, and generated reports hides the files that matter. Tripwire: 3+ loose root files of one recognizable kind (screenshots/images, code examples or scratch snippets, generated reports/exports/logs, next-action files outside `next-actions/`), or roughly 8+ loose non-doc files overall. When tripped: build the FULL move list (e.g. "12 .png -> screenshots/"), show it, ask ONE yes/no question, and move only after the yes. Canonical folders: `screenshots/`, `code-examples/`, `reports/`, `next-actions/`; add others sparingly. Safety: grep each filename for references before moving (update the reference in the same pass, or leave the file and say why); use `git mv` in git repos; never move CLAUDE.md, PROJECT.md, README, manifests/configs/dotfiles, source trees, or anything an active e2e/gsd flow owns. Once the folders exist, file NEW artifacts of those kinds straight into them and record the layout once in Decisions locked.
-5. **Apply System2 for new work**: whenever the user starts a new sub-task or feature within the project, reapply the System2 questioning discipline before executing. Read `references/system2-protocol.md`.
+5. **Apply System2 for new work**: whenever the user starts a new sub-task or feature within the project, reapply the System2 questioning discipline before executing. Read `references/system2-protocol.md`. A fact that sits with a third person gets a questionnaire (`references/questionnaire-template.md`), never a stalled task.
 6. **Apply Elon algorithm for new scoping**: if the user is scoping a new feature, plan, or design within the existing project, walk through the five steps. Read `references/elon-algorithm.md`. Do NOT apply to small edits, bug fixes, or tasks already well-defined.
 
 The standing test: a fresh agent reading only PROJECT.md can continue correctly without the user re-explaining anything.
@@ -202,3 +204,4 @@ Read these on demand when the relevant phase or component activates:
 - `references/claude-md-block.md` - CLAUDE.md bootstrap template (read before writing CLAUDE.md)
 - `references/project-md-template.md` - PROJECT.md template and maintenance contract (read before writing PROJECT.md)
 - `references/next-actions-template.md` - Next Actions file naming rule and the .html template (read before writing a handoff file)
+- `references/questionnaire-template.md` - discovery questionnaire for a third person who holds a fact the user cannot answer (read when an interview stalls on someone else's knowledge)

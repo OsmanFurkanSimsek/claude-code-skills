@@ -21,8 +21,8 @@ The living setup has three layers by read frequency (live-document, 2026-09-09):
 
 <!-- MAINTENANCE CONTRACT - read before editing this file. Enforced by hooks (project-md-lint).
 Three layers by read frequency: CLAUDE.md (every message, thinnest); this file (once per session,
-in full, max 20 KB / 250 lines): Goal, Scope, Map, Current state, Decisions locked (rule + who/when,
-max 2 lines each), Plan, Open questions, Lessons (key rules, max 3 lines each); project-memory/
+in full, max 20 KB / 250 lines): Goal, Scope, Map, Current state, Decisions locked (rule + one-line why + who/when,
+max 3 lines each), Plan, Open questions, Lessons (key rules, max 3 lines each); project-memory/
 (on demand via the Map, one file per topic, every file has a Map row): decisions.md (full wording),
 lessons.md (stories, max 8 lines each), changelog.md (every milestone, one entry per date, max 3
 lines, no total cap), research-notes.md and execution-plan.md (e2e-owned while the run is active;
@@ -59,7 +59,7 @@ requirements" step and the discovery outcomes distilled here in Phases 1-2.>
 Phase 12 it reads "complete" or names the next milestone.>
 
 ## Decisions locked
-<!-- Rule + who/when, max 2 lines each; full wording in project-memory/decisions.md under the same title. A changed decision REPLACES the old one in both places. -->
+<!-- Rule + one-line why + who/when, max 3 lines each; full wording in project-memory/decisions.md under the same title. Nothing is lost by the split: the lint fails a pointer whose heading is gone. A changed decision REPLACES the old one in both places. -->
 - **<Architecture / approach decision>** - <the rule in one line, citing a research finding or the Elon outcome> (<who>, <YYYY-MM-DD>).
 - **<Build only: conventions>** - languages & versions; test framework (every step gets automated tests + manual verification); code style / linter; error-handling stance.
 - **<Deliverable only: format & data decisions>** - output format, data sources of record, refresh cadence, chart/visual conventions, audience.
@@ -75,7 +75,7 @@ Granular phase/step status lives in project-memory/execution-plan.md - keep this
 - <question>
 
 ## Lessons
-<!-- Key lessons as RULES (max 3 lines each) - only those that change how we work on this project. Every story lives in project-memory/lessons.md under the same title. -->
+<!-- Key lessons as RULES with a one-line why (max 3 lines each) - only those that change how we work on this project. Every story lives in project-memory/lessons.md under the same title; nothing is lost by the split, the lint fails a pointer whose heading is gone. -->
 - **<Lesson title>** - <the rule> (<YYYY-MM-DD>). Story: `project-memory/lessons.md § <Lesson title>`.
 ```
 
@@ -91,7 +91,7 @@ The HTML comments are permanent fixtures of the generated file, NOT placeholders
 | Scope and non-goals | Edit in place as scope is clarified. |
 | Map - where to find what | Edited in the same write as any file or folder added, moved, or archived, and whenever a project-memory file's content changes; one row per project-memory file; every path must exist; every top-level folder appears. |
 | Current state and next action | Always rewritten in place to describe *now* (every Phase 6 step, every phase boundary). |
-| Decisions locked | Supersede in place (a new decision replaces the one it supersedes, here AND in `project-memory/decisions.md`); rule + who/when, max 2 lines, same bold title in both. Architecture + (Build) conventions live here, not in CLAUDE.md. |
+| Decisions locked | Supersede in place (a new decision replaces the one it supersedes, here AND in `project-memory/decisions.md`); rule + one-line why + who/when, max 3 lines, same bold title in both. Architecture + (Build) conventions live here, not in CLAUDE.md. |
 | Plan / workstreams | High-level only; update status markers in place. Granular steps are the execution plan's job. |
 | Open questions | Add/remove in place as questions arise and resolve; max 3 lines each. |
 | Lessons | Rules only, max 3 lines each; the story lives in `project-memory/lessons.md`, the memory file is a pointer. Never lose a lesson. |

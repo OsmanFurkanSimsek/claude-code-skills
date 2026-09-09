@@ -193,7 +193,7 @@ to optimal context, so the living setup is split by how often each part is read:
   preview); it tells you the file's size and to Read it now, and the edit gate denies project
   writes until you have. Whole-file budget **20 KB / 250 lines**. Sections: the header + contract,
   `## Goal and definition of done`, `## Scope and non-goals`, `## Map - where to find what`,
-  `## Current state and next action`, `## Decisions locked` (index: rule + who/when, max 2 lines
+  `## Current state and next action`, `## Decisions locked` (index: rule + one-line why + who/when, max 3 lines
   each), `## Plan / workstreams`, `## Open questions`, `## Lessons` (key lessons as rules, max 3
   lines each). Nothing else: no change log, no research notes, no execution plan in this file.
 - **`project-memory/`** - on demand, via the Map. `decisions.md` (the full wording and rationale
@@ -202,6 +202,12 @@ to optimal context, so the living setup is split by how often each part is read:
   cap - it is the full history), e2e's `research-notes.md` and `execution-plan.md`, and any topic
   file. A file over 40 KB gets split by topic. Read a file only when its Map row says the task
   touches it, and ALWAYS before editing it.
+- **Nothing is lost by the split.** Every decision and every behavior-changing lesson keeps its
+  rule AND a one-line why in `PROJECT.md`, so the once-per-session read carries what to do and the
+  short reason; only the full story, the alternatives and the mechanism move out. Each rule line
+  carries a pointer to its home, the lint fails a pointer whose heading is gone and warns when the
+  decision counts differ between the two files, and a line may leave `PROJECT.md` only when its
+  home exists.
 
 **Home rule - a fact lives in ONE home; everywhere else it is one line plus a pointer.** A
 decision's RULE (+ who/when) -> `PROJECT.md` `## Decisions locked`; its full wording and
@@ -235,7 +241,7 @@ cannot end.
 3. **Rewrite the home in place, superseding old content - home first, `PROJECT.md` last.**
    *Current state and next action* is rewritten every time so it describes only NOW. A new
    durable choice REPLACES the decision it supersedes in BOTH `decisions.md` (full wording) and
-   *Decisions locked* (rule + who/when, max 2 lines; never stack old and new side by side). An
+   *Decisions locked* (rule + one-line why + who/when, max 3 lines; never stack old and new side by side). An
    answered *Open question* is deleted, its answer folded into a decision or *Current state*; a
    partly settled one is split at once. Feedback and failures go to `lessons.md` as the full story
    (max 8 lines, under its theme, deduped against Decisions; the memory file becomes a pointer),
@@ -257,7 +263,7 @@ cannot end.
 5. **Red-flag test before saving:** an update that only adds lines and rewrites nothing is almost
    always wrong. If your diff is append-only, you skipped steps 3-4 - go back and sweep.
    Quantitative tripwires, enforced by `project-md-lint` on every write (see *Gates* below):
-   `PROJECT.md` over 20 KB / 250 lines, a decision over 2 lines, a lesson rule over 3 lines, an open
+   `PROJECT.md` over 20 KB / 250 lines, a decision over 3 lines, a lesson rule over 3 lines, an open
    question over 3 lines or partly settled, a `## Change log` / `## Research notes` / `## Execution
    plan` section still in `PROJECT.md`, a `project-memory/` file without a Map row, a Map path that
    does not exist, a top-level folder missing from the Map, a pointer that does not resolve (a

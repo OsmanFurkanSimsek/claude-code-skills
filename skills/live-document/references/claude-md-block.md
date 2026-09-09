@@ -22,7 +22,7 @@ Owner: <owner>. Project: <one line>. Dominant rule: <the one constraint that gov
 2. After meaningful work, update the living setup by RECONCILING, not appending - project-memory
    home FIRST, `PROJECT.md` LAST: Current state always; a new durable choice REPLACES the one it
    supersedes in `project-memory/decisions.md` (full wording) and in Decisions locked (rule +
-   who/when, max 2 lines); an answered Open question is deleted and folded into a decision; a
+   who/when + a one-line why, max 3 lines); an answered Open question is deleted and folded into a decision; a
    milestone gets one 1-3 line entry in `project-memory/changelog.md` (one per date, never a diary).
 3. Lock the feedback - home rule: a lesson's story goes to `project-memory/lessons.md` (max 8
    lines, under its theme), its rule to `PROJECT.md` Lessons (max 3 lines) only if it changes how

@@ -19,8 +19,8 @@ both in place every session - add AND prune - under the hooks described in SKILL
 
 <!-- MAINTENANCE CONTRACT - read before editing this file. Enforced by hooks (project-md-lint).
 Three layers by read frequency: CLAUDE.md (every message, thinnest); this file (once per session,
-in full, max 20 KB / 250 lines): Goal, Scope, Map, Current state, Decisions locked (rule + who/when,
-max 2 lines each), Plan, Open questions, Lessons (key rules, max 3 lines each); project-memory/
+in full, max 20 KB / 250 lines): Goal, Scope, Map, Current state, Decisions locked (rule + one-line why + who/when,
+max 3 lines each), Plan, Open questions, Lessons (key rules, max 3 lines each); project-memory/
 (on demand via the Map, one file per topic, every file has a Map row): decisions.md (full wording),
 lessons.md (stories, max 8 lines each), changelog.md (every milestone, one entry per date, max 3
 lines, no total cap), plus topic files. No change log, research notes, or execution plan here.
@@ -52,7 +52,7 @@ file that matters and must stay current. Update = reconcile, not append. -->
 <What exists today, and the single next action.>
 
 ## Decisions locked
-<!-- Rule + who/when, max 2 lines each; full wording in project-memory/decisions.md under the same title. A changed decision REPLACES the old one in both places. -->
+<!-- Rule + one-line why + who/when, max 3 lines each; full wording in project-memory/decisions.md under the same title. Nothing is lost by the split: the lint fails a pointer whose heading is gone. A changed decision REPLACES the old one in both places. -->
 - **<Decision title>** - <the rule in one line> (<who>, <YYYY-MM-DD>).
 
 ## Plan / workstreams
@@ -64,7 +64,7 @@ file that matters and must stay current. Update = reconcile, not append. -->
 - <question>
 
 ## Lessons
-<!-- Key lessons as RULES (max 3 lines each) - only those that change how we work on this project. Every story lives in project-memory/lessons.md under the same title. -->
+<!-- Key lessons as RULES with a one-line why (max 3 lines each) - only those that change how we work on this project. Every story lives in project-memory/lessons.md under the same title; nothing is lost by the split, the lint fails a pointer whose heading is gone. -->
 - **<Lesson title>** - <the rule> (<YYYY-MM-DD>). Story: `project-memory/lessons.md § <Lesson title>`.
 ```
 
@@ -80,7 +80,7 @@ The HTML comments are permanent fixtures of the generated file, NOT placeholders
 | Scope and non-goals | Edit in place as scope is clarified. |
 | Map - where to find what | Edited in the same write as any file or folder added, moved, or archived, and whenever a project-memory file's content changes; one row per project-memory file with a one-line summary and a "read it when"; every path must exist; every top-level folder appears. |
 | Current state and next action | Always rewritten in place to describe *now*. |
-| Decisions locked | Supersede in place (a new decision replaces the one it supersedes, here AND in `project-memory/decisions.md`); rule + who/when, max 2 lines; the same bold title in both files; never delete a still-valid decision. |
+| Decisions locked | Supersede in place (a new decision replaces the one it supersedes, here AND in `project-memory/decisions.md`); rule + one-line why + who/when, max 3 lines; the same bold title in both files; never delete a still-valid decision. |
 | Plan / workstreams | Update status markers in place. |
 | Open questions | Add/remove in place as questions arise and resolve; max 3 lines each. |
 | Lessons | Rules only, max 3 lines each, only lessons that change how we work here; the story lives in `project-memory/lessons.md` under the same title, the memory file is a pointer. Never lose a lesson. |

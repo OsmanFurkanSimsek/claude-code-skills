@@ -38,7 +38,7 @@ bloats the once-per-session read (`PROJECT.md` stays under 20 KB).
 # Decisions locked - full wording
 
 > Home of every locked decision's full wording and rationale for <project>. `PROJECT.md`
-> `## Decisions locked` keeps one rule line per decision (same bold title, max 2 lines) and points
+> `## Decisions locked` keeps one rule line per decision (same bold title, max 3 lines: rule + one-line why + who/when) and points
 > here. A new decision that supersedes an old one REPLACES it in both files; note the change once
 > in `changelog.md`.
 
@@ -97,7 +97,7 @@ lints clean once):
    named it).
 2. **Decisions:** for each bullet in `## Decisions locked`, write a `## <title>` block in
    `decisions.md` with the full wording; leave in `PROJECT.md` a rule line (bold title + rule +
-   who/when, max 2 lines). Same title in both places.
+   who/when + a one-line why, max 3 lines). Same title in both places.
 3. **Lessons:** move every story to `lessons.md` under a theme, one `###` per lesson (max 8 lines
    each). Keep in `PROJECT.md` only the lessons that change how we work here, as rules (max 3
    lines) with a `Story:` pointer. Update memory pointer files ("Full story: ...") to the new

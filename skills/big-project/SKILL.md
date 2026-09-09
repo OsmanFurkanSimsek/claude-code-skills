@@ -11,7 +11,7 @@ A **personal working-style layer**. Invoking `/big-project` makes the current pr
 
 **It composes; it never reinvents.** Keeping a living document, getting ready to `/clear`, and handing off to the next agent are already solved by skills the owner has. `big-project` delegates those:
 
-- `live-document` owns `PROJECT.md` + the thin `CLAUDE.md` and their reconcile-not-append discipline.
+- `live-document` owns `PROJECT.md` + the thin `CLAUDE.md` + the `project-memory/` detail folder and their reconcile-not-append discipline.
 - `session-handoff` owns the heavy chat-only end-of-session summary.
 - `e2e` owns the full twelve-phase rigor when the owner wants it (they coexist; the profile still applies).
 
@@ -28,7 +28,7 @@ Read `references/preferences.md` in full at the start of every `big-project` ses
 1. **Detect the project's doc state.** Read the root `CLAUDE.md` and look for a `<!-- live-document:start -->` block or an `<!-- e2e-state ... -->` marker.
 2. **Stand up the doc plumbing if missing (delegate, do not build):**
    - No living doc and the owner wants full rigor -> tell him `/e2e` is the heavier path and let him choose; the profile still applies on top.
-   - No living doc, normal path -> invoke `Skill(live-document)` to scaffold `PROJECT.md` + the thin `CLAUDE.md`. Do not write those files yourself.
+   - No living doc, normal path -> invoke `Skill(live-document)` to scaffold `PROJECT.md` + the thin `CLAUDE.md` + `project-memory/`. Do not write those files yourself.
    - Living doc already present -> layer on top only; touch nothing the `live-document` or `e2e` marker owns.
 3. **Inject the owner's delta into the project `CLAUDE.md`.** Apply the hard-rules bullets and the two-step handoff block from `references/claude-md-injection.md` into the project's hard-rules list. **Insert only what is absent** - `live-document` already carries ask-before-assuming, Summary/Reasoning/Steps, the single Next Actions HTML file, tidy-root, and no-long-dash, so never duplicate those. Re-running the skill self-heals: it adds only missing rules.
 4. **Announce** in one line what was injected, then follow the profile for the rest of the session.
@@ -49,7 +49,7 @@ Read `references/preferences.md` in full at the start of every `big-project` ses
 
 ## Composition contract
 
-- `PROJECT.md` and the thin `CLAUDE.md`: created and curated by `live-document`. `big-project` only injects hard-rules bullets, never rewrites the living doc.
+- `PROJECT.md`, the thin `CLAUDE.md` and `project-memory/`: created and curated by `live-document`. `big-project` only injects hard-rules bullets, never rewrites the living docs.
 - Ordinary completing replies end with the lightweight two-step handoff block (from `references/walkthrough-and-handoff.md`).
 - An explicit "wrap up session" / "summarize before I clear" invokes `session-handoff` for the full seven-section summary.
 - Multi-step manual work for the owner gets exactly ONE file: `live-document`'s interactive `next-actions/<YYYY-MM-DD_HH-MM>-next-actions.html`. Its content follows the walkthrough outline in `references/walkthrough-and-handoff.md`. Never a `.md` twin, never a separate `NEXT STEPS ... .md` (owner, 2026-09-02: "HTML files are enough").

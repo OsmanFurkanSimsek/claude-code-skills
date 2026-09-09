@@ -1,6 +1,6 @@
 # Playtest checklist template (the `#### Playtest checklist` subsection of the Execution plan)
 
-Use this when entering Phase 8 of the `/e2e` workflow **and there's a surface to walk**. The checklist lives as a subsection right below the Phase 8 detail block inside PROJECT.md's `## Execution plan` - not as a separate PLAYTEST.md. The user marks rows in the file or replies in chat; once Phase 8's Verification line is filled, the subsection is **deleted** (its outcome lives in the Verification line). Two shapes:
+Use this when entering Phase 8 of the `/e2e` workflow **and there's a surface to walk**. The checklist lives as a subsection right below the Phase 8 detail block inside `project-memory/execution-plan.md` - not as a separate PLAYTEST.md. The user marks rows in the file or replies in chat; once Phase 8's Verification line is filled, the subsection is **deleted** (its outcome lives in the Verification line). Two shapes:
 
 - **Build with a web frontend** - UI rows (cold start, golden path, edge cases, persistence, errors). The sections below are written for this shape.
 - **Deliverable** (deck, report, analysis, dashboard, document) - content rows instead of UI rows: one row per major claim, section, chart, or audience flow. Keep the same Feedback column and triage rubric. See "Deliverable variant" below.
@@ -118,7 +118,7 @@ grows past that, the rows are too granular.>
 ## Notes for the writer (i.e., the calling skill at Phase 8)
 
 - **Pick the right shape.** Build with a web frontend → groups A-E. Deliverable → groups F-I (drop A-E). Use the `track=` field in CLAUDE.md's marker to decide.
-- **Source the rows from the Execution plan's success criteria + the PROJECT.md goal**, not from your own imagination. Every row should map to something the project actually promised to deliver.
+- **Source the rows from the execution plan's success criteria + the PROJECT.md goal**, not from your own imagination. Every row should map to something the project actually promised to deliver.
 - **One row = one observable outcome.** If a step has two checks, split it into two rows so the user can flag them independently.
 - **Groups are not fixed.** A library with no UI doesn't need group A; a game needs an audio group; a deck needs the claims/evidence group. Add and remove groups to match the product's surface.
 - **Keep the checklist short.** ~30-50 rows total is plenty. If you find yourself writing 100+ rows, the granularity is wrong - the user gets fatigued and the feedback gets noisier.

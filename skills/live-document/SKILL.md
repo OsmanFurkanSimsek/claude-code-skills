@@ -19,21 +19,27 @@ allowed-tools:
 Stand up a **self-sustaining living project document** so that project state is never lost
 between sessions, and a fresh agent (or a future you) can pick up the project without anyone
 re-explaining anything. The skill does the *setup*: it interviews you until it genuinely
-understands the project, then scaffolds two files in the project root:
+understands the project, then scaffolds three layers in the project root, each sized for how
+often it is read:
 
-- **`CLAUDE.md`** - a THIN, auto-loading bootstrap (~one screen, never grows). Claude Code loads
-  it automatically every session; its only job is to remind the agent to read and maintain the
-  real source of truth.
-- **`PROJECT.md`** - the LIVING single source of truth, in two tiers: Tier 1 (goal, scope, the
-  Map, current state, open questions, decisions index) is injected by the SessionStart hook every
-  session; Tier 2 (plan, change log, lessons in full, research notes) is read on demand.
+- **`CLAUDE.md`** - loaded on EVERY message, so the THINNEST layer (~one screen, never grows).
+  Its only job is to remind the agent to read and maintain the real source of truth.
+- **`PROJECT.md`** - read ONCE per session, in full, before acting (until the context is cleared),
+  so RICH with the important things: where to look for what (the Map), current state and next
+  action, the decisions that shaped the project (rule lines), the key lessons (rule lines), open
+  questions. Whole-file budget 20 KB / 250 lines.
+- **`project-memory/`** - every other detail, one file per topic, read ON DEMAND: the full wording
+  of every decision (`decisions.md`), every lesson story (`lessons.md`), every milestone
+  (`changelog.md`), plus free topic files (a runbook, an architecture note, a registry). Every file
+  has a Map row in `PROJECT.md` with a one-line summary and a "read it when", so nothing is lost
+  in silence and the agent reads only what the task needs.
 
 Because `CLAUDE.md` auto-loads, maintenance becomes **self-sustaining**: every future session is
 reminded to read `PROJECT.md` first and to record what changed. After this one-time setup you
 should never again have to tell an agent to read, update, or maintain these files, and the
 PROJECT.md gates (hooks - see *Gates* below) make the maintenance mandatory, not advisory. The acceptance
-test for the whole system: *a fresh agent reading only `PROJECT.md` can continue the project
-correctly, with nothing re-explained.*
+test for the whole system: *a fresh agent reading `PROJECT.md` and, on demand, the
+`project-memory/` files its Map names can continue the project correctly, with nothing re-explained.*
 
 ## When to use
 
@@ -100,7 +106,8 @@ Check the project root for a live-document setup:
 
 1. Read the root `CLAUDE.md` (if any) and look for the marker `<!-- live-document:start -->`.
 2. Also check whether a `PROJECT.md` exists with this skill's section headers (Goal and definition
-   of done, Decisions locked, Change log, Lessons).
+   of done, Map - where to find what, Decisions locked, Lessons) and whether a `project-memory/`
+   folder exists (a set-up project that lacks it is a legacy layout - see self-heal below).
 
 - **No marker / no living `PROJECT.md`** → **Setup mode** (interview + scaffold).
 - **Marker present** → **Curation mode** (the project is already set up; read and maintain).
@@ -133,7 +140,7 @@ fill gaps with assumptions. Cover at least:
 When you believe you understand it, **summarize the project back in a few lines and ask the user to
 confirm or correct it BEFORE scaffolding anything.**
 
-### Phase 2 - Scaffold the two files in the project root (only after confirmation)
+### Phase 2 - Scaffold the three layers in the project root (only after confirmation)
 
 **`CLAUDE.md` (thin bootstrap) - append, never overwrite.**
 Use the block in `references/claude-md-block.md`, filled from the interview.
@@ -147,15 +154,24 @@ Use the block in `references/claude-md-block.md`, filled from the interview.
 Use the template in `references/project-md-template.md`, filled from the interview.
 - If no `PROJECT.md` exists: create it from the template.
 - If a `PROJECT.md` already exists (e.g. from gsd): **augment** it - add any missing living
-  sections and merge in the interview content without deleting existing material. One file only;
-  do not create a second tracking document.
+  sections and merge in the interview content without deleting existing material.
+
+**`project-memory/` (the detail layer) - create with its three standard files.**
+Use `references/project-memory-template.md`: `decisions.md` (full wording of every decision),
+`lessons.md` (every story, grouped by theme), `changelog.md` (every milestone). Each starts with
+the standard header (title + a blockquote naming `PROJECT.md` as the map that points here) and
+gets a Map row in `PROJECT.md` with a one-line summary and a "read it when". Add a topic file
+whenever a subject has more detail than a rule line can carry (a runbook, an architecture note,
+an ID registry); never a tracking file OUTSIDE `project-memory/` (no `NOTES.md`, no second
+PROJECT.md, no dated status files at the root).
 
 **Memory is a home, not a mirror (home rule).** If a persistent memory facility is available
-(e.g. `~/.claude/projects/<project-slug>/memory/`), add a one-line pointer to these two files in
-its index as a backup trigger, and from then on split by type: an owner preference about how to
-work lives in memory in full; a project lesson's full story lives in `PROJECT.md` `## Lessons` and
-its memory file is a pointer (frontmatter + Why/How-to-apply + "Full story: PROJECT.md § Lessons ›
-<title>"). Never two stories of one lesson, and never a third tracking file.
+(e.g. `~/.claude/projects/<project-slug>/memory/`), add a one-line pointer to these files in its
+index as a backup trigger, and from then on split by type: an owner preference about how to work
+lives in memory in full; a project lesson's full story lives in `project-memory/lessons.md`, its
+rule line (if it changes how we work on this project) in `PROJECT.md` `## Lessons`, and its memory
+file is a pointer (frontmatter + Why/How-to-apply + "Full story: `project-memory/lessons.md §
+<title>`"). Never two stories of one lesson.
 
 After scaffolding, tell the user setup is done and that from now on these files maintain
 themselves - they will not need to ask you to read or update them again.
@@ -169,71 +185,99 @@ when `/live-document` is invoked on an already-set-up project.
 matters as much as adding. Before you add, reconcile: as facts change, update them in place and
 drop what they replace; as questions resolve, remove them. Duplication and staleness are bugs.
 
-**Two tiers, one file (2026-09-02).** `PROJECT.md` may grow - more context beats no context - but
-bloat loses to optimal context, so the file is split by section into what every session pays for
-and what is read on demand:
-- **Tier 1 - injected at session start by the SessionStart hook**, hard budget **14 KB / 180
-  lines** (the harness silently truncates larger hook output to a 2 KB preview): the header +
-  contract, `## Goal and definition of done`, `## Scope and non-goals`, `## Map - where to find
-  what`, `## Current state and next action`, `## Open questions`, `## Decisions locked` (index
-  form: rule + who/when + pointer, max 4 lines each).
-- **Tier 2 - read on demand** (grep or Read the section when the task touches it, and always
-  before editing the file), may grow, per-entry limits only: `## Plan / workstreams`, `## Change
-  log` (entries max 3 lines, one entry per date, entries older than 14 days shrink to one line,
-  max 30 lines), `## Lessons` (full stories, max 8 lines each), `## Research notes` (e2e).
+**Three layers by read frequency (2026-09-09).** More context beats no context, but bloat loses
+to optimal context, so the living setup is split by how often each part is read:
+- **`CLAUDE.md`** - every message. Bootstrap only; never grows.
+- **`PROJECT.md`** - once per session, IN FULL, before acting. The SessionStart hook does not
+  inject its content (the harness persists hook output above a moving threshold and shows a 2 KB
+  preview); it tells you the file's size and to Read it now, and the edit gate denies project
+  writes until you have. Whole-file budget **20 KB / 250 lines**. Sections: the header + contract,
+  `## Goal and definition of done`, `## Scope and non-goals`, `## Map - where to find what`,
+  `## Current state and next action`, `## Decisions locked` (index: rule + who/when, max 2 lines
+  each), `## Plan / workstreams`, `## Open questions`, `## Lessons` (key lessons as rules, max 3
+  lines each). Nothing else: no change log, no research notes, no execution plan in this file.
+- **`project-memory/`** - on demand, via the Map. `decisions.md` (the full wording and rationale
+  of every decision), `lessons.md` (every story, max 8 lines each, grouped by theme),
+  `changelog.md` (every milestone, newest first, one entry per date, max 3 lines each, no total
+  cap - it is the full history), e2e's `research-notes.md` and `execution-plan.md`, and any topic
+  file. A file over 40 KB gets split by topic. Read a file only when its Map row says the task
+  touches it, and ALWAYS before editing it.
 
-**Home rule - a fact lives in ONE home; everywhere else it is one line plus a pointer.** A project
-lesson's full story -> `## Lessons` (its memory file is a pointer). An owner preference about how
-to work -> memory, in full. A rule body, recipe, ID registry, or template -> the owning skill's
-`references/`. A per-run analysis -> the dated run file. State, the decisions index, the Map, and
-milestones -> `PROJECT.md`. A line may leave `PROJECT.md` only when its home is named and exists;
-no home means create the home first or keep the line. Deleting a duplicate is maintenance, not loss.
+**Home rule - a fact lives in ONE home; everywhere else it is one line plus a pointer.** A
+decision's RULE (+ who/when) -> `PROJECT.md` `## Decisions locked`; its full wording and
+rationale -> `project-memory/decisions.md`. A lesson's STORY -> `project-memory/lessons.md`; its
+RULE, only if it changes how we work on this project -> `PROJECT.md` `## Lessons`. A milestone ->
+`project-memory/changelog.md` only. An owner preference about how to work -> memory, in full. A
+rule body, recipe, ID registry, or template that belongs to a skill -> that skill's `references/`.
+A per-run analysis -> the dated run file. A subject with more detail than a rule line -> its own
+`project-memory/<topic>.md`. State, the Map, and the indexes -> `PROJECT.md`. A line may leave
+`PROJECT.md` only when its home is named and exists; no home means create the home first or keep
+the line. Deleting a duplicate is maintenance, not loss. **Write order: the project-memory home
+FIRST, `PROJECT.md` LAST** - the pointer never precedes its target, and the Stop gate (which
+requires `PROJECT.md` to be the newest project write) passes on the first try.
 
 **The Map is the contract.** `## Map - where to find what` is a table `location | what lives
 there | read it when`. Row 1 is `PROJECT.md` itself and states what is ALWAYS here (goals, map,
-current state and next action, open questions, decisions index, lessons, milestones). Every other
-row names a folder, file, skill reference, memory folder, or external registry. Every path in it
-must exist and every top-level project folder must appear in it - archiving or moving anything
-without a Map update fails the lint, so the turn cannot end.
+current state and next action, decisions index, key-lesson rules, open questions). Then ONE ROW
+PER `project-memory/` FILE, each with a one-line summary of what lives there and when to open it.
+Then every folder, file, skill reference, memory folder, or external registry that matters. Every
+path in it must exist, every top-level project folder and every project-memory file must appear
+in it - adding, archiving or moving anything without a Map update fails the lint, so the turn
+cannot end.
 
-**The update algorithm - run it on every write to `PROJECT.md`:**
+**The update algorithm - run it on every write to `PROJECT.md` or a `project-memory/` file:**
 
-1. **Know what you are editing.** The SessionStart hook injected Tier 1; before writing, read every
-   Tier 2 section you will touch (and any section the task touches) - never edit a section you
-   have not read this session.
+1. **Know what you are editing.** `PROJECT.md` was read in full at session start (the edit gate
+   enforces it); before writing a `project-memory/` file, Read it - never edit a file you have not
+   read this session.
 2. **Classify each new fact** the work produced: durable choice, lesson, state change, resolved
-   question, or milestone. A fact has exactly ONE home section.
-3. **Rewrite the home section in place, superseding old content.** *Current state and next action*
-   is rewritten every time so it describes only NOW. A new durable choice REPLACES the decision it
-   supersedes in *Decisions locked* (never stack old and new side by side); a decision is the rule
-   + who/when + a pointer, max 4 lines - the mechanism lives in its home. An answered *Open
-   question* is deleted, its answer folded into a decision or *Current state*; a partly settled one
-   is split at once. Feedback and failures go to *Lessons* as the full story (max 8 lines, deduped
-   against Decisions; the memory file becomes a pointer). Only a milestone earns a *Change log*
-   entry (newest first), **1-3 lines**: what shipped, the commit, the outcome - one entry per date
-   (merge same-day work), entries older than 14 days shrink to one line, the log stays under 30
-   lines. Verification narratives, review blow-by-blow, and mechanism detail never go in the log.
-   Most updates add no entry; a line every session is a diary, which is a bug. Whenever a file or
-   folder is added, moved, or archived, its *Map* row changes in the same edit.
-4. **Sweep the whole file before saving.** Delete or merge everything now redundant, resolved,
-   stale, or duplicated, anywhere in the file - not just the sections you touched. Deleting a line
-   that no longer earns its place is REQUIRED maintenance, not data loss - but only when its home
-   is named and exists (home rule); real decisions and lessons are compacted or moved, never
-   dropped. No invented sections: use only this skill's canonical headers (Goal and definition of
-   done, Scope and non-goals, Map - where to find what, Current state and next action, Decisions
-   locked, Plan / workstreams, Open questions, Change log, Lessons) - plus, on e2e-managed
-   projects, e2e's own `## Research notes` and `## Execution plan` - never a "Reference"/"Summary"/
-   "Notes" section, and never a suffix on a canonical header.
+   question, or milestone. A fact has exactly ONE home (file and section, per the home rule).
+3. **Rewrite the home in place, superseding old content - home first, `PROJECT.md` last.**
+   *Current state and next action* is rewritten every time so it describes only NOW. A new
+   durable choice REPLACES the decision it supersedes in BOTH `decisions.md` (full wording) and
+   *Decisions locked* (rule + who/when, max 2 lines; never stack old and new side by side). An
+   answered *Open question* is deleted, its answer folded into a decision or *Current state*; a
+   partly settled one is split at once. Feedback and failures go to `lessons.md` as the full story
+   (max 8 lines, under its theme, deduped against Decisions; the memory file becomes a pointer),
+   and to *Lessons* as a rule line (max 3 lines) only if they change how we work here. Only a
+   milestone earns a `changelog.md` entry (newest first), **1-3 lines**: what shipped, the commit,
+   the outcome - one entry per date (merge same-day work). Verification narratives, review
+   blow-by-blow, and mechanism detail never go in the log. Most updates add no entry; a line every
+   session is a diary, which is a bug. Whenever a file or folder is added, moved, or archived, and
+   whenever a project-memory file's content changes, its *Map* row changes in the same edit.
+4. **Sweep before saving.** Delete or merge everything now redundant, resolved, stale, or
+   duplicated, anywhere in `PROJECT.md` and in the files you touched. Deleting a line that no
+   longer earns its place is REQUIRED maintenance, not data loss - but only when its home is named
+   and exists (home rule); real decisions and lessons are compacted or moved, never dropped. No
+   invented sections in `PROJECT.md`: use only this skill's canonical headers (Goal and definition
+   of done, Scope and non-goals, Map - where to find what, Current state and next action,
+   Decisions locked, Plan / workstreams, Open questions, Lessons) - never a "Reference"/"Summary"/
+   "Notes"/"Change log" section, and never a suffix on a canonical header; a new subject becomes a
+   `project-memory/<topic>.md` with a Map row instead.
 5. **Red-flag test before saving:** an update that only adds lines and rewrites nothing is almost
    always wrong. If your diff is append-only, you skipped steps 3-4 - go back and sweep.
-   Quantitative tripwires, enforced by `project-md-lint` on every write (see *Gates* below): Tier 1
-   over 14 KB / 180 lines, a decision over 4 lines, a lesson over 8 lines, an open question over 3
-   lines or partly settled, a Change log over 30 lines, an entry over 3 lines, two entries on one
-   date, an entry older than 14 days still over 1 line, a pointer that does not resolve, a Map path
-   that does not exist, a top-level folder missing from the Map, a non-canonical header. Each means
-   compaction is overdue and must happen in THIS edit - the Stop gate will not end the turn otherwise.
+   Quantitative tripwires, enforced by `project-md-lint` on every write (see *Gates* below):
+   `PROJECT.md` over 20 KB / 250 lines, a decision over 2 lines, a lesson rule over 3 lines, an open
+   question over 3 lines or partly settled, a `## Change log` / `## Research notes` / `## Execution
+   plan` section still in `PROJECT.md`, a `project-memory/` file without a Map row, a Map path that
+   does not exist, a top-level folder missing from the Map, a pointer that does not resolve (a
+   `project-memory/x.md § Heading` whose heading is gone is an error - the index line has lost its
+   home), a `lessons.md` story over 8 lines, a `changelog.md` entry over 3 lines or two entries on
+   one date, a non-canonical header. Each means compaction is overdue and must happen in THIS
+   edit - the Stop gate will not end the turn otherwise. Warnings (do not block): a project-memory
+   file over 40 KB, a Map row without a "read it when", a decisions count that differs between
+   *Decisions locked* and `decisions.md`, a file without the standard header.
 6. **Self-heal the setup.** A one-time upgrade so existing projects pick up the current discipline
    on next touch:
+   - *project-memory layout (2026-09-09):* if the project root has no `project-memory/` folder, or
+     `PROJECT.md`'s contract comment lacks the phrase "project-memory", the project is on the
+     single-file layout. Migrate it in a DEDICATED session (say so and ask when the task at hand
+     is something else - the hooks keep the format rules in legacy grace until the file lints
+     clean once): follow the migration procedure in `references/project-memory-template.md`
+     (create the folder and the three standard files, move the full content out, leave rule lines
+     + pointers, add the Map rows, replace the contract and the title blockquote with the
+     template's, rename a `playbook/` folder to `project-memory/` if that is what the project
+     used, replace the `CLAUDE.md` block's items 1-4), then run the lint until clean.
    - *Bootstrap:* if this project's `CLAUDE.md` `<!-- live-document:start -->` block carries
      old-style maintenance items (recognizable by the phrase "after any answer or change", a
      "Curate, do not bloat" item, or items 2-4 that lack the word "Tripwire"), replace just
@@ -249,9 +293,12 @@ without a Map update fails the lint, so the turn cannot end.
    - Map + home rule (2026-09-02): if `PROJECT.md` lacks `## Map - where to find what`, scaffold it
      right after *Scope and non-goals* from the file's own pointers and the project's top-level
      folders, then fix what the lint reports. If the `CLAUDE.md` block's items 1-4 lack the phrase
-     "home rule", replace items 1-4 with the current ones from `references/claude-md-block.md`; if
-     `PROJECT.md`'s contract comment lacks "home rule", replace it with the template's.
-   - For e2e-managed projects, never touch the `e2e-state` marker or `PLAN.md`.
+     "home rule" or the phrase "project-memory", replace items 1-4 with the current ones from
+     `references/claude-md-block.md`; if `PROJECT.md`'s contract comment lacks either phrase,
+     replace it with the template's.
+   - For e2e-managed projects, never touch the `e2e-state` marker or `PLAN.md`; e2e's
+     `## Research notes` / `## Execution plan` migrate to `project-memory/research-notes.md` /
+     `execution-plan.md` only between phases, never mid-phase.
 
 **Folder tidiness - part of every curation pass.** The project root is part of the living setup: a
 root full of loose screenshots, scratch code, and generated reports hides the files that matter.
@@ -262,51 +309,63 @@ Check it at session start and whenever you touch the project:
   roughly 8+ loose non-doc files overall.
 - When tripped, build the FULL move list (e.g. "12 .png -> screenshots/"), show it, and ask ONE
   yes/no question. Move only after the yes - never silently. Canonical folders: `screenshots/`,
-  `code-examples/`, `reports/`, `next-actions/`; add others sparingly, only when a real cluster
+  `code-examples/`, `reports/`, `next-actions/`, `project-memory/` (detail layer, never a move
+  target for artifacts and never moved itself); add others sparingly, only when a real cluster
   exists.
 - Safety: grep each filename for references before moving; if something references the file,
-  update the reference in the same pass or leave the file in place and say why. Use `git mv` in
-  git repos. Never move CLAUDE.md, PROJECT.md, README, manifests/configs/dotfiles, source trees,
-  or anything an active e2e/gsd flow owns.
+  update the reference in the same edit or leave the file in place and say why. Use `git mv` in
+  git repos. Never move CLAUDE.md, PROJECT.md, README, `project-memory/`, manifests/configs/dotfiles,
+  source trees, or anything an active e2e/gsd flow owns.
 - Prevention beats cleanup: once the folders exist, file NEW artifacts of those kinds straight
   into them, and record the layout once in *Decisions locked* so every future session keeps the
   habit.
 
-The standing test: a fresh agent reading only `PROJECT.md` can continue correctly without the user
-re-explaining anything.
+The standing test: a fresh agent reading `PROJECT.md`, and on demand the `project-memory/` files
+its Map names, can continue correctly without the user re-explaining anything.
 
 ## Gates (hooks) - what makes the maintenance mandatory
 
 Prose rules are advisory; these hooks (in `~/.claude/hooks/`, registered globally, active only in
 a working directory that holds a `PROJECT.md`) are not:
 
-- `furkan-session-context.js` (SessionStart) injects Tier 1, lists the Tier 2 sections with their
-  sizes, appends the lint summary, and surfaces any PENDING RECONCILE left by an earlier session
-  that edited project files without updating `PROJECT.md` - this survives `/clear` and compaction.
-- `furkan-project-md-gate.js` (PostToolUse on Write/Edit) records every substantive project edit
-  and, on a write to `PROJECT.md`, runs `project-md-lint.js`; errors come back as feedback to fix
-  in the same turn.
+- `furkan-session-context.js` (SessionStart, also after `/clear` and compaction) emits a short
+  bootstrap (under 2,000 chars, so it is fully visible even when the harness persists hook
+  output): `PROJECT.md`'s size and the instruction to Read it in full now, the `project-memory/`
+  file list with sizes (and any file newer than `PROJECT.md`, which means its Map row or index
+  lines may be stale), the lint summary, and any PENDING RECONCILE left by an earlier session that
+  edited project files without updating `PROJECT.md` - this survives `/clear` and compaction. It
+  also resets the session's "PROJECT.md read" flag.
+- `furkan-edit-gate.js` (PreToolUse on Write/Edit) denies a substantive project edit (project
+  files and `project-memory/`; `PROJECT.md` and `CLAUDE.md` themselves are exempt) until
+  `PROJECT.md` has been Read in full this session (whole file, no offset/limit). Fail-safe: after 3
+  denies it allows, says so, and the next SessionStart reports it.
+- `furkan-project-md-gate.js` (PostToolUse on Read/Write/Edit) records the full Read of
+  `PROJECT.md`, records every substantive project edit (`project-memory/` files count), and on a
+  write to `PROJECT.md` runs `project-md-lint.js` (on a write to a `project-memory/` file, only
+  that file's rules); errors come back as feedback to fix in the same turn.
 - `furkan-stop-gate.js` (Stop) refuses to end a turn that edited project files until `PROJECT.md`
   was written afterwards AND lints clean (at most 4 blocks per condition, then it gives up loudly).
-  Q&A turns, reads, and edits outside the project or under `next-actions/` never block.
+  Q&A turns, reads, and edits outside the project or under `next-actions/` never block. If only
+  `project-memory/` files changed, the fix is to re-touch their Map rows / index lines.
 - `furkan-precompact-gate.js` (PreCompact) holds one compaction while a reconcile is pending.
 - Legacy grace: the FORMAT rules bite for a project only after its `PROJECT.md` has linted clean
-  once (the lint CLI or a clean write sets the flag); until then only the reconcile rule applies and
-  the SessionStart line nudges. Bring an old file into shape in a dedicated session, not mid-task.
+  once under the CURRENT contract (the lint CLI or a clean write sets the flag; the 2026-09-09
+  layout renamed the flag so every project re-earns it); until then only the reconcile rule
+  applies and the bootstrap nudges. Migrate an old project in a dedicated session, not mid-task.
 
-How to satisfy a block: read the listed files, reconcile `PROJECT.md` per the update algorithm,
-keep the Map current, end the turn. `node ~/.claude/hooks/project-md-lint.js PROJECT.md` runs the
-lint by hand. Changing a limit means changing `LIMITS` in the lint AND the numbers in this skill,
-its templates, and the e2e / big-project clones together.
+How to satisfy a block: read the listed files, reconcile home first and `PROJECT.md` last per the
+update algorithm, keep the Map current, end the turn. `node ~/.claude/hooks/project-md-lint.js
+PROJECT.md` runs the lint by hand. Changing a limit means changing `LIMITS` in the lint AND the
+numbers in this skill, its templates, and the e2e / project-partner / big-project clones together.
 
 ## Coexistence rules (do not fight other tooling)
 
 Other skills also write project-root files. Detect them and stay additive:
 
 - **e2e** - look for `<!-- e2e-state ... -->` in `CLAUDE.md`. Append your block to `CLAUDE.md`;
-  never touch the e2e state marker. Consolidated e2e projects carry two e2e-owned sections inside
-  `PROJECT.md` (`## Research notes`, `## Execution plan`) - treat them as canonical, and while the
-  marker is not `phase=complete` leave their structure to the e2e flow (curate the rest of the file
+  never touch the e2e state marker. e2e projects carry two e2e-owned files in `project-memory/`
+  (`research-notes.md`, `execution-plan.md`; older runs had them as `PROJECT.md` sections) - while
+  the marker is not `phase=complete` leave their structure to the e2e flow (curate everything else
   normally). Legacy e2e projects have a separate `PLAN.md` (and possibly `RESEARCH.md` /
   `design-*.md` / `ceo-plan-*.md`) - never touch those.
 - **gsd** - look for a `.planning/` directory and a gsd-style `PROJECT.md`. Augment that

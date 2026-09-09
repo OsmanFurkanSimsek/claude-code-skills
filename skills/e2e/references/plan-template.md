@@ -1,8 +1,8 @@
-# Execution plan template (the `## Execution plan` section of PROJECT.md)
+# Execution plan template (`project-memory/execution-plan.md`)
 
-Use this when writing the plan in Phase 5. The Execution plan is the **execution tracker**: it carries the master phase/step status table and the per-step detail. It lives as a section INSIDE PROJECT.md - not as a separate file - so a run produces exactly two docs (PROJECT.md + CLAUDE.md). It is a living section - Phase 6 (Execute) updates the status fields as steps complete; if a step uncovers a planning mistake, edit the plan to reflect new reality (and note it in *Lessons* / *Change log*). At Phase 12 the whole section is **deleted** after its outcome is folded into *Change log* / *Current state* - a finished run's step table is dead weight.
+Use this when writing the plan in Phase 5. The Execution plan is the **execution tracker**: it carries the master phase/step status table and the per-step detail. It lives as `project-memory/execution-plan.md` (e2e-owned, with a Map row in PROJECT.md) - never as a root-level PLAN.md. It is a living file - Phase 6 (Execute) updates the status fields as steps complete; if a step uncovers a planning mistake, edit the plan to reflect new reality (and note it in `lessons.md` / `changelog.md`). At Phase 12 the whole file is **deleted** (and its Map row removed) after its outcome is folded into `project-memory/changelog.md` / *Current state* - a finished run's step table is dead weight.
 
-The Execution plan tracks *where we are*. The durable content (goal, scope, decisions, change log, lessons) lives in PROJECT.md's canonical sections - don't duplicate it here. CLAUDE.md is the thin bootstrap that points at PROJECT.md and carries the resume marker.
+The Execution plan tracks *where we are*. The durable content (goal, scope, decision and lesson rule lines) lives in PROJECT.md's canonical sections, the full wording / stories / milestones in the other project-memory files - don't duplicate them here. CLAUDE.md is the thin bootstrap that points at PROJECT.md and carries the resume marker.
 
 **Legacy runs:** projects whose earlier `/e2e` version created a separate `PLAN.md` keep that file for the life of the run - same table and blocks, with `# PLAN.md - <name>` as the title and headings one level higher. Never migrate a legacy run mid-flight.
 
@@ -10,12 +10,14 @@ A good plan has 3-8 steps. Fewer than 3 means the work is too small for `/e2e`; 
 
 ---
 
-## Template body (embed in PROJECT.md; copy and adapt)
+## Template body (`project-memory/execution-plan.md`; copy and adapt)
 
 ```markdown
-## Execution plan
-<!-- e2e-owned section: master phase/step status table + per-step detail. Updated at every phase
-and step boundary. Deleted at Phase 12 after the outcome is folded into Change log / Current state. -->
+# Execution plan - <project name>
+
+> e2e-owned execution tracker for <project>. `PROJECT.md`'s Map points here. Master phase/step
+> status table + per-step detail, updated at every phase and step boundary. Deleted at Phase 12
+> after the outcome is folded into `changelog.md` / Current state.
 
 **Target:** <one paragraph: what we're building or producing, restated from the Elon outcome.>
 
@@ -224,13 +226,13 @@ consistent AND (Build) Phase 10 golden path still passes when applicable.
 - Update CLAUDE.md resume marker to `<!-- e2e-state: phase=complete track=<T> -->` and add a "Shipped"
   section listing what got built/produced and the date.
 - Fold this section's outcome into the canonical sections: shipped summary + final validation results
-  → *Change log* milestone line + *Current state*; step-level lessons → *Lessons*.
-- **Delete this entire `## Execution plan` section** from PROJECT.md.
-- Compact `## Research notes` to only still-load-bearing findings.
+  → a `changelog.md` milestone entry + *Current state*; step-level lessons → `lessons.md`.
+- **Delete `project-memory/execution-plan.md`** and its Map row.
+- Compact `project-memory/research-notes.md` to only still-load-bearing findings.
 - Finalize PROJECT.md with the full curation sweep; print a tight one-paragraph summary for the user.
 
 **Definition of done:** CLAUDE.md marker reads `phase=complete`, PROJECT.md finalized with this
-section removed and the outcome folded into the canonical sections.
+file removed and the outcome folded into the living docs.
 
 **Status:** pending → in_progress → done
 ```
@@ -241,10 +243,10 @@ section removed and the outcome folded into the canonical sections.
 - **Each step is shippable / demonstrable.** A step should produce something real - not just scaffolding. Build: if a step has no test strategy, it's probably scaffolding and should be folded in. Deliverable: if a step produces no reviewable section, fold it in.
 - **Validation is required.** Build: "automated tests + manual verification" is a hard constraint. Deliverable: "acceptance checks + manual verification". If a step truly has nothing automatable (e.g., pure visual styling, or a purely narrative slide), say so explicitly and double down on manual verification / acceptance checks.
 - **Status field convention:** `pending` → `in_progress` → `done`. Avoid invented states like "blocked" - if a step is blocked, raise it with the user and note it in *Open questions*, don't write a custom status.
-- **Edit the plan freely during Phase 6.** If reality diverges from the plan, the plan is wrong - fix it, and record the change in *Change log* / *Lessons*.
+- **Edit the plan freely during Phase 6.** If reality diverges from the plan, the plan is wrong - fix it, and record the change in `changelog.md` / `lessons.md`.
 - **Scaffold Phases 7-12 upfront in Phase 5.** Don't wait until Phase 7 to add the headings. The user clears context often; the Execution plan must be self-explanatory at any phase boundary.
-- **Phases 1-5 are pre-plan phases.** Their rows read `done` from the moment this section is written (Phase 5 is the act of expanding PROJECT.md + finalizing CLAUDE.md). They don't get detail blocks - their content is already distilled into the canonical sections.
+- **Phases 1-5 are pre-plan phases.** Their rows read `done` from the moment this file is written (Phase 5 is the act of expanding PROJECT.md + finalizing CLAUDE.md). They don't get detail blocks - their content is already distilled into the canonical sections.
 - **One master status table, not two.** The "Status (master table)" is the single source of truth for "where are we?". When a step or phase advances, update its row's `Status` AND the matching detail block's `Status` line below. Both must agree.
-- **Durable content goes in the canonical sections, not here.** Decisions, change log, and lessons live in their own sections. The Execution plan only tracks execution status and per-step detail.
+- **Durable content goes in the canonical sections and the other project-memory files, not here.** Decisions, milestones, and lessons live in their own homes. The execution plan only tracks execution status and per-step detail.
 - **Phase 8 is mandatory.** Always present; never delete the row. The Playtest checklist subsection is conditional (needs a walkable surface), but the *phase* is not. Surfaceless projects still gate on the user's verbal sign-off before Phase 9.
-- **Numbering is 1-12, no decimals** except the 6.x execute sub-rows. State-marker name keys (`phase=critical-review` - legacy alias `codex-review` - plus `phase=playwright`, `phase=simplify`, `phase=final`, `phase=complete`, and the virtual `office-hours` and `ceo-review`) are name-keyed, not number-keyed. Legacy projects (separate PLAN.md, possibly 10-phase numbering) keep their layout and numbering for life; only new `/e2e` runs use this embedded section and 1-12.
+- **Numbering is 1-12, no decimals** except the 6.x execute sub-rows. State-marker name keys (`phase=critical-review` - legacy alias `codex-review` - plus `phase=playwright`, `phase=simplify`, `phase=final`, `phase=complete`, and the virtual `office-hours` and `ceo-review`) are name-keyed, not number-keyed. Legacy projects (separate PLAN.md, possibly 10-phase numbering) keep their layout and numbering for life; only new `/e2e` runs use this file and 1-12.

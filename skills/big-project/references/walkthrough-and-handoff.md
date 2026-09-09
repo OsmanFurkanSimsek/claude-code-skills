@@ -52,7 +52,7 @@ Every chat reply that finishes work ends with this, filled in. It also closes ev
 ```markdown
 1. You can clear the context NOW. Everything important is saved in PROJECT.md, memory, the skill files, and `next-actions/2026-07-22_15-30-next-actions.html`.
 2. Start a fresh session and paste exactly this message:
-   > Continue the project in this folder. The hook injected PROJECT.md Tier 1; read its Lessons and Change log, then open the newest file in `next-actions/`. We just finished mapping source B's columns onto the existing model; the next action is the capped 500-row validation run described in Part C of that walkthrough. Predict the run time before I start it.
+   > Continue the project in this folder. Read PROJECT.md in full, then `project-memory/changelog.md`, then open the newest file in `next-actions/`. We just finished mapping source B's columns onto the existing model; the next action is the capped 500-row validation run described in Part C of that walkthrough. Predict the run time before I start it.
 ```
 
 ### What makes the kickoff message good

@@ -1,21 +1,25 @@
-# Research notes template (the `## Research notes` section of PROJECT.md)
+# Research notes template (`project-memory/research-notes.md`)
 
-Use this in Phase 4 to capture current-state research. It lives as a section INSIDE PROJECT.md - not as a separate RESEARCH.md - so a run produces exactly two docs. The point of the section is to make the plan auditable: someone reading PROJECT.md should be able to ask "why did you pick X over Y?" and find the answer here with a citation.
+Use this in Phase 4 to capture current-state research. It lives as `project-memory/research-notes.md` (e2e-owned, with a Map row in PROJECT.md) - never as a root-level RESEARCH.md. The point of the file is to make the plan auditable: someone reading the living docs should be able to ask "why did you pick X over Y?" and find the answer here with a citation.
 
 Today's date matters. The model's training cutoff is older than reality - the whole reason for this phase is to overwrite stale assumptions with current data. Always include the access date next to citations.
 
 The template carries both track shapes. On the **Build** track, research is about libraries, versions, architecture, and pitfalls. On the **Deliverable** track, it is about the audience and what "good" looks like, format/presentation conventions, authoritative data sources and their freshness, domain facts and benchmarks, and known failure modes (misleading charts, unsourced claims, stale or double-counted data). Use the subsections that fit your track; drop the rest.
 
-**This section is curated like everything else in PROJECT.md.** A finding that hardens into a decision moves to *Decisions locked* (with its citation) and is deleted here; open items go to the canonical *Open questions* section, never to a duplicate list here. At Phase 12 the section is compacted to only the findings still load-bearing for future work.
+**This file is curated like everything else in the living docs.** A finding that hardens into a decision moves to *Decisions locked* (rule line) and `decisions.md` (full wording with its citation) and is deleted here; open items go to PROJECT.md's *Open questions*, never to a duplicate list here. At Phase 12 the file is compacted to only the findings still load-bearing for future work.
 
 **Legacy runs:** projects whose earlier `/e2e` version created a separate `RESEARCH.md` keep that file for the life of the run (same content, `# RESEARCH.md - <name>` title, headings one level higher).
 
 ---
 
-## Template body (embed in PROJECT.md; copy and adapt)
+## Template body (`project-memory/research-notes.md`; copy and adapt)
 
 ```markdown
-## Research notes
+# Research notes - <project name>
+
+> e2e-owned research record for <project>. `PROJECT.md`'s Map points here. Findings with citations
+> and access dates; a finding that hardens into a decision moves to Decisions locked / decisions.md;
+> compacted at Phase 12 to what is still load-bearing.
 <!-- e2e-owned section: Phase 4 findings with citations (access dates mandatory). Curated: findings
 that harden into decisions move to Decisions locked and are deleted here; open items go to Open
 questions. Compacted at Phase 12 to only still-load-bearing reference material. -->

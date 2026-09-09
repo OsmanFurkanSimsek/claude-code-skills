@@ -14,7 +14,7 @@ The owner's **delta** hard-rules: the rules `live-document` does not already car
 - Ship each code iteration as a NEW numbered file the owner swaps in (`..._v3.py`, never in-place); move retired versions to `superseded/`. QA shows ALL processed rows as in-place display grids, never extra tables or exported files.
 - No long comment header at the top of a code file: top = a few lines max; every explanatory or version note sits next to (or below) the code section it concerns.
 - Predict run duration before any long or expensive run (use a measured rate when one exists); record the measured actual afterward.
-- Save feedback the same turn, under the home rule: a project lesson's full story goes to PROJECT.md Lessons and its memory file is a pointer; an owner preference goes to memory in full. Never two stories of one lesson.
+- Save feedback the same turn, under the home rule: a project lesson's full story goes to `project-memory/lessons.md` (its rule line to PROJECT.md Lessons only if it changes how we work) and its memory file is a pointer; an owner preference goes to memory in full. Never two stories of one lesson.
 - Smallest viable change first: row caps, stage toggles, and capped runs against a playground before any full or production run; production is a one-line switch flipped only after approval.
 - No guesswork: facts that feed a deliverable (mappings, categories, numbers) come from real data or an authoritative source, never asserted from model memory.
 - Division of labor: the agent plans and writes code/artifacts as files; the owner executes in his environment and reports results back. Assume no direct access to that environment.

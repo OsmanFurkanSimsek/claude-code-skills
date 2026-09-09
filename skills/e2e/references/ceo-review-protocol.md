@@ -15,7 +15,7 @@ Skip for greenfield. Otherwise, do a quick sweep before engaging the user:
 - `git log --oneline -30` - recent intent.
 - Glob recently-modified files - where the code is currently active.
 - Grep `TODO|FIXME|HACK|XXX` - declared debt.
-- Read PROJECT.md in full - the Phase 1 outcome and any prior decisions to honor or revisit live there. (Legacy runs: also Glob prior `design-*.md`, `ceo-plan-*.md`, `RESEARCH.md`, `PLAN.md`.)
+- Read PROJECT.md in full (and `project-memory/decisions.md` if it exists) - the Phase 1 outcome and any prior decisions to honor or revisit live there. (Legacy runs: also Glob prior `design-*.md`, `ceo-plan-*.md`, `RESEARCH.md`, `PLAN.md`.)
 
 Two outputs from this audit, kept in working memory: 2-3 well-designed patterns to emulate, and 1-2 anti-patterns to avoid.
 
@@ -113,7 +113,7 @@ The review's outcome goes straight into PROJECT.md's canonical sections - there 
 | Reuses (existing code / pattern / library to lean on) | *Decisions locked* |
 | Open questions for Phase 3 (Elon) | *Open questions* |
 
-Distill, don't transcribe: PROJECT.md gets the durable decisions, reconciled in place (a scope decision that changes an earlier Phase 1 line REPLACES it).
+Distill, don't transcribe: PROJECT.md gets the durable decisions as rule lines and `project-memory/decisions.md` their full wording, reconciled in place (a scope decision that changes an earlier Phase 1 line REPLACES it in both).
 
 ## 5. Critical rules
 

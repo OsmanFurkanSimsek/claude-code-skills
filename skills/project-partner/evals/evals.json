@@ -21,8 +21,11 @@
       "id": 2,
       "name": "curation-reconciles-not-appends",
       "prompt": "Quick update on the invoice parser: Globex parsing is done now (100%, shipped this morning), and we made the switch to xlsx output official - finance signed off, CSV is dead. Also the rounding bug is fixed with Decimal totals. Bring PROJECT.md up to date.",
-      "expected_output": "Reconciles PROJECT.md in place: the '80% there' Globex line is gone (reads as done), the CSV decision is REPLACED by the xlsx decision, finished todos are removed, the resolved rounding note is folded into a lesson, at most one milestone change-log line is added. FAILS if the update is append-only (old lines still present with new ones stacked below).",
-      "files": ["fixtures/midstream/PROJECT.md", "fixtures/midstream/CLAUDE.md"],
+      "expected_output": "Reconciles PROJECT.md in place: the '80% there' Globex line is gone (reads as done), the CSV decision is REPLACED by the xlsx decision, finished todos are removed, the resolved rounding note is folded into a lesson, at most one milestone entry is added to project-memory/changelog.md (never a Change log section inside PROJECT.md); if the project has no project-memory/ folder yet, the migration is offered for a dedicated session or done, never a second tracking file at the root. FAILS if the update is append-only (old lines still present with new ones stacked below).",
+      "files": [
+        "fixtures/midstream/PROJECT.md",
+        "fixtures/midstream/CLAUDE.md"
+      ],
       "expectations": []
     },
     {
@@ -61,8 +64,11 @@
       "id": 7,
       "name": "e2e-coexistence-not-hijacked",
       "prompt": "Bring the project docs up to date: we finished the data-model page today and validated the measures against the July extract.",
-      "expected_output": "Curates PROJECT.md's canonical sections (Current state, Change log) while leaving the e2e-owned structures alone: the <!-- e2e-state --> marker in CLAUDE.md is untouched, and the ## Research notes / ## Execution plan sections' structure is left to the active e2e flow (their rows may be updated per the e2e format, never restructured). FAILS if the marker is modified/removed or the e2e sections are restructured/deleted.",
-      "files": ["fixtures/e2e-managed/CLAUDE.md", "fixtures/e2e-managed/PROJECT.md"],
+      "expected_output": "Curates PROJECT.md's canonical sections (Current state, Change log) while leaving the e2e-owned structures alone: the <!-- e2e-state --> marker in CLAUDE.md is untouched, and the e2e-owned research-notes / execution-plan (project-memory files, or PROJECT.md sections on a 2026-09-02-era run) keep their structure under the active e2e flow (their rows may be updated per the e2e format, never restructured). FAILS if the marker is modified/removed or the e2e sections are restructured/deleted.",
+      "files": [
+        "fixtures/e2e-managed/CLAUDE.md",
+        "fixtures/e2e-managed/PROJECT.md"
+      ],
       "expectations": []
     },
     {
@@ -77,8 +83,11 @@
       "id": 9,
       "name": "self-heal-old-style-block",
       "prompt": "Quick status update: step 3 (the import script) is done and tested.",
-      "expected_output": "While touching the project, self-heals the outdated CLAUDE.md live-document block: the old-style maintenance items (recognizable by 'after any answer or change' / missing 'Tripwire') are replaced with the current wording, PRESERVING every other line and the start/end markers. Also reconciles the status update into PROJECT.md. FAILS if it rewrites the whole CLAUDE.md, drops non-block content, or leaves the old-style items while claiming maintenance is done.",
-      "files": ["fixtures/old-style-block/CLAUDE.md", "fixtures/old-style-block/PROJECT.md"],
+      "expected_output": "While touching the project, self-heals the outdated CLAUDE.md live-document block: the old-style maintenance items (recognizable by 'after any answer or change' / missing 'Tripwire') are replaced with the current wording, PRESERVING every other line and the start/end markers. Also reconciles the status update into PROJECT.md (and, on a project without project-memory/, names the project-memory migration as a dedicated-session item rather than doing it mid-task). FAILS if it rewrites the whole CLAUDE.md, drops non-block content, or leaves the old-style items while claiming maintenance is done.",
+      "files": [
+        "fixtures/old-style-block/CLAUDE.md",
+        "fixtures/old-style-block/PROJECT.md"
+      ],
       "expectations": []
     },
     {
@@ -86,7 +95,10 @@
       "name": "real-handoff-writes-next-actions-file",
       "prompt": "Finance signed off on the xlsx output and confirmed the numbers are good for the clean vendors. Next I have to do a manual chore myself every month: on the 1st, regenerate the workbook and upload it to our finance SharePoint at https://contoso.sharepoint.com/sites/finance (I can already open that site fine). Walk me through setting up a recurring monthly reminder for this in classic desktop Outlook - I've never made one.",
       "expected_output": "Delivers Action mode in chat (Summary, Reasoning, numbered Steps in super simple language) AND, because this is a real multi-step handoff with no blocking unknowns (destination, access, tool, and schedule are all given), writes ONE Next Actions file in next-actions/ at the project root: <YYYY-MM-DD_HH-MM>-next-actions.html. It carries TLDR paragraph first, then reasoning including alternatives considered and why this path won, then the steps; it is fully self-contained (inline CSS/JS, no external URLs) with an interactive step checklist. Announces the file path in one chat line. FAILS if no file is written, a separate .md is also written, the filename lacks the date-time prefix, the file lives outside next-actions/, the TLDR is not first, or the .html loads any external resource.",
-      "files": ["fixtures/midstream/PROJECT.md", "fixtures/midstream/CLAUDE.md"],
+      "files": [
+        "fixtures/midstream/PROJECT.md",
+        "fixtures/midstream/CLAUDE.md"
+      ],
       "expectations": []
     },
     {
@@ -94,7 +106,10 @@
       "name": "elon-scoping-end-no-doc-offer",
       "prompt": "That wraps the five-step scoping of the vendor-mismatch report feature: we keep only the weekly mismatch summary (A, asked by Maria in finance), we deleted the per-invoice drilldown and the email digest (both B, pure convention), it's one extra sheet reusing the existing output writer, I'll demo a rough version to Maria this Friday, and nothing is worth automating yet. Pre-mortem: the risk is stale vendor mappings, cheap fix is a warning row whenever a vendor id is unknown.",
       "expected_output": "Closes the Elon scoping by reconciling the outcome straight into PROJECT.md (kept summary + warning-row mitigation into Decisions locked or Plan; deleted drilldown and digest into Scope and non-goals with one-line whys; Friday demo into Current state and next action) WITHOUT asking any document question, then confirms the update in one line. FAILS if it asks whether to keep the outcome in chat vs write a separate document, offers to save an elon-*.md, creates any new tracking file, or asks permission before updating PROJECT.md.",
-      "files": ["fixtures/midstream/PROJECT.md", "fixtures/midstream/CLAUDE.md"],
+      "files": [
+        "fixtures/midstream/PROJECT.md",
+        "fixtures/midstream/CLAUDE.md"
+      ],
       "expectations": []
     }
   ]

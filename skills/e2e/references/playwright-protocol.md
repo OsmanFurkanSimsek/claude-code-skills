@@ -1,6 +1,6 @@
 # Playwright UI testing protocol
 
-Phase 10 of the end-to-end-development skill. Run real browser-driven tests against the user-facing flows declared in PROJECT.md's Execution plan (legacy runs: PLAN.md), but only when there's actually a UI to test.
+Phase 10 of the end-to-end-development skill. Run real browser-driven tests against the user-facing flows declared in `project-memory/execution-plan.md` (legacy runs: PLAN.md), but only when there's actually a UI to test.
 
 ## Pre-flight: detect frontend
 
@@ -40,7 +40,7 @@ Give the server a few seconds to bind. If it crashes immediately, surface the er
 
 ## Navigate and exercise the golden path
 
-The "golden path" is the main user flow declared in the Execution plan's success criteria (PROJECT.md; legacy: PLAN.md). For a typical app this is the onboarding-to-core-action loop.
+The "golden path" is the main user flow declared in the execution plan's success criteria (`project-memory/execution-plan.md`; legacy: PLAN.md). For a typical app this is the onboarding-to-core-action loop.
 
 1. `mcp__plugin_playwright_playwright__browser_navigate` to the dev server URL.
 2. **Accessibility tree check (required).** `mcp__plugin_playwright_playwright__browser_snapshot` to capture the accessibility tree. Verify the page exposes the expected landmarks for its type - at minimum a `heading`, `nav`, and `main`. If a key landmark is missing on a page that should have it, flag it as a finding and continue.
@@ -85,7 +85,7 @@ When done with the phase:
 
 - **Dev server doesn't start:** missing dependencies - run `npm install` (or equivalent), retry once, then surface to user if still broken.
 - **Wrong URL:** the framework chose a different port - read the dev server's stdout via `Bash` output to find the actual URL.
-- **Auth-gated app:** the golden path may require a logged-in state. Check CLAUDE.md / PROJECT.md's Execution plan for test credentials or a seed-user step. If not specified, ask the user before stubbing.
+- **Auth-gated app:** the golden path may require a logged-in state. Check CLAUDE.md / `project-memory/execution-plan.md` for test credentials or a seed-user step. If not specified, ask the user before stubbing.
 - **Flaky transition:** add a `browser_wait_for` with a more specific selector instead of a fixed sleep. Flakiness usually means timing is wrong, not that the test is bad.
 - **Console errors during golden path:** never advance with red console errors logged. Diagnose (look at the message, check the stack frame, inspect the network tab via `browser_network_requests`), fix the underlying code, re-run the scenario.
 - **Missing accessibility landmarks:** check the framework's layout - many SPAs render content into a generic `<div>` without semantic structure. Add `<main>`, `<nav>`, and proper heading levels rather than working around the check.

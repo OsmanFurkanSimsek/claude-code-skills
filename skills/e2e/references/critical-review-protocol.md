@@ -38,9 +38,10 @@ Deep, READ-ONLY code review for an end-to-end build at:
 
 Anchors - read these first:
 - Thin constitution / bootstrap: ./CLAUDE.md
-- Living source of truth: ./PROJECT.md - goal, scope, decisions, lessons, plus its "Execution plan"
-  section (step status) and "Research notes" section (research that informed decisions).
-  (Legacy layout only: those two live in ./PLAN.md and ./RESEARCH.md instead.)
+- Living source of truth: ./PROJECT.md - goal, scope, decision and lesson rule lines, the Map - plus
+  ./project-memory/execution-plan.md (step status), ./project-memory/research-notes.md (research that
+  informed decisions) and ./project-memory/decisions.md (full decision wording).
+  (Legacy layout only: those live in ./PLAN.md and ./RESEARCH.md, or as PROJECT.md sections, instead.)
 
 Then review the source under the project root.
 </task>
@@ -48,7 +49,7 @@ Then review the source under the project root.
 <output_contract>
 Group findings by severity:
 - CRITICAL: bugs that produce wrong output, security issues, data loss/corruption risks.
-- IMPORTANT: design flaws, missing error handling at boundaries, deviations from PROJECT.md decisions or its Execution plan, performance traps.
+- IMPORTANT: design flaws, missing error handling at boundaries, deviations from PROJECT.md decisions or the execution plan, performance traps.
 - NIT: style/readability/naming improvements where the WHY is non-obvious.
 
 For each finding: file:line reference, one-paragraph description, concrete suggested fix (or fix direction).
@@ -71,9 +72,10 @@ Deep, READ-ONLY critical-reasoning review of a non-code deliverable at:
 
 Anchors - read these first:
 - Thin constitution / bootstrap: ./CLAUDE.md
-- Living source of truth: ./PROJECT.md - goal, scope, decisions, lessons, plus its "Execution plan"
-  section (step status) and "Research notes" section (research with citations).
-  (Legacy layout only: those two live in ./PLAN.md and ./RESEARCH.md instead.)
+- Living source of truth: ./PROJECT.md - goal, scope, decision and lesson rule lines, the Map - plus
+  ./project-memory/execution-plan.md (step status), ./project-memory/research-notes.md (research with
+  citations) and ./project-memory/decisions.md (full decision wording).
+  (Legacy layout only: those live in ./PLAN.md and ./RESEARCH.md, or as PROJECT.md sections, instead.)
 
 Then review the deliverable artifacts under the project root (the deck/report/analysis/document
 text, notebooks, data summaries, exported measures). Review the THINKING, not code: is the

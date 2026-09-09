@@ -1,6 +1,6 @@
 # Resume protocol
 
-The end-to-end skill is designed to survive `/clear`. A future Claude session picks up mid-flow by reading two files: `CLAUDE.md` (thin constitution + state marker) and `PROJECT.md` (the living source of truth - goal, scope, decisions, lessons, plus the `## Research notes` and `## Execution plan` sections). This file describes how to do that reliably.
+The end-to-end skill is designed to survive `/clear`. A future Claude session picks up mid-flow by reading two files: `CLAUDE.md` (thin constitution + state marker) and `PROJECT.md` (the living source of truth - goal, scope, decision and lesson rule lines, the Map), then on demand the `project-memory/` files the Map names - `execution-plan.md` and `research-notes.md` for an active run. This file describes how to do that reliably.
 
 **Legacy layout:** projects created by an earlier version of this skill also have some of `PLAN.md`, `RESEARCH.md`, `design-*.md`, `ceo-plan-*.md`, `elon-*.md`, `PLAYTEST.md`. Any of those present means the run continues under that multi-file layout for its whole life - read PLAN.md as the execution tracker, RESEARCH.md as the research record, and so on. **Never migrate a legacy run to the consolidated layout mid-run.**
 
@@ -25,11 +25,11 @@ This marker is the single source of truth. Trust it. Do not re-derive state by g
 
 When `/e2e` is invoked, before any other work:
 
-1. Use Glob to check if `./CLAUDE.md` exists at the project root, and detect the layout: any of `PLAN.md`, `RESEARCH.md`, `design-*.md`, `ceo-plan-*.md`, `PLAYTEST.md` present → **legacy multi-file layout** (keep it for the life of the run); none present → **consolidated layout** (everything in PROJECT.md).
+1. Use Glob to check if `./CLAUDE.md` exists at the project root, and detect the layout: any of `PLAN.md`, `RESEARCH.md`, `design-*.md`, `ceo-plan-*.md`, `PLAYTEST.md` present → **legacy multi-file layout** (keep it for the life of the run); none present → **consolidated layout** (PROJECT.md + `project-memory/`; a 2026-09-02-era run may still hold `## Research notes` / `## Execution plan` inside PROJECT.md - treat those sections as the files until the next phase boundary migrates them).
 2. If `CLAUDE.md` exists:
    a. Read CLAUDE.md.
    b. Search for a line starting with `<!-- e2e-state:`.
-   c. If found, parse out `phase`, `step`, `of`, `track`, `last_checkpoint`. Resume per the table below. A marker present with no `## Execution plan` section yet (or, legacy, no `PLAN.md`) is normal during discovery (Phases 1-4) - trust the marker; do not treat it as an error or a partial state.
+   c. If found, parse out `phase`, `step`, `of`, `track`, `last_checkpoint`. Resume per the table below. A marker present with no `project-memory/execution-plan.md` yet (or, legacy, no `PLAN.md`) is normal during discovery (Phases 1-4) - trust the marker; do not treat it as an error or a partial state.
    d. If not found, ask the user: "Found CLAUDE.md without an e2e-state marker. Was it created outside `/e2e`? Should I treat as fresh start or read it as context first?"
 3. If legacy artifacts exist but `CLAUDE.md` does not → unusual (CLAUDE.md is the bootstrap and is written first). Ask the user how to proceed (likely a partial state from an interrupted run).
 4. If no `CLAUDE.md` exists → check for legacy discovery artifacts. Glob for `design-*.md`, `ceo-plan-*.md`, `elon-*.md` at the project root:
@@ -42,18 +42,18 @@ On any fresh run, or a virtual-state resume (`office-hours` / `ceo-review`) wher
 
 ## Resume targets by phase
 
-Once the marker is parsed, jump directly to the right place. Do not redo earlier phases unless the user asks. "The plan" below means PROJECT.md's `## Execution plan` section (legacy: PLAN.md); "research" means `## Research notes` (legacy: RESEARCH.md).
+Once the marker is parsed, jump directly to the right place. Do not redo earlier phases unless the user asks. "The plan" below means `project-memory/execution-plan.md` (legacy: PLAN.md, or a `## Execution plan` section inside PROJECT.md); "research" means `project-memory/research-notes.md` (legacy: RESEARCH.md or a `## Research notes` section).
 
 | Marker phase | Resume action |
 |---|---|
 | `office-hours` | Phase 1. Read PROJECT.md for context; if its Goal/Decisions don't yet carry the Office Hours outcome (legacy: no `design-*.md`), (re-)enter Phase 1 from the top (tell the user previous answers, if any, are lost). |
 | `ceo-review` | Phase 2. Read PROJECT.md (Goal, Scope, Decisions carry the Phase 1 outcome; legacy: also the latest `design-*.md`), then enter Phase 2. If a partial CEO outcome is already in Decisions (legacy: a partial `ceo-plan-*.md`), ask "Continue CEO Review from where it stopped?" |
 | `elon` | Phase 3. Read PROJECT.md (legacy: also `ceo-plan-*.md` / `design-*.md`); invoke the `elon` skill to run Phase 3. |
-| `research` | Phase 4. Read PROJECT.md; (re-)run Phase 4 research and write/continue the `## Research notes` section (legacy: `RESEARCH.md`). |
-| `ready-to-execute` | Read PROJECT.md (goal/decisions + the Execution plan), summarize the plan in 5 lines, ask user "Ready to start step 1?" |
-| `execute` | Read PROJECT.md, find the Execution plan step with status `in_progress` (or step `<N>` from marker if no `in_progress`), summarize what's been done, ask user "Resume step `<N>`?" |
+| `research` | Phase 4. Read PROJECT.md; (re-)run Phase 4 research and write/continue `project-memory/research-notes.md` (legacy: `RESEARCH.md`). |
+| `ready-to-execute` | Read PROJECT.md (goal/decisions) and `project-memory/execution-plan.md`, summarize the plan in 5 lines, ask user "Ready to start step 1?" |
+| `execute` | Read PROJECT.md and `project-memory/execution-plan.md`, find the step with status `in_progress` (or step `<N>` from marker if no `in_progress`), summarize what's been done, ask user "Resume step `<N>`?" |
 | `holistic-test` | Skip to Phase 7 (Holistic quality pass). Ask user "Resume the holistic quality pass?" |
-| `human-playtest` | Skip to Phase 8 (Human review). If a Playtest checklist exists (in the Execution plan's Phase 8 block; legacy: `PLAYTEST.md`), summarize fill state ("X of Y rows feedback'd, Z blockers/annoyings open"). Ask user "Resume human review?" If the user has finished and feedback is in, switch to fix-application mode; otherwise hand the wheel back. (Marker key stays `human-playtest`.) |
+| `human-playtest` | Skip to Phase 8 (Human review). If a Playtest checklist exists (in the execution plan's Phase 8 block; legacy: `PLAYTEST.md`), summarize fill state ("X of Y rows feedback'd, Z blockers/annoyings open"). Ask user "Resume human review?" If the user has finished and feedback is in, switch to fix-application mode; otherwise hand the wheel back. (Marker key stays `human-playtest`.) |
 | `critical-review` (or legacy `codex-review`) | Skip to Phase 9 (Critical review). Both labels resolve here; new runs write `critical-review`. If a review was already run and some findings are still open, ask whether to re-run or apply the remaining ones. |
 | `playwright` | Skip to Phase 10. |
 | `simplify` | Skip to Phase 11. |

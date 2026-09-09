@@ -85,7 +85,7 @@ The interview's outcome goes straight into PROJECT.md's canonical sections - the
 | Alternatives not picked | *Decisions locked* - one terse "considered <X>, rejected because <Y>" bullet each |
 | What's not yet answered (feeds CEO Review, Elon, Research) | *Open questions* |
 
-Distill, don't transcribe: the interview transcript stays in the conversation; PROJECT.md gets only the durable outcome, curated per the living-document discipline (reconcile in place, one fact one home).
+Distill, don't transcribe: the interview transcript stays in the conversation; PROJECT.md gets only the durable outcome as rule lines (full wording and the rejected alternatives' reasoning in `project-memory/decisions.md`), curated per the living-document discipline (reconcile in place, one fact one home).
 
 ## 7. Critical rules
 

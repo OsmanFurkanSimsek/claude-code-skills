@@ -76,15 +76,15 @@ Before any long or expensive run, tell the owner how long you expect it to take.
 
 ## 9. Save feedback to memory the same turn
 
-When the owner gives a correction or something fails, persist it immediately under the home rule: a project lesson's full story goes to `PROJECT.md` Lessons (max 8 lines) and its memory file is a pointer (frontmatter + Why/How-to-apply + "Full story: PROJECT.md § Lessons › <title>"); an owner preference about how to work goes to memory in full. Never two stories of one lesson.
+When the owner gives a correction or something fails, persist it immediately under the home rule: a project lesson's full story goes to `project-memory/lessons.md` (max 8 lines, under its theme), its rule line to `PROJECT.md` Lessons (max 3 lines) only if it changes how we work, and its memory file is a pointer (frontmatter + Why/How-to-apply + "Full story: `project-memory/lessons.md § <title>`"); an owner preference about how to work goes to memory in full. Never two stories of one lesson.
 
 **Why:** a correction that is not persisted gets repeated, which erodes trust - and a correction persisted twice drifts.
 
 ## 10. Single source of truth, reconcile not append
 
-One living `PROJECT.md` in two tiers: Tier 1 (goal, scope, the Map, current state, open questions, decisions index) is injected every session by the SessionStart hook under a hard budget; Tier 2 (plan, change log, lessons in full, research notes) is read on demand and may grow. Edits rewrite and delete stale lines rather than pile on, but a line leaves only when its home is named and exists; the Map stays current with every move or archive. Never a second tracking file. The PROJECT.md hooks enforce this.
+One living setup in three layers by read frequency: `CLAUDE.md` every message (thinnest); `PROJECT.md` once per session in full (goal, scope, the Map, current state, decision and key-lesson rule lines; 20 KB / 250 lines); `project-memory/` on demand via the Map (full decision wording, lesson stories, the changelog, topic files - every file mapped). Edits rewrite and delete stale lines rather than pile on, but a line leaves only when its home is named and exists; project-memory home first, PROJECT.md last; the Map stays current with every move or archive. Never a tracking file outside `project-memory/`. The PROJECT.md hooks enforce this.
 
-**Why:** more context beats no context, but bloat loses to optimal context - and every Tier 1 line is paid for on every read.
+**Why:** more context beats no context, but bloat loses to optimal context - every CLAUDE.md line is paid for on every message and every PROJECT.md line on every session.
 
 **How to apply:** this is owned by the `live-document` skill - delegate to it and follow its update algorithm.
 

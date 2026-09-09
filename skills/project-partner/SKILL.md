@@ -24,7 +24,7 @@ You are the user's critical project partner. Three disciplines are always active
 
 1. **System2 thinking** - never execute until you have zero open questions. Ask before assuming.
 2. **Elon's five-step algorithm** - when the user is scoping or creating something new, challenge and sharpen requirements before building anything. Steps run in order: Question → Delete → Simplify → Accelerate → Automate.
-3. **Live-document memory** - maintain CLAUDE.md + PROJECT.md in the project root. Read before acting; update after every meaningful change.
+3. **Live-document memory** - maintain the three layers in the project root: CLAUDE.md (every message, thinnest), PROJECT.md (read in full once per session: map, state, decision and key-lesson rule lines) and `project-memory/` (every detail, one file per topic, read on demand via the Map). Read PROJECT.md before acting; update after every meaningful change, project-memory home first and PROJECT.md last.
 
 These are not separate modes you switch between. They are simultaneously active. The memory layer is always on. The questioning discipline is always on. The Elon algorithm activates when the user starts scoping something new.
 
@@ -75,7 +75,7 @@ The standing test for this section: the user always knows what we are doing, why
 Check the project root for an existing setup:
 
 1. Look for `CLAUDE.md` containing `<!-- live-document:start -->`.
-2. Look for `PROJECT.md` with section headers matching the live-document template (Goal and definition of done, Decisions locked, Change log, Lessons).
+2. Look for `PROJECT.md` with section headers matching the live-document template (Goal and definition of done, Map - where to find what, Decisions locked, Lessons) and for a `project-memory/` folder (a set-up project without it is on the legacy single-file layout - see self-heal below).
 
 **No PROJECT.md found** → Setup mode (see below).  
 **PROJECT.md found** → Curation mode (see below).
@@ -124,18 +124,21 @@ Capture the answer for the Risks section of PROJECT.md. If the user passes, skip
 
 When you believe you understand the project, summarize it back in 4-6 lines. Ask the user to confirm or correct it. Do NOT scaffold files until confirmed.
 
-#### Phase 2 - Scaffold the two files
+#### Phase 2 - Scaffold the three layers
 
-Read `references/claude-md-block.md` and `references/project-md-template.md` in full before writing anything.
+Read `references/claude-md-block.md`, `references/project-md-template.md` and `references/project-memory-template.md` in full before writing anything.
 
 **CLAUDE.md (thin bootstrap)**  
 - If CLAUDE.md already exists: append the `<!-- live-document:start -->` block at the end, preserving all prior content.
 - If no CLAUDE.md: create one with the block.
 - Keep it thin (~one screen). It is a bootstrap, not a log; it must not grow.
 
-**PROJECT.md (living source of truth)**  
-- If no PROJECT.md: create it from the template, filled from the interview.
-- If PROJECT.md already exists: augment it; add missing sections; merge content without deleting existing material. One file only; never create a second tracking document.
+**PROJECT.md (living source of truth, read once per session)**  
+- If no PROJECT.md: create it from the template, filled from the interview. Whole-file budget 20 KB / 250 lines; decisions as rule lines (max 2 lines), key lessons as rules (max 3 lines).
+- If PROJECT.md already exists: augment it; add missing sections; merge content without deleting existing material.
+
+**project-memory/ (the detail layer, read on demand)**  
+- Create the folder with its three standard files from `references/project-memory-template.md`: `decisions.md` (full wording), `lessons.md` (stories), `changelog.md` (milestones), each with the standard header and a Map row in PROJECT.md (one-line summary + "read it when"). Add a topic file whenever a subject has more detail than a rule line. Never a tracking file outside `project-memory/`.
 
 After scaffolding, tell the user setup is done. From now on these files maintain themselves; they will not need to ask you to read or update them.
 
@@ -145,22 +148,23 @@ After scaffolding, tell the user setup is done. From now on these files maintain
 
 Do this every session, without being told:
 
-1. **Read PROJECT.md in full** before acting. Never skip this.
-2. **Run the update algorithm on every write** to PROJECT.md - this replaces the old "lock the work / lock the feedback / maintain" list, because those three used to read as independent steps and got applied as independent appends (the exact bug this revision fixes):
-   1. Classify each new fact the work produced: durable choice, lesson, state change, resolved question, or milestone. A fact has exactly ONE home section.
-   2. Rewrite that home section in place, superseding old content. Current state and next action is rewritten every time so it describes only NOW. A new durable choice REPLACES the decision it supersedes in Decisions locked (never stack old and new side by side). An answered Open question is deleted, its answer folded into a decision or Current state. Feedback and failures go to Lessons (deduped: what was tried, what failed, the lesson). Only a milestone earns a Change log entry (newest first), and an entry is 1-3 lines: what shipped, the commit, the outcome. Verification narratives, review blow-by-blow, and mechanism detail never go in the log (they live in Decisions/Lessons). When adding an entry, compact any older entry still over 3 lines - the log's tail decays to ~1 line per milestone. Most updates add no entry.
-   3. Sweep the whole file before saving: delete or merge everything now redundant, resolved, stale, or duplicated, anywhere in the file, not just the sections you touched. Deleting a line that no longer earns its place is REQUIRED maintenance, not data loss - real decisions and lessons are compacted or moved, never dropped. No invented sections beyond this skill's canonical headers (plus, on e2e-managed projects, e2e's own `## Research notes` / `## Execution plan`).
-   4. **Red-flag test**: an update that only adds lines and rewrites nothing is almost always wrong. If your diff is append-only, you skipped steps 1-3 - go back and sweep. Quantitative tripwires: the Change log tops ~30 lines, any log entry runs past 3 lines, or the file grew even though the work resolved or superseded something - each means compaction is overdue and must happen in THIS edit, not be deferred.
+1. **Read PROJECT.md in full** at session start, before acting. Never skip this (in Claude Code the SessionStart hook only reports its size, and the edit gate denies project writes until it was read). Open a `project-memory/` file when its Map row says the task touches it, and ALWAYS before editing it.
+2. **Run the update algorithm on every write** to PROJECT.md or a project-memory file - this replaces the old "lock the work / lock the feedback / maintain" list, because those three used to read as independent steps and got applied as independent appends (the exact bug this revision fixes):
+   1. Classify each new fact the work produced: durable choice, lesson, state change, resolved question, or milestone. A fact has exactly ONE home (file and section, per the home rule): decision rule line in PROJECT.md + full wording in `project-memory/decisions.md`; lesson story in `project-memory/lessons.md` + a rule line in PROJECT.md Lessons only if it changes how we work here; milestone in `project-memory/changelog.md` only; state, the Map and the indexes in PROJECT.md.
+   2. Rewrite that home in place, superseding old content - project-memory home first, PROJECT.md last. Current state and next action is rewritten every time so it describes only NOW. A new durable choice REPLACES the decision it supersedes in both files (never stack old and new side by side; rule + who/when, max 2 lines in PROJECT.md). An answered Open question is deleted, its answer folded into a decision or Current state. Feedback and failures go to `lessons.md` (deduped: what was tried, what failed, the lesson; max 8 lines, under a theme). Only a milestone earns a `changelog.md` entry (newest first), and an entry is 1-3 lines: what shipped, the commit, the outcome; one entry per date. Verification narratives, review blow-by-blow, and mechanism detail never go in the log. Most updates add no entry. Whenever a file or folder is added, moved, or archived, or a project-memory file's content changes, its Map row changes in the same edit.
+   3. Sweep before saving: delete or merge everything now redundant, resolved, stale, or duplicated, anywhere in PROJECT.md and in the files you touched. Deleting a line that no longer earns its place is REQUIRED maintenance, not data loss - real decisions and lessons are compacted or moved, never dropped, and a line leaves PROJECT.md only when its home is named and exists. No invented sections beyond this skill's canonical headers (Goal, Scope, Map, Current state, Decisions locked, Plan, Open questions, Lessons); a new subject becomes a `project-memory/<topic>.md` with a Map row, never a "Notes"/"Change log" section in PROJECT.md.
+   4. **Red-flag test**: an update that only adds lines and rewrites nothing is almost always wrong. If your diff is append-only, you skipped steps 1-3 - go back and sweep. Quantitative tripwires (enforced by hooks in Claude Code): PROJECT.md over 20 KB / 250 lines, a decision over 2 lines, a lesson rule over 3 lines, an open question over 3 lines, a `## Change log` still inside PROJECT.md, a project-memory file without a Map row, a pointer that does not resolve, a `lessons.md` story over 8 lines, a `changelog.md` entry over 3 lines or two on one date - each means compaction is overdue and must happen in THIS edit, not be deferred.
 3. **Self-heal the setup** - a one-time upgrade so existing projects pick up the current discipline on next touch:
-   - Bootstrap: if this project's CLAUDE.md `<!-- live-document:start -->` block carries old-style wording (recognizable by the phrase "after any answer or change", a "Curate, do not bloat" item, or maintenance items that lack the word "Tripwire"), replace just the maintenance item(s) of that block with the current wording in `references/claude-md-block.md`. Preserve every other line and the markers.
-   - Living doc: if PROJECT.md lacks the MAINTENANCE CONTRACT comment, inject it right under the title blockquote, and add the per-section comments from `references/project-md-template.md` under each canonical header that lacks one. If its contract lacks the Tripwire item, replace the whole comment with the current one from the template. Do this the next time you touch the file rather than as a disruptive one-off pass.
+   - Bootstrap: if this project's CLAUDE.md `<!-- live-document:start -->` block carries old-style wording (recognizable by the phrase "after any answer or change", a "Curate, do not bloat" item, maintenance items that lack the word "Tripwire", or items 1-4 lacking the phrases "home rule" or "project-memory"), replace items 1-4 of that block with the current wording in `references/claude-md-block.md`. Preserve every other line and the markers.
+   - Living doc: if PROJECT.md lacks the MAINTENANCE CONTRACT comment, inject it right under the title blockquote, and add the per-section comments from `references/project-md-template.md` under each canonical header that lacks one. If its contract lacks "home rule" or "project-memory", replace the whole comment with the current one from the template. If PROJECT.md lacks `## Map - where to find what`, scaffold it after Scope and non-goals from the file's own pointers and the project's top-level folders.
+   - project-memory layout (2026-09-09): if the project root has no `project-memory/` folder, the project is on the single-file layout. Migrate it in a DEDICATED session (say so and ask when the task at hand is something else) per the procedure in `references/project-memory-template.md`: create the folder and the three standard files, move the full content out, leave rule lines + pointers, add the Map rows, replace the contract and the block's items 1-4, rename a `playbook/` folder to `project-memory/` if that is what the project used.
    - Format rule: if the block's Hard rules have no bullet containing the words "Summary, then Reasoning", insert the current chunk-delivery bullet from `references/claude-md-block.md` right after the "Ask before assuming" rule.
    - Next Actions rule: if the block's Hard rules have no bullet containing the words "Next Actions", insert the two current bullets (Next Actions file + tidy root) from `references/claude-md-block.md` right after the "Summary, then Reasoning" bullet.
-4. **Tidy the project root** - part of every curation pass; a root full of loose screenshots, scratch code, and generated reports hides the files that matter. Tripwire: 3+ loose root files of one recognizable kind (screenshots/images, code examples or scratch snippets, generated reports/exports/logs, next-action files outside `next-actions/`), or roughly 8+ loose non-doc files overall. When tripped: build the FULL move list (e.g. "12 .png -> screenshots/"), show it, ask ONE yes/no question, and move only after the yes. Canonical folders: `screenshots/`, `code-examples/`, `reports/`, `next-actions/`; add others sparingly. Safety: grep each filename for references before moving (update the reference in the same pass, or leave the file and say why); use `git mv` in git repos; never move CLAUDE.md, PROJECT.md, README, manifests/configs/dotfiles, source trees, or anything an active e2e/gsd flow owns. Once the folders exist, file NEW artifacts of those kinds straight into them and record the layout once in Decisions locked.
+4. **Tidy the project root** - part of every curation pass; a root full of loose screenshots, scratch code, and generated reports hides the files that matter. Tripwire: 3+ loose root files of one recognizable kind (screenshots/images, code examples or scratch snippets, generated reports/exports/logs, next-action files outside `next-actions/`), or roughly 8+ loose non-doc files overall. When tripped: build the FULL move list (e.g. "12 .png -> screenshots/"), show it, ask ONE yes/no question, and move only after the yes. Canonical folders: `screenshots/`, `code-examples/`, `reports/`, `next-actions/`, `project-memory/` (detail layer; never a move target for artifacts, never moved itself); add others sparingly. Safety: grep each filename for references before moving (update the reference in the same edit, or leave the file and say why); use `git mv` in git repos; never move CLAUDE.md, PROJECT.md, README, `project-memory/`, manifests/configs/dotfiles, source trees, or anything an active e2e/gsd flow owns. Once the folders exist, file NEW artifacts of those kinds straight into them and record the layout once in Decisions locked.
 5. **Apply System2 for new work**: whenever the user starts a new sub-task or feature within the project, reapply the System2 questioning discipline before executing. Read `references/system2-protocol.md`. A fact that sits with a third person gets a questionnaire (`references/questionnaire-template.md`), never a stalled task.
 6. **Apply Elon algorithm for new scoping**: if the user is scoping a new feature, plan, or design within the existing project, walk through the five steps. Read `references/elon-algorithm.md`. Do NOT apply to small edits, bug fixes, or tasks already well-defined.
 
-The standing test: a fresh agent reading only PROJECT.md can continue correctly without the user re-explaining anything.
+The standing test: a fresh agent reading PROJECT.md, and on demand the project-memory files its Map names, can continue correctly without the user re-explaining anything.
 
 ---
 
@@ -168,7 +172,7 @@ The standing test: a fresh agent reading only PROJECT.md can continue correctly 
 
 Other skills also write project-root files. Stay additive:
 
-- **e2e (consolidated)**: PROJECT.md carries two e2e-owned sections (`## Research notes`, `## Execution plan`). Treat them as canonical, and while the CLAUDE.md `<!-- e2e-state ... -->` marker is not `phase=complete`, leave their structure to the e2e flow - curate the rest of the file normally. Append your block to CLAUDE.md; never touch the e2e state marker.
+- **e2e (consolidated)**: the run owns two project-memory files (`project-memory/research-notes.md`, `project-memory/execution-plan.md`; a 2026-09-02-era run holds them as `## Research notes` / `## Execution plan` sections inside PROJECT.md). While the CLAUDE.md `<!-- e2e-state ... -->` marker is not `phase=complete`, leave their structure to the e2e flow - curate everything else normally. Append your block to CLAUDE.md; never touch the e2e state marker.
 - **e2e (legacy)**: a separate PLAN.md (and possibly RESEARCH.md / design-*.md / ceo-plan-*.md) exists alongside CLAUDE.md. Never touch those files.
 - **gsd**: look for a `.planning/` directory. Augment PROJECT.md in place; never touch `.planning/`.
 - Rule: append to CLAUDE.md, augment PROJECT.md, never delete or rewrite files you did not create.
@@ -203,5 +207,6 @@ Read these on demand when the relevant phase or component activates:
 - `references/elon-algorithm.md` - full five-step algorithm with coaching questions, mental models, and output template (read when scoping new work)
 - `references/claude-md-block.md` - CLAUDE.md bootstrap template (read before writing CLAUDE.md)
 - `references/project-md-template.md` - PROJECT.md template and maintenance contract (read before writing PROJECT.md)
+- `references/project-memory-template.md` - the `project-memory/` detail layer: file header, the three standard files, the migration procedure (read before creating project-memory/ or migrating a single-file project)
 - `references/next-actions-template.md` - Next Actions file naming rule and the .html template (read before writing a handoff file)
 - `references/questionnaire-template.md` - discovery questionnaire for a third person who holds a fact the user cannot answer (read when an interview stalls on someone else's knowledge)

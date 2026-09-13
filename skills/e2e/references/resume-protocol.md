@@ -48,7 +48,7 @@ Once the marker is parsed, jump directly to the right place. Do not redo earlier
 |---|---|
 | `office-hours` | Phase 1. Read PROJECT.md for context; if its Goal/Decisions don't yet carry the Office Hours outcome (legacy: no `design-*.md`), (re-)enter Phase 1 from the top (tell the user previous answers, if any, are lost). |
 | `ceo-review` | Phase 2. Read PROJECT.md (Goal, Scope, Decisions carry the Phase 1 outcome; legacy: also the latest `design-*.md`), then enter Phase 2. If a partial CEO outcome is already in Decisions (legacy: a partial `ceo-plan-*.md`), ask "Continue CEO Review from where it stopped?" |
-| `elon` | Phase 3. Read PROJECT.md (legacy: also `ceo-plan-*.md` / `design-*.md`); invoke the `elon` skill to run Phase 3. |
+| `elon` | Phase 3. Read PROJECT.md (legacy: also `ceo-plan-*.md` / `design-*.md`); run Phase 3 from `references/elon-algorithm.md` and `references/system2-protocol.md` per SKILL.md (no `elon` skill is invoked). |
 | `research` | Phase 4. Read PROJECT.md; (re-)run Phase 4 research and write/continue `project-memory/research-notes.md` (legacy: `RESEARCH.md`). |
 | `ready-to-execute` | Read PROJECT.md (goal/decisions) and `project-memory/execution-plan.md`, summarize the plan in 5 lines, ask user "Ready to start step 1?" |
 | `execute` | Read PROJECT.md and `project-memory/execution-plan.md`, find the step with status `in_progress` (or step `<N>` from marker if no `in_progress`), summarize what's been done, ask user "Resume step `<N>`?" |

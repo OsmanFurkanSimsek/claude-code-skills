@@ -44,11 +44,11 @@ The living docs (`PROJECT.md`, `CLAUDE.md`) get one extra duty: the user wants t
 
 ## Working style (applies to every phase)
 
-Run the entire cycle as a critical, skeptical thought partner (System2 mode), not an order-taker:
+Run the entire cycle as a critical, skeptical thought partner (System2 mode; the lock-stage discipline, interview dimensions, requirement challenge and lock gate live in `references/system2-protocol.md`), not an order-taker:
 
 - **No unstated assumptions.** When information is missing, ask. When several plausible choices exist, present 2 to 5 concrete options and let the user pick. Do not silently choose.
 - **Every question must earn its place.** Ask only what blocks correct execution or quality. Batch related questions and ask in rounds, top blockers first, in the shape *Question rounds* below prescribes.
-- **Iterate to confidence, then act.** Keep clarifying until you are roughly 70 to 80 percent confident you can execute correctly. The moment you cross that bar, stop asking and do the work.
+- **Two confidence bars.** While the requirements are being locked (Phases 1-3, or Phase 3 alone when discovery is skipped) drive blocking questions about *what to build* to zero: a wrong assumption baked into the requirements is the most expensive kind, and the lock gate in `references/system2-protocol.md` holds Phase 4 until the read-back is confirmed. From Phase 4 on, keep clarifying until you are roughly 70 to 80 percent confident you can execute correctly, then stop asking and do the work.
 - **When the user cannot answer, recommend, do not stall.** Propose a labeled default: state it as an assumption, give the one-sentence rationale, and offer 1 to 3 alternatives.
 - **When the answer sits with a third person, ask them, not the user.** A delivery team, a product owner, a data owner: do not stall and do not guess silently. Interview the user only about the send (who it goes to, what must come back), write the discovery questionnaire per `references/questionnaire-template.md`, log the item in *Open questions* as "waiting on <person> - questionnaire at <path>", and keep going on labeled assumptions until the answers land.
 - **Challenge happy-path thinking.** Surface hidden complexity, edge cases, and reasons an approach might fail.
@@ -138,7 +138,7 @@ Living docs + marker are refreshed at the **end of every phase** so the user can
 0. **Bootstrap, resume detection & track classification** - start fresh or pick up mid-flow; detect legacy layouts; classify Build vs Deliverable.
 1. **Office Hours** (conditional) - problem validation: who, what, why, narrowest wedge. Distilled straight into PROJECT.md.
 2. **CEO Review** (conditional) - platonic / 10x version, scope decisions. Distilled straight into PROJECT.md.
-3. **Elon algorithm** - invoke `/elon` so the user ruthlessly cuts down to MVP from the 10x vision; outcome folded into PROJECT.md.
+3. **Elon algorithm** - run the five steps from `references/elon-algorithm.md` (self-contained since 2026-09-13; no `elon` skill is invoked) so the user ruthlessly cuts down to MVP from the 10x vision, then the requirement lock gate; outcome folded into PROJECT.md.
 4. **Research** - current state of the art. Lands in `project-memory/research-notes.md`.
 5. **Plan** - synthesize discovery + Elon + Research into a full-depth PROJECT.md plus `project-memory/execution-plan.md`, and a finalized thin CLAUDE.md, with deep reasoning.
 6. **Execute** - walk the Execution plan steps; each step gets implementation + automated tests (Build) or acceptance checks (Deliverable) + manual verification.
@@ -219,6 +219,8 @@ Before Elon cuts requirements, this phase establishes *which* requirements are r
 
 Follow `references/office-hours-protocol.md`: ask Startup vs Builder mode once, then the mode's forcing questions **one at a time** via `AskUserQuestion` (never batch), surface 2-3 premises for agree/disagree, produce **2-3 distinct approaches** (minimal viable / ideal / optional creative, each with effort, risk, pros, cons, reuses), and require the user to pick one. Distill the outcome straight into PROJECT.md per the protocol's distillation map (problem + success criteria -> *Goal*; wedge + constraints -> *Goal* / *Scope and non-goals*; chosen approach + one terse "considered X, rejected because Y" bullet per alternative -> *Decisions locked*; unresolved -> *Open questions*). No separate file.
 
+Before closing the phase, check the seven interview dimensions of `references/system2-protocol.md` § Interview coverage (goal and definition of done, scope and non-goals, current state and history, the dominant constraint, stakeholders and audience, risks and unknowns, decisions already made): skim what already exists first, then ask only the genuine gaps in one question round and distill them into PROJECT.md the same way.
+
 Run the end-of-phase ritual (marker: `phase=ceo-review`). Checkpoint: "Phase 1 (Office Hours) complete, distilled into PROJECT.md. Move to Phase 2 (CEO Review)?"
 
 ---
@@ -235,15 +237,14 @@ Run the end-of-phase ritual (marker: `phase=elon`). Checkpoint: "Phase 2 (CEO) c
 
 ## Phase 3: Elon algorithm
 
-Invoke the `elon` skill via the Skill tool with the target as input. `/elon` is interactive coaching (five steps, one turn at a time) and already works for non-code work - do not drive it autonomously; it needs real user input. If discovery ran, point it at PROJECT.md so it has the 10x vision to cut from:
+This phase is self-contained: Read `references/elon-algorithm.md` (the five steps with their coaching questions, mental models and anti-patterns) and `references/system2-protocol.md` (requirement challenge, pre-mortem, lock gate) at the start of the phase. No `elon` skill is invoked. The algorithm is interactive coaching, one step per turn with real user input, and already works for non-code work: do not drive it autonomously. The target is the verbatim target from the invocation; with discovery run, PROJECT.md's 10x vision and scope decisions are the material to cut from.
 
-```
-Skill(skill: "elon", args: "<the target verbatim> - see PROJECT.md at the project root for the discovery context (goal, 10x vision, scope decisions); running inside an /e2e run: the outcome is folded into PROJECT.md silently at phase end - do not offer to save a separate document")
-```
+1. **Interview first when discovery was skipped.** Phases 1-2 did not run, so nothing has been interviewed: cover the seven interview dimensions of `references/system2-protocol.md` § Interview coverage in question rounds (skim what exists first; ask only the genuine gaps) and distill the answers into PROJECT.md the way Phase 1 would have.
+2. **The five steps.** Step 1 is the requirement challenge (who asked, A/B/C tags, magic-wand probe, load-bearing test), then Delete, Simplify, Accelerate, Automate, one step per turn, using the coaching questions in the reference. Managed close-out only: the outcome lands in PROJECT.md silently at the end of this phase. Never ask where to record it and never offer a chat-vs-document / `elon-*.md` choice; a personal `elon-*.md` copy is written only if the user asks for one unprompted (a personal copy, never a tracker).
+3. **Pre-mortem probe.** One question per `references/system2-protocol.md` § Pre-mortem (six months out, it failed: the single most likely reason and a cheap prevention). Skip if the user passes.
+4. **Lock gate.** Read the requirements back in 4 to 6 lines, ask the user to confirm or correct, and check the six "ready to lock" criteria (`references/system2-protocol.md` § Lock gate). Do not leave this phase with a blocking question open.
 
-With discovery skipped, omit the PROJECT.md pointer clause but keep the running-inside-/e2e clause. The five-step outcome lives in the conversation and is folded into PROJECT.md silently at the end of this phase. Inside an e2e run `/elon` must NOT ask where to record the outcome or offer any chat-vs-document / `elon-*.md` choice - PROJECT.md is the only home; a personal `elon-*.md` copy is written only if the user asks for one unprompted (that file is a personal copy, never a tracker).
-
-When `/elon` finishes: summarize the five-step outcome in 5-10 lines; fold it into PROJECT.md (deleted requirements -> *Scope and non-goals* with one-line whys; surviving requirements + simplifications -> *Decisions locked*; revisit-laters -> *Open questions*). Run the end-of-phase ritual (marker: `phase=research`). Checkpoint: "Phase 3 (Elon) complete, folded into PROJECT.md. Move to Phase 4 (Research)?"
+When the gate is confirmed: fold the outcome into PROJECT.md (deleted requirements -> *Scope and non-goals* with one-line whys; surviving requirements with their A/B/C tags and source + simplifications -> *Decisions locked*; the pre-mortem risk and revisit-laters -> *Open questions*). Run the end-of-phase ritual (marker: `phase=research`). Checkpoint: "Phase 3 (Elon) complete, requirements locked and folded into PROJECT.md. Move to Phase 4 (Research)?"
 
 ---
 
@@ -251,7 +252,7 @@ When `/elon` finishes: summarize the five-step outcome in 5-10 lines; fold it in
 
 Goal: understand the current state of the art so Phase 5 plans against reality, not training-data assumptions. The model's cutoff is older than today; even one search that surfaces "library X moved to v3 with breaking changes" or "this dataset was revised last quarter" can save the whole downstream plan.
 
-1. **If existing project**: invoke `Skill(skill: "claude-mem:learn-codebase")` first. Skip for greenfield and pure Deliverable work with no codebase.
+1. **If existing project**: map the codebase first. If the project has a `graphify-out/` graph, query it (`graphify query "<question>"` or `graphify-out/GRAPH_REPORT.md`); otherwise spawn an `Explore` agent to summarize structure, entry points, conventions and the modules the target touches. Skip for greenfield and pure Deliverable work with no codebase.
 2. **Web research** with `WebSearch` (and `Context7` MCP if available), keyed off the Elon outputs:
    - **Build track:** latest stable versions of relevant frameworks, libraries, runtimes; common architecture patterns for this class of problem; database and storage options; known pitfalls, security considerations, deprecated approaches.
    - **Deliverable track:** the audience and what "good" looks like for them; format and presentation conventions; authoritative data sources and their freshness; domain facts, benchmarks, comparable examples; known failure modes (misleading charts, unsourced claims, stale data, double-counting).

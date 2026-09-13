@@ -5,7 +5,7 @@
 # if you have edited them.
 #
 #   pwsh ./install.ps1            # install all skills
-#   pwsh ./install.ps1 e2e elon   # install only the named ones
+#   pwsh ./install.ps1 e2e live-document   # install only the named ones
 
 param([string[]]$Only)
 
@@ -29,4 +29,4 @@ foreach ($s in $skills) {
 }
 
 Write-Host ""
-Write-Host "Done. Restart Claude Code, then try /e2e or /elon." -ForegroundColor Yellow
+Write-Host "Done. Restart Claude Code, then try /e2e or /live-document." -ForegroundColor Yellow

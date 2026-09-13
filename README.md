@@ -15,11 +15,9 @@ Install what you like, ignore the rest. Each skill is a self-contained folder.
 
 | Skill | Trigger | What it does |
 |---|---|---|
-| **e2e** | `/e2e` | Runs a full end-to-end, production-quality build as a phased pipeline: discovery, research, plan, execute, review, human feedback, testing. Works for software *and* for non-code deliverables (analysis, report, BI dashboard, deck). Resumable - it stores its own state in the project's `CLAUDE.md`. |
-| **elon** | `/elon` | Applies Musk's five-step algorithm as an interactive coach: question every requirement, delete, simplify, accelerate, automate. Use it before you build, to cut scope rather than gold-plate it. |
-| **system2thinker** | `/system2thinker` | A zero-assumptions requirements interview for the fuzzy start of a project. Challenges every requirement, runs a pre-mortem, and locks a clean requirement set. It deliberately does *not* build anything - it hands off to `live-document`. |
+| **e2e** | `/e2e` | Runs a full end-to-end, production-quality build as a phased pipeline: discovery, requirement lock, research, plan, execute, review, human feedback, testing. Phase 3 carries Musk's five-step algorithm (question every requirement, delete, simplify, accelerate, automate) and a System2 requirement lock (zero open questions, pre-mortem, read-back gate) in its own references. Works for software *and* for non-code deliverables (analysis, report, BI dashboard, deck). Resumable - it stores its own state in the project's `CLAUDE.md`. |
 | **live-document** | `/live-document` | Sets up project memory that survives across sessions: a thin auto-loading `CLAUDE.md`, a living `PROJECT.md` read once per session (the map, state, decisions and key lessons) and a `project-memory/` folder holding every detail on demand, all maintained by *reconciling*, not appending, with hooks that keep the three layers consistent. This is the fix for "I keep losing context between sessions". |
-| **project-partner** | `/project-partner` | The combined front door: scoping (`elon`) plus cross-session memory (`live-document`) in one skill, for when you are starting something substantial and do not want to pick. |
+| **project-partner** | `/project-partner` | The combined front door: scoping (the five-step algorithm and the System2 interview) plus cross-session memory (`live-document`) in one skill, for when you are starting something substantial and do not want to pick. Also the version built for the Claude desktop app. |
 | **session-handoff** | `/session-handoff` | Produces a fixed-structure end-of-session summary (decisions, shipped changes, key files, running background jobs, verification steps, deferrals, open questions) so a fresh agent can pick up from the summary alone. Chat-only, writes no files. |
 | **answer-format** | `/answer-format` | Fixes the shape of every substantial reply: **Summary** (what happened, plain words), then **Why** (reasoning, numbers, trade-offs), then **What you should do** last. Putting the actions at the bottom means you never hunt for your next step, and you can scroll up for the reasoning only when you want it. Includes paste-ready text for Claude desktop's personal-preferences box, where an always-loaded rule beats skill triggering. |
 | **big-project** | `/big-project` | A thin personal working-style layer: answer format, one-action-per-line steps, no unilateral decisions, versioned code with full QA, validate-in-a-playground first. It delegates the real machinery to the three skills above rather than re-implementing it. Fork this one and put *your* preferences in `references/preferences.md`. |
@@ -27,13 +25,7 @@ Install what you like, ignore the rest. Each skill is a self-contained folder.
 ### How they fit together
 
 ```
-system2thinker      lock the requirements
-      │
-      ▼
-    elon            cut the scope
-      │
-      ▼
-     e2e            build it, phase by phase
+     e2e            lock the requirements, cut the scope, build it phase by phase
       │
       ▼
 live-document       keep the state across sessions
@@ -42,7 +34,7 @@ live-document       keep the state across sessions
 session-handoff     hand off cleanly before /clear
 ```
 
-`project-partner` bundles the top two layers. `big-project` sits over all of it as a working-style layer,
+`project-partner` bundles e2e's scoping stage with `live-document`. `big-project` sits over all of it as a working-style layer,
 and `answer-format` governs the shape of every reply along the way - it is the one skill here that is not
 tied to a phase of work.
 
@@ -75,7 +67,7 @@ pwsh ./install.ps1
 **Just a few:**
 
 ```powershell
-pwsh ./install.ps1 e2e elon live-document
+pwsh ./install.ps1 e2e live-document
 ```
 
 **By hand** (any OS) - copy the folders you want into your skills directory:
@@ -134,10 +126,10 @@ read the header comment before first use, and keep that repo private forever.
 - **Windows-first.** I work on Windows, so the helper scripts are PowerShell and some paths use
   `%USERPROFILE%`. The skills themselves are plain Markdown and work anywhere; only `install.ps1`,
   `sync-skills.ps1`, `backup-setup.ps1`, and `statusline.ps1` are Windows-specific.
-- **Some skills reference each other.** `system2thinker` hands off to `live-document`;
-  `big-project` delegates to `live-document`, `session-handoff`, and `e2e`; `project-partner`
-  subsumes `elon` and `live-document`. They degrade gracefully if a partner skill is missing, but
-  they are better together.
+- **Some skills reference each other.** `big-project` delegates to `live-document`,
+  `session-handoff`, and `e2e`; `project-partner` subsumes `e2e`'s scoping stage and
+  `live-document`. They degrade gracefully if a partner skill is missing, but they are better
+  together.
 - **`e2e`, `live-document`, `project-partner`, and `session-handoff` ship `evals/` suites.** If you
   modify one, run its suite before and after and require the score to hold. That discipline is the
   only reason these stayed reliable through a year of edits.

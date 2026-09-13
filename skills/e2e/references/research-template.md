@@ -63,7 +63,7 @@ What we needed to answer before planning:
 
 ### Existing materials observations (only for existing-project / existing-materials runs)
 
-> Build: filled when `claude-mem:learn-codebase` ran in Phase 4. Deliverable: existing decks, prior
+> Build: filled from the Phase 4 codebase map (graphify query or Explore agent). Deliverable: existing decks, prior
 > reports, established templates, or data dictionaries to reuse. Skip for greenfield / blank-slate.
 
 - **Conventions in use:** <Build: linting rules, module style. Deliverable: brand template, naming, chart style>
@@ -78,4 +78,4 @@ What we needed to answer before planning:
 - **Access dates are mandatory.** A version number - or a data figure - without a date is not actionable in three months.
 - **No duplicate homes.** Research-surfaced decisions go to *Decisions locked* with the citation attached; research-surfaced unknowns go to the canonical *Open questions* section. This section never carries its own decisions or open-questions lists.
 - **For greenfield / blank-slate work**, the existing-materials subsection is empty - say so. Don't invent observations.
-- **For existing projects / materials**, that subsection is critical: Build - fill it with what `claude-mem:learn-codebase` surfaced; Deliverable - fill it with the prior decks/reports/templates/data dictionaries you found.
+- **For existing projects / materials**, that subsection is critical: Build - fill it with what the Phase 4 codebase map (graphify query or Explore agent) surfaced; Deliverable - fill it with the prior decks/reports/templates/data dictionaries you found.

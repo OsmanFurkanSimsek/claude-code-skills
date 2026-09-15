@@ -11,6 +11,11 @@ which database, which properties, append or create? `notion-router` fixes that b
 standing map of your workspace and a routing table, so it can classify input and write it to the
 right place without you spelling it out every time.
 
+The routing model it ships with: Claude archives into only two places - a **Knowledge Base**
+(knowledge that compounds, one page per tool or topic) and **Memories** (things that happened) -
+treats your hand-kept notes pages as read-only source material, and only adds notes to your work
+backlog without ever changing its status fields.
+
 ## Why this ships as a template, not a ready skill
 
 Unlike the other skills in this repo, there's no generic, ready-to-use version of this one - its

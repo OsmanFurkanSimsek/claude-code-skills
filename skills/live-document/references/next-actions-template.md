@@ -21,11 +21,24 @@ next-actions/YYYY-MM-DD_HH-MM-next-actions.html
 
 `YYYY-MM-DD_HH-MM` is the creation date and time (24h, local time), e.g.
 `2026-07-17_15-40-next-actions.html`. The sortable prefix is how the user finds the latest file -
-never omit it, never reuse a previous timestamp. Keep every old file; do not archive or delete.
+never omit it, never reuse a previous timestamp.
 
 After writing the file, announce it in ONE chat line, e.g.:
 "Wrote next-actions/2026-07-17_15-40-next-actions.html - open it in your browser to tick steps
 off as you go."
+
+## Housekeeping: keep only the latest date at the root
+
+`next-actions/` root shows only the files from the MOST RECENT date that has any file there, not
+necessarily today's calendar date - if nobody writes a new file for a week or a month, that older
+date's files simply stay at the root until a newer one appears.
+
+Before writing a new dated file, and again at the start of any session that touches this project,
+check the dates already sitting in `next-actions/` root. If more than one distinct date is present,
+move every file whose date is not the maximum into `next-actions/archive/` (create the folder the
+first time it is needed). Do this automatically, without being asked - it is routine housekeeping,
+not something the user should have to request again. Never delete a file, only move it; the
+archive folder is the full history.
 
 ## Content structure
 
@@ -118,7 +131,7 @@ character anywhere in the content.
     <h1>Next Actions</h1>
     <span class="badge">Created {{YYYY-MM-DD HH:MM}}</span>
   </header>
-  <p class="project">{{PROJECT}} &middot; newest file in <code>next-actions/</code> wins; older files are history.</p>
+  <p class="project">{{PROJECT}} &middot; this folder holds only the latest date's files; older ones live in <code>next-actions/archive/</code>.</p>
 
   <div class="card tldr">
     <h2>TLDR - what you need to do</h2>

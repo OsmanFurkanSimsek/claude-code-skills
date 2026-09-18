@@ -129,9 +129,9 @@ When you believe you understand the project, summarize it back in 4-6 lines. Ask
 Read `references/claude-md-block.md`, `references/project-md-template.md` and `references/project-memory-template.md` in full before writing anything.
 
 **CLAUDE.md (thin bootstrap)**  
-- If CLAUDE.md already exists: append the `<!-- live-document:start -->` block at the end, preserving all prior content.
+- If CLAUDE.md already exists: append the `<!-- live-document:start -->` block at the end, preserving all prior content. If the file then exceeds 8 KB / 100 lines (or more than 3 KB sits outside the block), route the rest with live-document's *CLAUDE.md routing test* after the owner's one yes.
 - If no CLAUDE.md: create one with the block.
-- Keep it thin (~one screen). It is a bootstrap, not a log; it must not grow.
+- Keep it thin (~one screen, max 8 KB / 100 lines, lint-checked). It is a bootstrap, not a log; it must not grow.
 
 **PROJECT.md (living source of truth, read once per session)**  
 - If no PROJECT.md: create it from the template, filled from the interview. Whole-file budget 20 KB / 250 lines; decisions as rule lines (max 3 lines: rule + one-line why + who/when), key lessons as rules (max 3 lines).
@@ -175,7 +175,7 @@ Other skills also write project-root files. Stay additive:
 - **e2e (consolidated)**: the run owns two project-memory files (`project-memory/research-notes.md`, `project-memory/execution-plan.md`; a 2026-09-02-era run holds them as `## Research notes` / `## Execution plan` sections inside PROJECT.md). While the CLAUDE.md `<!-- e2e-state ... -->` marker is not `phase=complete`, leave their structure to the e2e flow - curate everything else normally. Append your block to CLAUDE.md; never touch the e2e state marker.
 - **e2e (legacy)**: a separate PLAN.md (and possibly RESEARCH.md / design-*.md / ceo-plan-*.md) exists alongside CLAUDE.md. Never touch those files.
 - **gsd**: look for a `.planning/` directory. Augment PROJECT.md in place; never touch `.planning/`.
-- Rule: append to CLAUDE.md, augment PROJECT.md, never delete or rewrite files you did not create.
+- Rule: append to CLAUDE.md, augment PROJECT.md, never delete content you did not create - an over-budget CLAUDE.md is slimmed by MOVING content to its home after one yes, never left fat.
 
 ---
 

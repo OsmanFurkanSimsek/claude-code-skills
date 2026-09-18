@@ -18,7 +18,7 @@ both in place every session - add AND prune - under the hooks described in SKILL
 > fact, pointers everywhere else.
 
 <!-- MAINTENANCE CONTRACT - read before editing this file. Enforced by hooks (project-md-lint).
-Three layers by read frequency: CLAUDE.md (every message, thinnest); this file (once per session,
+Three layers by read frequency: CLAUDE.md (every message, thinnest, max 8 KB / 100 lines); this file (once per session,
 in full, max 20 KB / 250 lines): Goal, Scope, Map, Current state, Decisions locked (rule + one-line why + who/when,
 max 3 lines each), Plan, Open questions, Lessons (key rules, max 3 lines each); project-memory/
 (on demand via the Map, one file per topic, every file has a Map row): decisions.md (full wording),

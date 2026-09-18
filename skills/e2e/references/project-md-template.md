@@ -4,7 +4,7 @@ Use this to create the **living source of truth**: stand it up as a skeleton in 
 
 This template is **kept aligned with the `/live-document` skill** (`~/.claude/skills/live-document/references/project-md-template.md`): identical canonical section headers, so a project scaffolded by `/e2e` is recognized and curated by `/live-document`'s Curation mode without any extra work. The e2e-specific additions: the Build/Deliverable notes below, and two **e2e-owned project-memory files** that exist only while a run is active - `project-memory/research-notes.md` (added in Phase 4; template: `references/research-template.md`) and `project-memory/execution-plan.md` (added in Phase 5; template: `references/plan-template.md`; deleted at Phase 12). A run produces PROJECT.md, the thin CLAUDE.md, and the `project-memory/` folder - no tracking file outside those.
 
-The living setup has three layers by read frequency (live-document, 2026-09-09): `CLAUDE.md` is read every message (thinnest); `PROJECT.md` is read in full once per session under a whole-file budget of 20 KB / 250 lines; `project-memory/` is read on demand via the Map. The thin CLAUDE.md auto-loads and reminds the agent to read PROJECT.md first. The PROJECT.md hooks (lint on write, edit gate, Stop gate, PreCompact gate - see live-document SKILL.md, Gates) make the maintenance mandatory. The standing test: a fresh agent reading PROJECT.md, and on demand the project-memory files its Map names, can continue the project correctly, with nothing re-explained.
+The living setup has three layers by read frequency (live-document, 2026-09-09): `CLAUDE.md` is read every message (thinnest: max 8 KB / 100 lines, lint-checked); `PROJECT.md` is read in full once per session under a whole-file budget of 20 KB / 250 lines; `project-memory/` is read on demand via the Map. The thin CLAUDE.md auto-loads and reminds the agent to read PROJECT.md first. The PROJECT.md hooks (lint on write, edit gate, Stop gate, PreCompact gate - see live-document SKILL.md, Gates) make the maintenance mandatory. The standing test: a fresh agent reading PROJECT.md, and on demand the project-memory files its Map names, can continue the project correctly, with nothing re-explained.
 
 ---
 
@@ -20,7 +20,7 @@ The living setup has three layers by read frequency (live-document, 2026-09-09):
 > the other project-memory files hold everything durable. Do not duplicate one into the other.
 
 <!-- MAINTENANCE CONTRACT - read before editing this file. Enforced by hooks (project-md-lint).
-Three layers by read frequency: CLAUDE.md (every message, thinnest); this file (once per session,
+Three layers by read frequency: CLAUDE.md (every message, thinnest, max 8 KB / 100 lines); this file (once per session,
 in full, max 20 KB / 250 lines): Goal, Scope, Map, Current state, Decisions locked (rule + one-line why + who/when,
 max 3 lines each), Plan, Open questions, Lessons (key rules, max 3 lines each); project-memory/
 (on demand via the Map, one file per topic, every file has a Map row): decisions.md (full wording),
@@ -101,7 +101,7 @@ The HTML comments are permanent fixtures of the generated file, NOT placeholders
 
 ## Maintenance: keep it relevant, not just append
 
-**Every update to PROJECT.md is also a cleanup, and the setup has three layers.** `CLAUDE.md` is read every message (thinnest). `PROJECT.md` is read in full once per session (whole-file budget 20 KB / 250 lines) and holds the map, the state and the rule lines. `project-memory/` holds every detail, one file per topic, read on demand via the Map. More context beats no context, but bloat loses to optimal context: reconcile before you add, and apply the home rule - a fact lives in ONE home (decision wording, lesson story and milestone in project-memory; skill rule body in the owning skill's references; run analysis in the run file; owner preference in memory) and appears elsewhere as one line plus a pointer. A line may leave this file only when its home is named and exists. Write the project-memory home first and this file last. The hooks (`project-md-lint`, the edit gate, the Stop gate, the PreCompact gate) enforce all of this.
+**Every update to PROJECT.md is also a cleanup, and the setup has three layers.** `CLAUDE.md` is read every message (thinnest: max 8 KB / 100 lines). `PROJECT.md` is read in full once per session (whole-file budget 20 KB / 250 lines) and holds the map, the state and the rule lines. `project-memory/` holds every detail, one file per topic, read on demand via the Map. More context beats no context, but bloat loses to optimal context: reconcile before you add, and apply the home rule - a fact lives in ONE home (decision wording, lesson story and milestone in project-memory; skill rule body in the owning skill's references; run analysis in the run file; owner preference in memory) and appears elsewhere as one line plus a pointer. A line may leave this file only when its home is named and exists. Write the project-memory home first and this file last. The hooks (`project-md-lint`, the edit gate, the Stop gate, the PreCompact gate) enforce all of this.
 
 Run this checklist on every update:
 - **Supersede in place** - a changed decision overwrites the old one in both files (note the change in `project-memory/changelog.md`); never stack the old and new versions side by side.

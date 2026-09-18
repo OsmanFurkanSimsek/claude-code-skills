@@ -114,6 +114,12 @@ lints clean once):
    in `project-md-template.md`; replace the per-section comments that changed (Decisions locked,
    Open questions, Lessons).
 9. **CLAUDE.md block:** replace items 1-4 of the `<!-- live-document:start -->` block with the
-   current ones from `claude-md-block.md`; keep every other line and the markers.
-10. Run `node ~/.claude/hooks/project-md-lint.js PROJECT.md` until clean (the first clean run
-    arms the format gates for this project). Record the migration as one `changelog.md` entry.
+   current ones from `claude-md-block.md`; keep the markers.
+10. **CLAUDE.md content outside the block:** if `CLAUDE.md` is over 8 KB / 100 lines or carries
+    more than 3 KB outside the block, run SKILL.md's *CLAUDE.md slimming* in the same session:
+    route each section with the *CLAUDE.md routing test* (reference tables, dated notes, run
+    instructions and file lists become `project-memory/<topic>.md` files with Map rows; state and
+    rules go to `PROJECT.md`), show the move list, ask ONE yes/no, then move and repoint.
+11. Run `node ~/.claude/hooks/project-md-lint.js PROJECT.md` until clean (the first clean run
+    arms the format gates for this project, and the first in-budget `CLAUDE.md` arms its budget).
+    Record the migration as one `changelog.md` entry.

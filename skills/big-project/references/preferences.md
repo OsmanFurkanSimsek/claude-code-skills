@@ -82,7 +82,7 @@ When the owner gives a correction or something fails, persist it immediately und
 
 ## 10. Single source of truth, reconcile not append
 
-One living setup in three layers by read frequency: `CLAUDE.md` every message (thinnest); `PROJECT.md` once per session in full (goal, scope, the Map, current state, decision and key-lesson rule lines; 20 KB / 250 lines); `project-memory/` on demand via the Map (full decision wording, lesson stories, the changelog, topic files - every file mapped). Edits rewrite and delete stale lines rather than pile on, but a line leaves only when its home is named and exists; project-memory home first, PROJECT.md last; the Map stays current with every move or archive. Never a tracking file outside `project-memory/`. The PROJECT.md hooks enforce this.
+One living setup in three layers by read frequency: `CLAUDE.md` every message (thinnest, max 8 KB / 100 lines, only what every message needs); `PROJECT.md` once per session in full (goal, scope, the Map, current state, decision and key-lesson rule lines; 20 KB / 250 lines); `project-memory/` on demand via the Map (full decision wording, lesson stories, the changelog, topic files - every file mapped). Edits rewrite and delete stale lines rather than pile on, but a line leaves only when its home is named and exists; project-memory home first, PROJECT.md last; the Map stays current with every move or archive. Never a tracking file outside `project-memory/`. The PROJECT.md hooks enforce this.
 
 **Why:** more context beats no context, but bloat loses to optimal context - every CLAUDE.md line is paid for on every message and every PROJECT.md line on every session.
 

@@ -1,8 +1,9 @@
 # `claude-md-block.md` - the thin bootstrap to append/create
 
-Append this block to the project-root `CLAUDE.md` (or create the file with it). Preserve any
-existing content above it. Fill the `<…>` slots from the interview. Keep it thin - this file
-auto-loads every session and must NOT grow into a log.
+Append this block to the project-root `CLAUDE.md` (or create the file with it). Fill the `<…>`
+slots from the interview. This file auto-loads with EVERY message, so the whole `CLAUDE.md` stays
+within **8 KB / 100 lines** (lint-checked; this block alone is ~3.7 KB / 49 lines). Outside the
+block it holds only the title, an `e2e-state` marker if any, and at most a 1-3 line pointer.
 
 ```markdown
 <!-- live-document:start -->
@@ -51,7 +52,8 @@ Owner: <owner>. Project: <one line>. Dominant rule: <the one constraint that gov
 - Keep the project root tidy: file new screenshots / code examples / reports / next-action files
   into their subfolders; when 3+ loose files of one kind sit at root, propose a move list and tidy
   after ONE confirmation (never move source or config files silently).
-- <project-specific guardrail agreed during setup>
+- <project-specific guardrail agreed during setup: a rule every message needs, or a pointer such
+  as "before any API call read `project-memory/api-reference.md`" - never the reference itself>
 - Never use the long-dash character.
 <!-- live-document:end -->
 ```
@@ -78,4 +80,10 @@ Owner: <owner>. Project: <one line>. Dominant rule: <the one constraint that gov
 - Self-heal cue (Next Actions): a block whose Hard rules have no bullet containing "Next Actions"
   predates the 2026-07-17 revision; on next touch, Curation mode inserts the two bullets above
   (Next Actions file + tidy root) right after the "Summary, then Reasoning" bullet.
-- If a `CLAUDE.md` already exists, this block goes at the END, leaving all prior content untouched.
+- If a `CLAUDE.md` already exists, this block goes at the END, leaving all prior content in place.
+  If the file then exceeds 8 KB / 100 lines, or more than 3 KB sits outside the block, SKILL.md's
+  *CLAUDE.md routing test* decides where each section moves (PROJECT.md for what every session
+  needs, `project-memory/<topic>.md` for task-specific detail), after the owner's one yes.
+- Self-heal cue (CLAUDE.md budget, 2026-09-18): a `CLAUDE.md` over 8 KB / 100 lines, or with more
+  than 3 KB outside the block, gets *CLAUDE.md slimming* (SKILL.md self-heal). The lint warns
+  until the file has fit the budget once, then blocks any turn that pushes it back over.

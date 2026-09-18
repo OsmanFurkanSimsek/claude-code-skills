@@ -78,4 +78,6 @@ Owner: <owner>. Project: <one line>. Dominant rule: <the one constraint that gov
 - Self-heal cue (Next Actions): a block whose Hard rules have no bullet containing "Next Actions"
   predates the 2026-07-17 revision; on next touch, Curation mode inserts the two bullets above
   (Next Actions file + tidy root) right after the "Summary, then Reasoning" bullet.
-- If a `CLAUDE.md` already exists, this block goes at the END, leaving all prior content untouched.
+- If a `CLAUDE.md` already exists, this block goes at the END, leaving all prior content in place.
+  Budget: the whole `CLAUDE.md` stays within 8 KB / 100 lines (lint-checked); over it, or with more
+  than 3 KB outside the block, run live-document's *CLAUDE.md slimming* after the owner's one yes.

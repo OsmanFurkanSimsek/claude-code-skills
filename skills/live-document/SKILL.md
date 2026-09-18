@@ -1,6 +1,6 @@
 ---
 name: live-document
-description: Use when the user types /live-document, wants project state to survive across sessions ("keep track of this project", "I keep losing context between sessions", "set up project memory / a living doc", "remember where we left off"), or when starting a substantial project spanning multiple sessions. Also use on projects whose CLAUDE.md contains a <!-- live-document:start --> marker. Do NOT use for one-off edits, bug fixes, debugging, quick lookups, or when an active e2e/gsd build flow already governs the project's files.
+description: Use when the user types /live-document, wants project state to survive across sessions ("keep track of this project", "I keep losing context between sessions", "set up project memory / a living doc", "remember where we left off"), or when starting a substantial project spanning multiple sessions. Also use on projects whose CLAUDE.md contains a <!-- live-document:start --> marker, or when a project's CLAUDE.md has grown past a thin bootstrap (every-message context bloat, "CLAUDE.md is too long"). Do NOT use for one-off edits, bug fixes, debugging, quick lookups, or when an active e2e/gsd build flow already governs the project's files.
 argument-hint: "[optional: one-line project description]"
 allowed-tools:
   - Read
@@ -22,8 +22,9 @@ re-explaining anything. The skill does the *setup*: it interviews you until it g
 understands the project, then scaffolds three layers in the project root, each sized for how
 often it is read:
 
-- **`CLAUDE.md`** - loaded on EVERY message, so the THINNEST layer (~one screen, never grows).
-  Its only job is to remind the agent to read and maintain the real source of truth.
+- **`CLAUDE.md`** - loaded on EVERY message, so the THINNEST layer: budget **8 KB / 100 lines**
+  (hook-checked), never grows. It holds only what every message needs: the bootstrap that reminds
+  the agent to read and maintain the real source of truth, plus per-message hard rules.
 - **`PROJECT.md`** - read ONCE per session, in full, before acting (until the context is cleared),
   so RICH with the important things: where to look for what (the Map), current state and next
   action, the decisions that shaped the project (rule lines), the key lessons (rule lines), open
@@ -145,10 +146,13 @@ confirm or correct it BEFORE scaffolding anything.**
 **`CLAUDE.md` (thin bootstrap) - append, never overwrite.**
 Use the block in `references/claude-md-block.md`, filled from the interview.
 - If a `CLAUDE.md` already exists: **append** the block between its `<!-- live-document:start -->`
-  and `<!-- live-document:end -->` markers, preserving every existing line above it. Never delete
-  or rewrite content you didn't add.
+  and `<!-- live-document:end -->` markers, preserving every existing line above it.
+- Then measure the file (`wc -c CLAUDE.md`). If it exceeds **8 KB / 100 lines**, or more than 3 KB
+  sits outside the block, run the *CLAUDE.md routing test* (Curation mode) on the content above the
+  block, show the move list, and ask ONE yes/no. Until the yes, every existing line stays; after it,
+  each section moves to its home (deleted only where its home already holds it).
 - If no `CLAUDE.md` exists: create one with a one-line header plus the block.
-- Keep it thin (~one screen). It is a bootstrap, not a log - it must not grow.
+- It is a bootstrap, not a log - it must not grow.
 
 **`PROJECT.md` (living source of truth) - create or augment.**
 Use the template in `references/project-md-template.md`, filled from the interview.
@@ -187,7 +191,10 @@ drop what they replace; as questions resolve, remove them. Duplication and stale
 
 **Three layers by read frequency (2026-09-09).** More context beats no context, but bloat loses
 to optimal context, so the living setup is split by how often each part is read:
-- **`CLAUDE.md`** - every message. Bootstrap only; never grows.
+- **`CLAUDE.md`** - every message. Budget **8 KB / 100 lines** (hook-checked). It holds exactly:
+  the title, an `e2e-state` marker if any, at most a 1-3 line pointer (e.g. e2e's Shipped note),
+  and the live-document block with the per-message hard rules inside it. Everything else is routed
+  by the *CLAUDE.md routing test* below.
 - **`PROJECT.md`** - once per session, IN FULL, before acting. The SessionStart hook does not
   inject its content (the harness persists hook output above a moving threshold and shows a 2 KB
   preview); it tells you the file's size and to Read it now, and the edit gate denies project
@@ -208,6 +215,22 @@ to optimal context, so the living setup is split by how often each part is read:
   carries a pointer to its home, the lint fails a pointer whose heading is gone and warns when the
   decision counts differ between the two files, and a line may leave `PROJECT.md` only when its
   home exists.
+
+**CLAUDE.md routing test - where each piece of content lives.** Ask these of every section or
+fact, in order; the first yes wins:
+1. Does EVERY message need it, even a one-line question? (the dominant constraint, a safety
+   guardrail such as "never commit a key", the `e2e-state` marker, a pointer such as "before any
+   API call read `project-memory/api-reference.md`") -> `CLAUDE.md`, as a 1-2 line Hard rules
+   bullet inside the block.
+2. Does every SESSION need it before acting? (goal, scope, current state, the current verified
+   snapshot, decision and key-lesson rules, the Map) -> `PROJECT.md`.
+3. Does only SOME task need it? (reference tables, API or gateway details, limits and how they were
+   found, dated notes, refresh or incident history, run instructions, file lists, benchmark
+   verdicts, runbooks) -> a `project-memory/<topic>.md`, with a Map row whose "read it when" names
+   those tasks.
+4. Does another file already hold it? (README, config comments, a skill) -> delete it from
+   `CLAUDE.md` once that home is verified, and repoint every reference to it.
+A pointer line in `CLAUDE.md` names the task and the file; it never restates the content.
 
 **Home rule - a fact lives in ONE home; everywhere else it is one line plus a pointer.** A
 decision's RULE (+ who/when) -> `PROJECT.md` `## Decisions locked`; its full wording and
@@ -263,7 +286,8 @@ cannot end.
 5. **Red-flag test before saving:** an update that only adds lines and rewrites nothing is almost
    always wrong. If your diff is append-only, you skipped steps 3-4 - go back and sweep.
    Quantitative tripwires, enforced by `project-md-lint` on every write (see *Gates* below):
-   `PROJECT.md` over 20 KB / 250 lines, a decision over 3 lines, a lesson rule over 3 lines, an open
+   `PROJECT.md` over 20 KB / 250 lines, `CLAUDE.md` over 8 KB / 100 lines (every-message budget,
+   blocking once that file has fit it once), a decision over 3 lines, a lesson rule over 3 lines, an open
    question over 3 lines or partly settled, a `## Change log` / `## Research notes` / `## Execution
    plan` section still in `PROJECT.md`, a `project-memory/` file without a Map row, a Map path that
    does not exist, a top-level folder missing from the Map, a pointer that does not resolve (a
@@ -272,7 +296,8 @@ cannot end.
    one date, a non-canonical header. Each means compaction is overdue and must happen in THIS
    edit - the Stop gate will not end the turn otherwise. Warnings (do not block): a project-memory
    file over 40 KB, a Map row without a "read it when", a decisions count that differs between
-   *Decisions locked* and `decisions.md`, a file without the standard header.
+   *Decisions locked* and `decisions.md`, a file without the standard header, more than 3 KB of
+   `CLAUDE.md` outside the live-document block, a `CLAUDE.md` without the block (or none at all).
 6. **Self-heal the setup.** A one-time upgrade so existing projects pick up the current discipline
    on next touch:
    - *project-memory layout (2026-09-09):* if the project root has no `project-memory/` folder, or
@@ -283,7 +308,20 @@ cannot end.
      (create the folder and the three standard files, move the full content out, leave rule lines
      + pointers, add the Map rows, replace the contract and the title blockquote with the
      template's, rename a `playbook/` folder to `project-memory/` if that is what the project
-     used, replace the `CLAUDE.md` block's items 1-4), then run the lint until clean.
+     used, replace the `CLAUDE.md` block's items 1-4, run *CLAUDE.md slimming* below), then run
+     the lint until clean.
+   - *CLAUDE.md slimming (2026-09-18):* if `CLAUDE.md` is over 8 KB / 100 lines or carries more
+     than 3 KB outside the live-document block (the SessionStart bootstrap and the lint both say
+     so), every message is paying for content most messages never use. Build the move list with
+     the *CLAUDE.md routing test* (one row per section: section -> home, and whether that home
+     already holds it), show it, and ask ONE yes/no. After the yes: write each home first (a new
+     `project-memory/` topic file gets its Map row), grep the project and its memory folder for
+     pointers to the moved sections and repoint them, leave in `CLAUDE.md` only routing-test-1
+     content plus the block, then write `PROJECT.md` last and lint until clean. The first time
+     `CLAUDE.md` fits the budget arms its gate: from then on a turn that pushes it back over is
+     blocked. "Never delete content you did not create" means nothing is LOST - it does not mean
+     a fat `CLAUDE.md` stays fat. Leaving it untouched because "it was already there" is the
+     failure this step exists for. Never slim silently and never mid-task: ask first.
    - *Bootstrap:* if this project's `CLAUDE.md` `<!-- live-document:start -->` block carries
      old-style maintenance items (recognizable by the phrase "after any answer or change", a
      "Curate, do not bloat" item, or items 2-4 that lack the word "Tripwire"), replace just
@@ -338,7 +376,8 @@ a working directory that holds a `PROJECT.md`) are not:
   bootstrap (under 2,000 chars, so it is fully visible even when the harness persists hook
   output): `PROJECT.md`'s size and the instruction to Read it in full now, the `project-memory/`
   file list with sizes (and any file newer than `PROJECT.md`, which means its Map row or index
-  lines may be stale), the lint summary, and any PENDING RECONCILE left by an earlier session that
+  lines may be stale), `CLAUDE.md`'s size against its every-message budget (an over-budget file
+  gets a "!!" line asking for the slimming move list), the lint summary, and any PENDING RECONCILE left by an earlier session that
   edited project files without updating `PROJECT.md` - this survives `/clear` and compaction. It
   also resets the session's "PROJECT.md read" flag.
 - `furkan-edit-gate.js` (PreToolUse on Write/Edit) denies a substantive project edit (project
@@ -348,9 +387,11 @@ a working directory that holds a `PROJECT.md`) are not:
 - `furkan-project-md-gate.js` (PostToolUse on Read/Write/Edit) records the full Read of
   `PROJECT.md`, records every substantive project edit (`project-memory/` files count), and on a
   write to `PROJECT.md` runs `project-md-lint.js` (on a write to a `project-memory/` file, only
-  that file's rules); errors come back as feedback to fix in the same turn.
+  that file's rules; on a write to `CLAUDE.md`, only its every-message budget); errors come back
+  as feedback to fix in the same turn.
 - `furkan-stop-gate.js` (Stop) refuses to end a turn that edited project files until `PROJECT.md`
-  was written afterwards AND lints clean (at most 4 blocks per condition, then it gives up loudly).
+  was written afterwards AND lints clean, and a turn of a session that wrote `CLAUDE.md` while
+  `CLAUDE.md` is over budget (at most 4 blocks per condition, then it gives up loudly).
   Q&A turns, reads, and edits outside the project or under `next-actions/` never block. If only
   `project-memory/` files changed, the fix is to re-touch their Map rows / index lines.
 - `furkan-precompact-gate.js` (PreCompact) holds one compaction while a reconcile is pending.
@@ -358,6 +399,8 @@ a working directory that holds a `PROJECT.md`) are not:
   once under the CURRENT contract (the lint CLI or a clean write sets the flag; the 2026-09-09
   layout renamed the flag so every project re-earns it); until then only the reconcile rule
   applies and the bootstrap nudges. Migrate an old project in a dedicated session, not mid-task.
+  `CLAUDE.md`'s budget has its own grace flag (`claude1-`): it only warns until that project's
+  `CLAUDE.md` has fit the budget once, then it blocks like any other error.
 
 How to satisfy a block: read the listed files, reconcile home first and `PROJECT.md` last per the
 update algorithm, keep the Map current, end the turn. `node ~/.claude/hooks/project-md-lint.js
@@ -377,5 +420,6 @@ Other skills also write project-root files. Detect them and stay additive:
 - **gsd** - look for a `.planning/` directory and a gsd-style `PROJECT.md`. Augment that
   `PROJECT.md` in place; never touch `.planning/`.
 
-Rule of thumb: append to `CLAUDE.md`, augment `PROJECT.md`, and never delete or rewrite files you
-did not create.
+Rule of thumb: append to `CLAUDE.md`, augment `PROJECT.md`, and never delete content you did not
+create. An over-budget `CLAUDE.md` is slimmed by MOVING its content to its home after the owner's
+one yes (*CLAUDE.md slimming*), never by deleting it and never by leaving it fat.

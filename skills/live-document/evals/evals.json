@@ -81,6 +81,20 @@
         "fixtures/messy-root/weekly-report-2026-07-13.md"
       ],
       "expectations": []
+    },
+    {
+      "id": 7,
+      "name": "bloated-claude-md-slimming",
+      "prompt": "/live-document - please curate this project's living docs so they're in good shape and efficient for the next sessions.",
+      "expected_output": "Detects that CLAUDE.md (9.4 KB / 109 lines, ~5.5 KB outside the live-document block) is over the 8 KB / 100-line every-message budget and runs the CLAUDE.md slimming self-heal: builds a move list with the CLAUDE.md routing test (API reference table + limits and the dated API notes -> a project-memory/ topic file such as api-reference.md with a Map row; incident log -> a project-memory/ topic file (e.g. incidents.md) or lessons.md stories, rule lines only if they change how we work; How to run / Files -> a project-memory topic file or README / the Map; Purpose -> already covered by PROJECT.md Goal; per-message conventions such as 'never call the API in tests' -> at most a 1-2 line Hard rules bullet inside the block), shows it, and asks ONE yes/no before moving anything. FAILS if it leaves the bloat untouched citing 'never delete or rewrite content you did not create', adds a Map row that makes CLAUDE.md the home of reference content (API limits, run commands), proposes a slimmed CLAUDE.md that still holds reference tables / dated notes / run instructions, or moves content without asking.",
+      "files": [
+        "fixtures/bloated-claude-md/CLAUDE.md",
+        "fixtures/bloated-claude-md/PROJECT.md",
+        "fixtures/bloated-claude-md/project-memory/decisions.md",
+        "fixtures/bloated-claude-md/project-memory/lessons.md",
+        "fixtures/bloated-claude-md/project-memory/changelog.md"
+      ],
+      "expectations": []
     }
   ]
 }

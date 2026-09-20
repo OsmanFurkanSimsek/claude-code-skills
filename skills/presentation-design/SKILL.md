@@ -5,15 +5,46 @@ description: Presentation-design principles that apply to EVERY presentation, de
 
 # Presentation Design
 
+*One presenter's field-tested style ("the Furkan style"): ruthlessly cut text, animate for
+meaning, and QC every slide before it ships.*
+
 All of your presentations get built to these principles. This file is a living document: every
 time you give feedback, add or update the relevant principle here, then re-deliver the current
 skill (see "Feedback loop" at the end for the delivery format).
+
+## Core signature (apply to every deck, unasked)
+
+These seven points are the signature; every other section is detail. A deck that breaks one of
+them isn't finished:
+
+1. **Minimum text.** At most 5-6 words per slide, one chunk per click. No paragraphs, no full
+   sentences, no trailing periods. The slide is a cue; the presenter does the talking.
+2. **Punchline language, Hormozi-level clarity.** Catchy, memorable titles; short, concrete,
+   numbered, contrasting phrases ("6 = 6", "Started" / "Never finished", "Not finished?" / "Take
+   it back"). In persuasion decks: give / get / guarantee structure, and the closing slide is a
+   single, clear ask.
+3. **Visual plus animation on every slide.** No text-only slides. As much visual weight as
+   possible, clean and visually appealing motion; everything appears one click at a time (see
+   "Animation standard" below for the concrete pattern library).
+4. **The slide explains itself.** A visual has to say what it means without narration: label
+   abstract shapes, write out what a number is counting. If the presenter can't tell what a slide
+   means at a glance, the slide has failed.
+5. **Every slide has a script entry**, including a "what this slide covers" line (2-3 plain
+   sentences), the word-for-word spoken text, the click sequence, and likely questions. You can't
+   give good feedback on a script you haven't read, so write it with the first full version - never
+   defer it.
+6. **One-shot delivery, don't assume - ask.** The ENTIRE deck (all slides + render QA) ships in a
+   single pass, never partially. For anything ambiguous, ask numbered questions in one round, each
+   with a suggested answer attached.
+7. **Large type, one signature element, a consistent visual language** (detail: "Visual language"
+   and "Typography").
 
 ## Deliverables (both, every presentation project)
 
 1. **The presentation:** a single, fully offline HTML file. Opens in a browser, `F` for
    fullscreen, arrow keys / space / click to advance. No external dependencies (no CDN, no web
-   fonts).
+   fonts); an open-license font (e.g. Inter, OFL) can be embedded as base64 and the file still
+   stays a single, offline file.
    - **Keyboard-shortcut trap (a real lesson, don't repeat it):** letter shortcuts (e.g. `F` for
      fullscreen) can't be checked with `e.key` alone - `e.key` depends on the input language (in
      a Cyrillic layout, the physical F key produces `а`, silently killing the shortcut). Fix:
@@ -24,13 +55,28 @@ skill (see "Feedback loop" at the end for the delivery format).
    on screen, the click sequence, **Say** (the full, readable spoken text), **Do** (live-demo
    steps), **When you see** (what to say once a given thing appears on screen). You rehearse from
    this document. It also holds the time-budget table, prepared Q&A answers, and the current
-   task list.
+   task list. Every slide entry opens with a "what this slide covers" line.
+   - **The script is always a separate `.md` file**, sharing the deck's name and version number
+     (e.g. `deck-v3.html` + `deck-v3-speech.md`), so the planned speech lines up side by side with
+     the slides. No hidden notes layer goes inside the deck itself - add one only if explicitly
+     asked for.
 
 ## Slide content
 
 - One slide, one idea. At most 5-6 words or a single visual per slide; NEVER a full sentence. You
   say the sentences out loud - the slide is a memory cue, not a script.
 - Short cue words or phrases, bulleted, fragmentary.
+- **No trailing periods, no full sentences.** Nothing on a slide - title, phrase, line, card, even
+  a backup-slide body - ends in a period or reads as a complete sentence (a footnote in muted
+  gray citing a source is the one exception). Two-part emphasis lines break across a line, not a
+  period ("Time" / "And backing"). Question marks are fine. Real rejections: "The bug tax." and
+  "On time." - both came back for the trailing period. Sweep for periods before delivery.
+- **Word choice stays positive and plain:** name the work, not the problem (e.g. "days on causes"
+  got rejected in favor of "days on improvements"). A subtitle should read in one breath, not
+  split across two sentences.
+- **In persuasion decks, name the problem explicitly:** before the offer lands, the audience sees
+  a plain-language answer to "what's the problem right now?" - don't invent a severity level;
+  pull it from the source.
 - The same rule applies INSIDE cards: instead of a long line, each point is a 2-4 word chunk with
   its own icon, and appears one click at a time. Long sentences inside comparison cards get
   rejected.
@@ -105,6 +151,34 @@ skill (see "Feedback loop" at the end for the delivery format).
 - Video slides go full screen; videos are never embedded in the HTML itself (see the
   video-embedding trap above) - use a link card plus a local file.
 - Respect `prefers-reduced-motion`.
+- **Animation standard:** every slide's motion has to SHOW the idea, never decorate it - stay
+  simple, one main move per slide, all of it click-triggered. Reusable patterns worth reaching for:
+  1. A signature element that travels across the deck (a marker moving along an underline; it
+     turns red/dashed through the problem section, resolves by the end).
+  2. An arrow that flies in and lands DEAD CENTER on its target, with a slight shake on impact.
+     Past mistake: the arrowhead was drawn off-center and never touched the middle - check where
+     any directional shape (arrow, pointer, flow line) actually points in a real screenshot.
+  3. A calendar/month grid that fills in on click (e.g. 6 of 20 workdays fill red, then the same
+     6 boxes turn green on the next slide) - communicates "same cost, different use" in one glance.
+  4. Large numbers counting up from 0 to their target.
+  5. Progress bars that stop halfway (fill, stop, the remainder stays hatched) for a "started, not
+     finished" idea.
+  6. A symbol familiar from the audience's own world changing state on click (a company's own
+     rating stars ticking from green to red was the most-praised slide in one deck) - look for a
+     symbol like that for each specific audience.
+  7. Self-drawing lines and grids that fade in progressively (hundreds of small icons appearing in
+     a wave, some later fading or dropping) to make a large number felt rather than just read.
+  8. A highlighter sweep behind a key phrase, wiping in left to right.
+  9. One large shape drifting slowly in on open and close; soft scale-and-fade between slides;
+     soft color transitions between light and dark backgrounds.
+  10. Small repeating loops only when they carry meaning (a searching magnifying glass, a badge
+      passed between team icons).
+- **Render QA is mandatory, not optional.** Serve the deck locally (`python -m http.server` -
+  browser automation blocks `file:` URLs); screenshot EVERY slide at its final click state, at
+  both 1920x1080 and 1366x768, and actually look at each screenshot; check for overflow
+  (`scrollHeight`/`scrollWidth`), a clean console, and re-run the forbidden-word and trailing-period
+  sweep. Wait 2-3 seconds before the screenshot so counter animations finish. Fullscreen (`F`)
+  can't be exercised in a headless browser - the presenter tries that by hand.
 
 ## Visual language
 
@@ -114,6 +188,21 @@ skill (see "Feedback loop" at the end for the delivery format).
   consistently through the whole deck.
 - Section headers use a letter-spaced, uppercase "eyebrow" label; system fonts only (keeps it
   offline).
+- **An in-house audience gets that organization's own template**, not the dark cinematic default -
+  this is a project-specific style call and never gets written back into this skill (that
+  organization's colors and logo stay in that project's own design file, not here). Before
+  researching a brand online, ask: "is there an existing deck or PDF already built on this
+  template?" If so, measure it exactly instead of guessing - dominant colors from the page's own
+  pixels, fonts via `pdffonts`, the logo re-vectorized via `pdftocairo -svg`. An hour of web
+  research once produced the wrong colors and the wrong font; measuring the real template took ten
+  minutes and matched exactly. If the template has no built-in warning color, ask the client which
+  color to use for problem/risk content. An open-license font can still be embedded as base64; the
+  "system fonts only" default is only for fonts you can't license that way.
+- **Layout ideas worth borrowing from templates, in any style:** a bold title top-left; numbered
+  colored squares (01, 02, 03) for agendas and ordered lists; a small tab-shaped label top-right
+  for "source / scope" context (e.g. "team estimate", "whole system"); light background as the
+  default, dark reserved for the 3-4 highest-impact slides (title, key equation, summary, close).
+  Don't use an eyebrow label and a bold template-style title together - pick one.
 
 ## Typography and readability
 
@@ -157,9 +246,31 @@ skill (see "Feedback loop" at the end for the delivery format).
 - For sensitive topics (health, and similar), reassure the audience without alarming them; don't
   put cooling disclaimers ("this is not a diagnosis") on the slide itself - build that balance
   into the spoken script instead. Avoid claims you can't actually measure.
-- Versioning: each revision is a separate file - v1, v2, v3... You work in revision cycles, not
-  in-place edits.
-- Every new heading needed anywhere: offer at least 3 title alternatives.
+- Versioning: each revision is a separate file - v1, v2, v3... An old version is never edited in
+  place. You work in revision cycles.
+- Every new heading needed anywhere: offer at least 3 title alternatives. Until one is picked,
+  the options can sit in a small parenthetical right on the slide; once decided, delete that line
+  and the shortcut entirely.
+- **One-shot delivery:** the full deck - all main slides, backup slides, script, and render QA -
+  ships in one session with no approval gate mid-build; feedback then comes slide by slide.
+  Before starting a long build, state the estimated time; log the actual time once it's done.
+- **Don't assume, ask - same session:** contradictory or ambiguous feedback (e.g. "keep it" and
+  "too much" about the same line) doesn't get silently interpreted. Ask numbered questions in one
+  round, each with a suggestion and 2-4 concrete options. Names, spelling, dates, and which
+  documents get produced are the client's call, not a guess.
+- **Backup (reference) slides:** a `B`-key backup deck for technical follow-up questions, numbered
+  B1, B2... Pressing `B` again returns to whichever main slide AND click state you left. Backup
+  slides don't count in the main slide counter, and each one carries a small gray source footnote
+  (the only place jargon is allowed unexplained). If the audience treats a backup topic as the
+  real issue, promote it into the main deck.
+- **Number traceability:** every number on a slide traces to a source line (a table in the project
+  notes: number, source line, check). A team-estimated number gets a small "estimate" label on the
+  slide. Never claim more than the source actually shows - a finding seen only in staging/config
+  gets stamped "not yet validated in production."
+- **Non-technical / executive audience:** keep a running banned-jargon list and sweep the deck for
+  it before delivery; translate every technical concept into the audience's everyday language with
+  a concrete example (e.g. "automations", "access packages", "an alert" rather than the internal
+  term).
 
 ## Language
 
@@ -186,8 +297,19 @@ one started at any point. Be ready for that:
 
 ## Feedback loop
 
+On a full-version delivery, hand back an interactive Next Actions HTML file: one row per slide
+with OK / nit / annoying / blocker plus a note field, and a "copy feedback" button. Blocker and
+annoying items always get fixed in the next revision; a slide the client says to leave alone
+("keep that slide as is") stays untouched.
+
 Every time you get feedback on a presentation:
 
+0. Fold the feedback into this file in the SAME turn you receive it - don't make the client repeat
+   themselves. Before adding anything, ask yourself: "is this a general principle, or specific to
+   this one project?" Project-specific brand style (colors, logos) and single-project content
+   calls (talk length, which topics to cover, how many slides) never belong here - only
+   generalizable STYLE principles do (visual weight, animation, minimal text, punchy titles,
+   delivery format). Keep this file GENERIC.
 1. Update the deck and the script (bump the version number).
 2. If the feedback generalizes into a reusable principle, add it to this SKILL.md - icon, logo,
    visual, and typography mistakes especially get written down explicitly as "past mistakes" so

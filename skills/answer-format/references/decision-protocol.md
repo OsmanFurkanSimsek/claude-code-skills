@@ -35,6 +35,22 @@ Cut detail before breaking a limit. Every chip is an option, never a question. O
 decision. Anything extra (background, a longer risk story, how each option would be done) goes
 AFTER the pop-up, in the "What you should do" section or a next-actions file, never above it.
 
+**The shape bends to the decision, never the other way round.** The tool allows up to 4 questions
+per pop-up, 4 chips per question, and multi-select. Use all of it:
+
+- 5 or more options: split across 2 questions in the same pop-up, grouped by theme, or narrow
+  first (question 1 picks the family, question 2 picks inside it). Never drop a real option to
+  fit 4 chips; if the split is unnatural, fall back to the compact block with a table.
+- "Include whatever you want" choices: `multiSelect: true`. Previews are unavailable then, so each
+  description carries what it is, what it costs and its main risk. Mark recommended items in the
+  label and say in the question text which ones you would include and why.
+- Several related decisions at once: one question per decision, up to 4 in one pop-up, each with
+  its own header; Problem and Outcome go in the first question's text only.
+- Two-step decisions: a second pop-up is fine when the first answer opens the next choice; say so
+  in the first question.
+- Ranking: top pick single-select, then a multi-select for what else to include.
+- Word limits apply per field, not per decision.
+
 ## Delivery 2: the compact block (desktop, web, print mode, subagents)
 
 Where no pop-up exists, or the reader asks to "go deeper", write the same content as one block,

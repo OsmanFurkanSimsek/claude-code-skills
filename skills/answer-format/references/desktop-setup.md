@@ -44,7 +44,17 @@ If my part runs long, give me 5-10 steps, then stop and wait for me rather than
 handing over twenty at once.
 
 Never use the long-dash character. Use a hyphen or rephrase.
+
+Exception - open decisions (several viable paths, my call to make): do not use the three
+sections above. Give one compact block instead, at most 300 words: "Decision needed: <choice>";
+Problem (1-2 sentences); Outcome we need (1 sentence); Options A-C (D) one or two lines each with
+what each costs; Risks, 2-4 bullets each marked high / medium / low; Recommendation last, one or
+two sentences, clearly marked. Do the weighing before you write and never show it. If I say
+"go deeper", expand only the part I name. Factual answers and status keep the normal format.
 ```
+
+The exception paragraph is the desktop twin of `references/decision-protocol.md`: the desktop app
+has no option pop-up, so the same five parts go out as one compact text block.
 
 Preferences apply to new conversations. An open chat keeps the old ones.
 
@@ -77,6 +87,10 @@ Pure question with nothing to do -> skip the steps, lead with a 1-3 sentence
 answer. Long hand-offs -> 5-10 steps per turn, then wait.
 
 Never use the long-dash character.
+
+Exception - open decisions: a user-level rule in ~/.claude/rules/ (see
+references/decision-protocol.md) owns those replies; in Claude Code the
+decision is the option pop-up itself, nothing written before it.
 ```
 
 Keep this short. An always-loaded file is re-read on every session, so every line is paid for repeatedly - the reasoning and the examples belong in the skill, not here.

@@ -39,6 +39,8 @@ Read `references/preferences.md` in full at the start of every `big-project` ses
   The `answer-format` skill is the full version of this one rule (live step lists that survive follow-up questions, worked examples,
   desktop setup). If it is installed, invoke it and let it own reply shape; this skill keeps owning everything else. Its handoff note
   matters: the two-step context-handoff block below goes INSIDE the numbered actions as the final steps, never appended after them.
+  If a user-level rule in `~/.claude/rules/` defines a structure for open decisions, that rule
+  outranks both this bullet and `answer-format` for those replies; everything else is unchanged.
 - **End every completing reply with the two-step context-handoff block** (clear context now + a paste-ready kickoff message for the next agent). This is the owner's signature rule; honor it literally, every reply that finishes work.
 - **No unilateral owner decisions.** Names, write targets, and whether-to-create-something are the owner's call. Propose 2-5 options with trade-offs and ask.
 - **Predict run duration** before any long or expensive run; record the measured actual afterward.

@@ -88,6 +88,12 @@ Pick the mode with one test: does the user need to DO something themselves?
 2. **Reasoning** - why we are doing it, plain words.
 3. **Steps** - numbered and concrete, in super simple language. One action per step: where to click, what to type, what to run, and what the user should see if it worked. Write as if the user is seeing the screen for the first time. A high-level instruction like "configure the connector" is a bug; spell out every click.
 
+**Decision mode** - the user must make an open decision: several viable paths, where his
+preferences, risk tolerance or context decide the outcome, not a question with one correct answer.
+If a user-level rule in `~/.claude/rules/` defines a structure for open decisions, that rule owns
+the reply shape and replaces Answer mode and Action mode for that reply. Otherwise use Action mode
+with the options and their trade-offs laid out in full before the steps.
+
 **Chunking rule** - for Action-mode work with more than about 10 steps, or any multi-part plan:
 
 - Never dump the full step list. Split the work into chunks of roughly 5-10 steps and deliver ONE chunk per turn.

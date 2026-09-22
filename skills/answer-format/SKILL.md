@@ -123,6 +123,11 @@ Both rules are honoured literally: the handoff is the last thing in the message,
 
 **With `live-document`, `e2e`, and `session-handoff`.** Those own documents and phase state, not reply shape, so this skill applies on top without adjustment. The one exception is `session-handoff`: its output is a fixed seven-section template the reader asked for verbatim, so let that template stand rather than wrapping it in Summary / Why / What you should do.
 
+**Exception - open decisions.** If a user-level rule in `~/.claude/rules/` defines a different
+structure for open decisions (a choice with several viable paths, where the reader's preferences,
+risk tolerance or context decide the outcome), that rule owns the shape of those replies and this
+format steps aside for them. Everything else keeps this format.
+
 ## What breaks this format
 
 These are the failure modes worth watching for, and why each one hurts:
@@ -156,4 +161,4 @@ A skill fires when the model judges it relevant, which is right for most skills 
 - **Claude Code:** `~/.claude/CLAUDE.md` (global) or a project `CLAUDE.md`.
 - **Claude desktop and web:** the personal-preferences box in Settings.
 
-`references/desktop-setup.md` has paste-ready text for both, and explains when to reach for the skill instead.
+`references/desktop-setup.md` has paste-ready text for both, and explains when to reach for the skill instead. `references/decision-protocol.md` is the shape for open decisions (the pop-up in Claude Code, a compact block elsewhere), with the paste text for the desktop preferences box.

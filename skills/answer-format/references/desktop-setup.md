@@ -47,10 +47,11 @@ Never use the long-dash character. Use a hyphen or rephrase.
 
 Exception - open decisions (several viable paths, my call to make): do not use the three
 sections above. Give one compact block instead, at most 300 words: "Decision needed: <choice>";
-Problem (1-2 sentences); Outcome we need (1 sentence); Options A-C (D) one or two lines each with
-what each costs; Risks, 2-4 bullets each marked high / medium / low; Recommendation last, one or
-two sentences, clearly marked. Do the weighing before you write and never show it. If I say
-"go deeper", expand only the part I name. Factual answers and status keep the normal format.
+Problem (1-2 sentences); Outcome we need (1 sentence); Options, 3 to 7 (A-G), one or two lines
+each with what each costs, ending with "Or your own idea - just tell me."; Risks, 2-4 bullets
+each marked high / medium / low; Recommendation last, one or two sentences, clearly marked. Do
+the weighing before you write and never show it. If I say "go deeper", expand only the part I
+name. Factual answers and status keep the normal format.
 ```
 
 The exception paragraph is the desktop twin of `references/decision-protocol.md`: the desktop app

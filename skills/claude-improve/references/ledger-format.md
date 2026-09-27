@@ -9,11 +9,11 @@ get checked against their baseline.
 ```markdown
 # Claude improve ledger
 
-> Every recommendation from the weekly claude-improve review, the owner's answer, and how we check
+> Every recommendation from the claude-improve review, the owner's answer, and how we check
 > it worked. Read in full at the start of each review; one heading per item. (If this project keeps
 > a PROJECT.md, its Map points here.)
 
-Last run: YYYY-MM-DD
+Last run: YYYY-MM-DD HH:MM UTC
 
 ## Runs
 
@@ -48,7 +48,7 @@ Fields:
   - `verified` - the metric moved as expected (write before -> after in History)
   - `not working` - done, but the metric did not move; goes back to the owner
   - `waiting on owner` - the next step is the owner's (a setting, a rename, an account)
-  - `later` - owner said not now; re-raise only if the metric grows or after 4 weeks
+  - `later` - owner said not now; re-raise when the metric grows or at the second run after the answer
   - `muted` - owner said never; never raise again, never list, only count
   - `benign` - the agent checked a signal and found it is not a problem (say why in `Owner:`); skip
     it unless its numbers change shape. Saves the next run from re-investigating it.

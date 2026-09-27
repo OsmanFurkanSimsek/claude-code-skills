@@ -1,16 +1,17 @@
 ---
 name: claude-improve
-description: Use when the user types /claude-improve, asks for the weekly Claude Code review, or asks to go through past Claude Code conversations or transcripts to find what to improve ("how can we use Claude Code better", "review our sessions", "what keeps going wrong", "improve my Claude setup", "audit my transcripts"), or when a session-start note says the review is due. Do NOT use to debug one live failure, to review a code diff, or to sync or back up skills.
+description: Use when the user types /claude-improve, asks for the Claude Code review (weekly, monthly, or whenever), or asks to go through past Claude Code conversations or transcripts to find what to improve ("how can we use Claude Code better", "review our sessions", "what keeps going wrong", "improve my Claude setup", "audit my transcripts"), or when a session-start note says the review is due. Do NOT use to debug one live failure, to review a code diff, or to sync or back up skills.
 ---
 
-# Claude Improve - the weekly review of how Claude Code is working
+# Claude Improve - review how Claude Code has been working since the last review
 
-Measure the recent sessions from Claude Code's own transcripts, compare them with the **ledger** of
+Run it whenever the owner likes (after 5 days, a month or three months): it measures **every session
+since the previous review** from Claude Code's own transcripts, compare them with the **ledger** of
 everything recommended before, and bring the owner only three things: what was fixed (and whether the
 fix worked), what is still waiting, and what is new. **Zero new recommendations is a valid result**;
 there is no quota in either direction.
 
-The ledger is what makes this weekly instead of one-off: it remembers every recommendation, the
+The ledger is what makes this a continuing review instead of a one-off: it remembers every recommendation, the
 owner's answer, the baseline number, and how to check it. An item the owner muted is never raised
 again.
 
@@ -47,12 +48,11 @@ Read the ledger **in full**. Note its `Last run:` date and every item's status.
 
 ## Step 1 - Scan
 
-**Window: from the previous run to now, never a fixed week.** `--since` is the ledger's `Last run:`
-date, however long ago it was: a review skipped for three weeks scans all three, so no session ever
-falls between two runs. The window starts at the beginning of that day, so it overlaps the last run
-slightly; overlap is harmless (metrics are per 7 days), a gap is not. Only two exceptions: a first
-run (no `Last run:`) scans 30 days, and a run within 3 days of the last one still scans 3 days, so
-there is enough data to compare.
+**Window: from the previous run to now. Never time-bound.** The start is the ledger's `Last run:`
+date and time, however long or short ago: 5 days, a month and three months are all covered in full,
+so no session ever falls between two runs. A first run (no `Last run:`) covers every transcript on
+disk. Metric keys ending in `.per_week` are rates (count x 7 / days scanned), only so runs of
+different lengths compare fairly; they are not a limit.
 
 ```bash
 python "<this skill>/scripts/scan.py" --from-ledger "<ledger path>" --out "<scratchpad>/scan.md" --json "<scratchpad>/scan.json"
@@ -71,12 +71,12 @@ For every ledger item, in this order:
 
 | Status | What to do this run |
 |---|---|
-| `done` | Judge it ONLY on traffic after its `Done:` time: re-run `scan.py --since "<Done time>"` for that metric. Fewer than 3 days or 10 sessions since then -> "too early", stays `done`. Improved as expected -> `verified` (before -> after). No change -> `not working`; it goes back to the owner. Never judge a fix on traffic from before it landed. |
+| `done` | Judge it ONLY on traffic after its `Done:` time: re-run `scan.py --since "<Done time>"` for that metric. Fewer than 10 sessions since then -> "too early", stays `done`. Improved as expected -> `verified` (before -> after). No change -> `not working`; it goes back to the owner. Never judge a fix on traffic from before it landed. |
 | `open` | Raised but never answered: ask again in Step 5, with this run's numbers. |
 | `not working` | Ask again in Step 5 with a different next move, never the same fix twice. |
 | `approved` | Still not done after 2 runs -> list it under "stuck on our side" with the reason. |
 | `waiting on owner` | List it under "still waiting on you", with the date first raised. Neutral wording, one line. |
-| `later` | Re-raise only if its metric grew, or 4 weeks have passed since the answer. |
+| `later` | Re-raise when its metric grew, or at the second run after the answer. |
 | `muted` | Never raise, never list. Count them in one line. |
 | `benign` | Skip; re-check only if its numbers change shape (not just size). |
 | `verified` | Nothing, unless the metric regressed past its baseline; then re-open as `not working`. |
@@ -108,7 +108,7 @@ In this order, plain words, numbers inline:
 3. **Not working yet** - item, what the numbers show, the proposed next move.
 4. **Still waiting** - on the owner / on us, one line each with the date first raised.
 5. **New** - numbered; each: plain-words title, evidence (counts + one short example), the smallest
-   fix and where it lives, effort, and the metric that will show next week whether it worked.
+   fix and where it lives, effort, and the metric that will show at the next run whether it worked.
 6. **Muted** - one line: "N muted items skipped" (list them only if asked).
 
 Nothing new? Say so in one line under **New**. Always save the full report as
@@ -122,7 +122,7 @@ Use the AskUserQuestion pop-up: one question per new, `open` or `not working` it
 pop-up (a second pop-up for the rest). Chips, in this order:
 
 - `A. Do it (Recommended)` - preview: WHAT IT TAKES (1-3 bullets), RISKS (with high / medium / low)
-- `B. Later` - preview: what waiting costs per week, in the scan's numbers
+- `B. Later` - preview: what waiting costs until the next run, in the scan's numbers
 - `C. Never - mute it` - preview: "Muted for good; never raised again."
 - `D. Your own idea` - preview: "Pick this, press n, and type what you want instead."
 
@@ -153,8 +153,9 @@ instead. Without a pop-up tool, ask the same choices in one short numbered list.
 | Dumping transcripts into the main context | Helper agent writes to a file; read only what you need |
 | Leaving "not working" fixes silently `done` | Re-open them with the numbers; they go to the owner |
 
-## Weekly reminder (optional)
+## Reminder (optional, never a limit)
 
 A SessionStart hook can read the ledger's `Last run:` line and add one sentence to the session's
-context when 7+ days have passed ("claude-improve is due; offer it at a natural pause"). Keep it to
-one line, once per day. The review itself always runs on the owner's word, never automatically.
+context when the owner's chosen gap has passed ("claude-improve is due; offer it at a natural
+pause"). Keep it to one line, once per day. It only reminds: whenever the review runs, it still
+covers everything since the last run, and it runs on the owner's word, never automatically.

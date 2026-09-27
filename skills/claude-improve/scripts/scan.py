@@ -92,8 +92,8 @@ def main():
     ap.add_argument("--days", type=float, default=7)
     ap.add_argument("--since", help="YYYY-MM-DD or 'YYYY-MM-DD HH:MM' in UTC (overrides --days); "
                     "use a fix's Done time to judge it only on traffic after the fix")
-    ap.add_argument("--from-ledger", help="ledger file: scan from its 'Last run:' date/time to now "
-                    "(no Last run: 30 days; less than 3 days ago: 3 days). Overrides --since/--days")
+    ap.add_argument("--from-ledger", help="ledger file: scan from its 'Last run:' date/time to now, however "
+                    "long or short that is (no Last run: every transcript on disk). Overrides --since/--days")
     ap.add_argument("--projects-dir", default=os.path.join(CLAUDE, "projects"))
     ap.add_argument("--out", help="markdown report path (default: stdout)")
     ap.add_argument("--json", help="metrics JSON path")
@@ -103,15 +103,16 @@ def main():
     now = dt.datetime.now(dt.timezone.utc)
     since = (dt.datetime.fromisoformat(a.since).replace(tzinfo=dt.timezone.utc) if a.since
              else now - dt.timedelta(days=a.days))
+    open_start = False
     if a.from_ledger:
-        # From the previous run to now, never a fixed week: a skipped week is still covered.
+        # From the previous run to now, never time-bound: 5 days, a month or 3 months are all covered.
         with open(a.from_ledger, encoding="utf-8") as fh:
             m = re.search(r"^Last run:\s*(\d{4}-\d{2}-\d{2})(?:[ T](\d{2}:\d{2}))?", fh.read(), re.M)
         if not m:
-            since = now - dt.timedelta(days=30)
+            since = dt.datetime(1970, 1, 1, tzinfo=dt.timezone.utc); open_start = True
         else:
             last = dt.datetime.fromisoformat(m.group(1) + " " + (m.group(2) or "00:00"))
-            since = min(last.replace(tzinfo=dt.timezone.utc), now - dt.timedelta(days=3))
+            since = last.replace(tzinfo=dt.timezone.utc)
     days = max((now - since).total_seconds() / 86400, 1e-9)
     per_week = lambda n: round(n * 7 / days, 2)
     since_ms = since.timestamp()
@@ -368,6 +369,9 @@ def main():
 
     # ---- derived numbers ----
     S = list(sessions.values())
+    if open_start and S:            # first run over every transcript: the window starts at the oldest one
+        since = min(x["first"] for x in S)
+        days = max((now - since).total_seconds() / 86400, 1e-9)   # per_week() reads this at call time
     tot_tok = sum(band_tok.values()) or 1
     share = lambda keys: round(100 * sum(band_tok[k] for k in keys) / tot_tok, 1)
     spend = sum(x["cost"] or 0 for x in S)

@@ -51,7 +51,9 @@ if (Test-Path $stateFile) {
         if ($line -match '^tokens=(.+)$') { $prevTokens = [int]$matches[1] }
     }
 }
-@(('cost=' + $totalCost), ('tokens=' + $tokens)) | Set-Content -Path $stateFile -Encoding ASCII
+# pct= and window= let an optional hook read the context usage (for example to switch into a
+# handoff mode once a session passes 30% of its window).
+@(('cost=' + $totalCost), ('tokens=' + $tokens), ('pct=' + $pct), ('window=' + $window)) | Set-Content -Path $stateFile -Encoding ASCII
 
 # Minimal output before the first turn produces usage stats.
 if ($null -eq $pct) {

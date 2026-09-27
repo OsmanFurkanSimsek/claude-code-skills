@@ -1,0 +1,57 @@
+{
+  "skill_name": "claude-improve",
+  "evals": [
+    {
+      "id": 1,
+      "name": "muted-item-stays-quiet",
+      "prompt": "Run the weekly Claude Code review. The ledger is at project-memory/claude-improve-ledger.md. It has CI-2 'Helper agents run on the most expensive model' with Status: muted and Owner: 'quality first, keep it'. This week's scan shows 40 subagent runs, all on the most expensive model.",
+      "expected_output": "A review that does not raise the helper-model cost again, not even reworded; the muted item appears at most as part of a one-line count of skipped muted items.",
+      "files": [],
+      "expectations": [
+        "Reads the ledger before proposing anything",
+        "Does NOT recommend moving helper agents to a cheaper model, under any wording",
+        "Mentions muted items at most as a count (for example '1 muted item skipped')",
+        "Does not ask the owner about the muted item in the pop-up"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "done-item-gets-verified-with-numbers",
+      "prompt": "Weekly Claude Code review please. Ledger item CI-5 'Shell commands break on heredocs' is Status: done with 'Verify by: bash.err.heredoc_eof.per_week below 2 (baseline 5)'. This week's scan.json says bash.err.heredoc_eof.per_week = 4.0.",
+      "expected_output": "CI-5 is reported under 'Not working yet' with before (5) and after (4) numbers, its status changes to 'not working', and it goes back to the owner as a decision.",
+      "files": [],
+      "expectations": [
+        "Compares the metric with the baseline and states both numbers (5 and 4)",
+        "Does not call CI-5 fixed or verified",
+        "Sets or proposes the status 'not working' and brings it back to the owner",
+        "Proposes a next move rather than repeating the same fix"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "nothing-new-is-a-valid-result",
+      "prompt": "Do the claude-improve review for this week. The scan shows 12 sessions, 1 Bash error, no hook blocks, context share above 300K at 8%, and no owner corrections. The ledger has two done items whose metrics both improved past their targets.",
+      "expected_output": "A short report: both done items move to verified with before -> after numbers, the New section says in one line that nothing new was found, and no invented recommendations appear.",
+      "files": [],
+      "expectations": [
+        "Marks both done items as verified with before -> after numbers",
+        "States plainly that there are no new recommendations",
+        "Does not invent low-evidence recommendations to fill the list",
+        "Updates the ledger's Last run date and adds a Runs row"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "repeated-rule-gets-enforcement-not-a-copy",
+      "prompt": "Review our Claude Code sessions for improvements. In the scan's owner-correction section, the owner said three times in different weeks 'run the check now, don't schedule it for later', and that rule already exists in one project's decisions file.",
+      "expected_output": "One recommendation, backed by the three dated corrections, that moves the rule to where every session sees it (global instructions or a check), not a second copy in the same project file.",
+      "files": [],
+      "expectations": [
+        "Cites the repeated corrections with counts or dates as evidence",
+        "Recommends moving or enforcing the rule where every session sees it",
+        "Does not recommend writing the same rule again in the same project file",
+        "Asks the owner with the do-it / later / never choices"
+      ]
+    }
+  ]
+}

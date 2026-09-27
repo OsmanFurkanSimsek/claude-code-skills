@@ -1,6 +1,6 @@
 ---
 name: live-document
-description: Use when the user types /live-document, wants project state to survive across sessions ("keep track of this project", "I keep losing context between sessions", "set up project memory / a living doc", "remember where we left off"), or when starting a substantial project spanning multiple sessions. Also use on projects whose CLAUDE.md contains a <!-- live-document:start --> marker, or when a project's CLAUDE.md has grown past a thin bootstrap (every-message context bloat, "CLAUDE.md is too long"). Do NOT use for one-off edits, bug fixes, debugging, quick lookups, or when an active e2e/gsd build flow already governs the project's files.
+description: Use when the user types /live-document, wants project state to survive across sessions ("keep track of this project", "I keep losing context between sessions", "set up project memory / a living doc", "remember where we left off"), or when starting a substantial project spanning multiple sessions. Also use on projects whose CLAUDE.md contains a <!-- live-document:start --> marker, or when a project's CLAUDE.md has grown past a thin bootstrap (every-message context bloat, "CLAUDE.md is too long"). Do NOT use for one-off edits, bug fixes, debugging, quick lookups, or when an active e2e build flow already governs the project's files.
 argument-hint: "[optional: one-line project description]"
 allowed-tools:
   - Read
@@ -55,9 +55,9 @@ test for the whole system: *a fresh agent reading `PROJECT.md` and, on demand, t
 
 - One-off edits, single-file changes, bug fixes, debugging, or quick lookups - these don't need a
   living doc.
-- When an **e2e** or **gsd** build flow is already actively governing the project. Those flows own
-  their own files (`PLAN.md`, `.planning/`, their own `CLAUDE.md` state marker). If the user is
-  mid-flow there, don't hijack it. (You may still *coexist* - see Coexistence rules below - but
+- When an **e2e** build flow is already actively governing the project. That flow owns its own
+  files (`PLAN.md`, its own `CLAUDE.md` state marker). If the user is mid-flow there, don't
+  hijack it. (You may still *coexist* - see Coexistence rules below - but
   prefer to let the active flow lead.)
 
 ## Operating style (apply throughout, every session)
@@ -365,7 +365,7 @@ Check it at session start and whenever you touch the project:
 - Safety: grep each filename for references before moving; if something references the file,
   update the reference in the same edit or leave the file in place and say why. Use `git mv` in
   git repos. Never move CLAUDE.md, PROJECT.md, README, `project-memory/`, manifests/configs/dotfiles,
-  source trees, or anything an active e2e/gsd flow owns.
+  source trees, or anything an active e2e flow owns.
 - Prevention beats cleanup: once the folders exist, file NEW artifacts of those kinds straight
   into them, and record the layout once in *Decisions locked* so every future session keeps the
   habit.

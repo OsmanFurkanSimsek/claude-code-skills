@@ -1,6 +1,6 @@
 # Claude Code skills
 
-Thirteen skills I built for [Claude Code](https://claude.com/claude-code) and use every day.
+Fourteen skills I built for [Claude Code](https://claude.com/claude-code) and use every day.
 Most are workflow skills: they change *how* the agent works on a problem, not what domain it
 works in. Five (`presentation-design`, `notion-router`, `feature-triage`, `tracking-docs`,
 `life-analysis`) are domain skills instead, built around a specific kind of deliverable or tool -
@@ -21,6 +21,7 @@ Install what you like, ignore the rest. Each skill is a self-contained folder.
 | **session-handoff** | `/session-handoff` | Produces a fixed-structure end-of-session summary (decisions, shipped changes, key files, running background jobs, verification steps, deferrals, open questions) so a fresh agent can pick up from the summary alone. Chat-only, writes no files. |
 | **answer-format** | `/answer-format` | Fixes the shape of every substantial reply: **Summary** (what happened, plain words), then **Why** (reasoning, numbers, trade-offs), then **What you should do** last. Putting the actions at the bottom means you never hunt for your next step, and you can scroll up for the reasoning only when you want it. Includes paste-ready text for Claude desktop's personal-preferences box, where an always-loaded rule beats skill triggering. |
 | **big-project** | `/big-project` | A thin personal working-style layer: answer format, one-action-per-line steps, no unilateral decisions, versioned code with full QA, validate-in-a-playground first. It delegates the real machinery to the three skills above rather than re-implementing it. Fork this one and put *your* preferences in `references/preferences.md`. |
+| **claude-improve** | `/claude-improve` | A weekly review of how Claude Code is actually working for you, measured from its own session transcripts: spend, context size, failed commands, hook blocks, unused skills, repeated corrections. A ledger remembers every past recommendation and your answer (do it / later / never), so fixes get checked against their baseline the next week and a "never" is never raised again. No quota: some weeks the honest answer is "nothing new". Ships a read-only `scripts/scan.py` (Python, standard library). |
 
 ### How they fit together
 
@@ -32,11 +33,16 @@ live-document       keep the state across sessions
       │
       ▼
 session-handoff     hand off cleanly before /clear
+      ┆
+      ┆  once a week
+      ▼
+claude-improve      measure the sessions, fix what keeps going wrong
 ```
 
 `project-partner` bundles e2e's scoping stage with `live-document`. `big-project` sits over all of it as a working-style layer,
 and `answer-format` governs the shape of every reply along the way - it is the one skill here that is not
-tied to a phase of work.
+tied to a phase of work. `claude-improve` closes the loop from the outside: it reads what actually
+happened across all the other sessions and turns it into fixes to the setup itself.
 
 ---
 
@@ -130,7 +136,7 @@ read the header comment before first use, and keep that repo private forever.
   `session-handoff`, and `e2e`; `project-partner` subsumes `e2e`'s scoping stage and
   `live-document`. They degrade gracefully if a partner skill is missing, but they are better
   together.
-- **`e2e`, `live-document`, `project-partner`, and `session-handoff` ship `evals/` suites.** If you
+- **`e2e`, `live-document`, `project-partner`, `session-handoff`, and `claude-improve` ship `evals/` suites.** If you
   modify one, run its suite before and after and require the score to hold. That discipline is the
   only reason these stayed reliable through a year of edits.
 

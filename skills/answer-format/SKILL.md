@@ -106,20 +106,16 @@ This skill governs **the shape of a reply**. It deliberately owns nothing else, 
 
 **With `big-project`.** That skill carries this format as one rule among many; this skill is the full version of that one rule. They compose - `big-project` owns the working style and the project plumbing, `answer-format` owns how each reply is laid out.
 
-One interaction needs care. `big-project` requires every completing reply to end with a two-step context-handoff block ("you can clear context now" / "paste this into a fresh session"), while this skill says nothing comes after the actions. That is not a real conflict once you see what the handoff block is: **two actions for the reader**. So it does not go *after* the actions section - it goes *inside* it, as the last numbered steps:
+One interaction needs care. `big-project` requires every completing reply to end with a two-step context-handoff block ("you can clear the context now" / "then just type `continue`"), while this skill says nothing comes after the actions. That is not a real conflict once you see what the handoff block is: **two actions for the reader**. So it does not go *after* the actions section - it goes *inside* it, as the last numbered steps:
 
 > ## What you should do
 >
 > 1. Open the dashboard and confirm the new chart renders.
 > 2. Tell me if the colours need changing.
-> 3. You can clear the context now - everything important is in `PROJECT.md` and `walkthrough-2026-08-19.md`.
-> 4. Start a fresh session and paste exactly this:
->    ```
->    Continue the dashboard work. Read PROJECT.md first, then walkthrough-2026-08-19.md.
->    Next up is the colour pass in section 4.
->    ```
+> 3. You can clear the context NOW (`/clear`). Everything is saved in `PROJECT.md`: what was done and the next action.
+> 4. Then just type: `continue`
 
-Both rules are honoured literally: the handoff is the last thing in the message, and nothing follows the numbered list.
+Both rules are honoured literally: the handoff is the last thing in the message, and nothing follows the numbered list. There is nothing long to copy: the next action is written in `PROJECT.md` before the reply, and the Summary says in a line what was done and what comes after `continue`.
 
 **With `live-document`, `e2e`, and `session-handoff`.** Those own documents and phase state, not reply shape, so this skill applies on top without adjustment. The one exception is `session-handoff`: its output is a fixed seven-section template the reader asked for verbatim, so let that template stand rather than wrapping it in Summary / Why / What you should do.
 

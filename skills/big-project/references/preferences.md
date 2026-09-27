@@ -18,15 +18,19 @@ The step list is **live across the conversation**, not a per-message artifact: i
 
 ## 2. End every completing reply with the two-step context-handoff block
 
-Every chat reply that completes work ends with, filled in:
+Every chat reply that completes work ends with:
 
-> 1. You can clear the context NOW. Everything important is saved in PROJECT.md, memory, the skill files, and `<the live walkthrough file>`.
-> 2. Start a fresh session and paste exactly this message:
-> `<the exact paste-ready kickoff message for the next agent>`
+> 1. You can clear the context NOW (`/clear`). Everything is saved in PROJECT.md: what was done and the next action.
+> 2. Then just type: `continue`
 
-**Why:** the owner clears context often. He must never have to ask whether it is safe to clear or what to paste next. This is his signature rule, corrected more than once - follow it literally.
+**Why:** the owner clears context often. He must never have to ask whether it is safe to clear, and he does not want a long kickoff message to copy (2026-09-27: "I should just say 'continue' ... the agent will know what needs to be done according to reading PROJECT.md"). His big projects always run `live-document` or `e2e`, so PROJECT.md already is the handoff. Signature rule, corrected more than once - follow it literally.
 
-**How to apply:** the block closes the chat reply itself, not only the walkthrough file. Place it INSIDE the `What you should do` list as its final numbered steps - it is two actions for the owner, so it belongs in the actions section rather than appended after it. That satisfies this rule and the answer-format rule that nothing follows the numbered list. See `walkthrough-and-handoff.md` for the template. For a heavy explicit wrap-up ("summarize before I clear"), use the `session-handoff` skill's full summary instead.
+**How to apply:**
+- Before the block, make PROJECT.md's `Current state and next action` self-sufficient for an agent with zero chat context: a `**Next action (on continue):**` line with the agent's next steps in order, the first check to run, and every file to open (a `next-actions/` HTML, a plan in `project-memory/`); owner-only tasks go on a separate `**Waiting on <owner>:**` line. This text replaces the old paste-ready kickoff message: never put a kickoff message in the chat.
+- The reply's Summary says what was done and what the next agent will do after `continue` (the same next action, one or two lines), so the owner sees both without opening PROJECT.md.
+- The block goes INSIDE the `What you should do` list as its final two steps (answer-format: nothing follows the numbered list). Template: `walkthrough-and-handoff.md`.
+- On a bare `continue` (or "go on", "carry on") as the first message of a fresh session: read PROJECT.md in full, open the files its next action names, and carry out the agent steps without asking what to do; stop at the end of that chunk or at the first owner decision.
+- For a heavy explicit wrap-up ("summarize before I clear"), use the `session-handoff` skill's full summary instead.
 
 ## 3. No unilateral owner decisions
 

@@ -28,10 +28,11 @@ Use for any work the owner must do himself. **The walkthrough IS `live-document`
 1. ...
 
 ## Context handoff (per the standing rule)
-1. You can clear the context NOW. Everything important is saved in PROJECT.md, memory, the skill files, and this file.
-2. Start a fresh session and paste exactly this message:
-   > <exact paste-ready kickoff message for the next agent>
+1. You can clear the context NOW (`/clear`). Everything is saved in PROJECT.md: what was done and the next action.
+2. Then just type: `continue`
 ```
+
+PROJECT.md's `**Next action (on continue):**` names this file, so the next agent opens it by itself.
 
 **Chunking:** more than ~10 steps -> deliver 5-10 at a time, one chunk per turn; wait for the owner to confirm the chunk is done or report what failed before sending the next. Update `PROJECT.md` (chunk statuses in Plan / workstreams, active chunk in Current state) before the next chunk, per `live-document`.
 
@@ -39,27 +40,35 @@ Use for any work the owner must do himself. **The walkthrough IS `live-document`
 
 ## 2. Two-step context-handoff block (ends every completing reply)
 
-Every chat reply that finishes work ends with this, filled in. It also closes every walkthrough file, but the file alone is not enough - the block must be the end of the chat reply itself.
+Every chat reply that finishes work ends with this. It also closes every walkthrough file, but the file alone is not enough - the block must be the end of the chat reply itself. There is no kickoff message to copy (owner, 2026-09-27): the next action lives in PROJECT.md, and a bare `continue` starts it.
 
 ```markdown
-1. You can clear the context NOW. Everything important is saved in PROJECT.md, memory, the skill files, and <the live walkthrough file>.
-2. Start a fresh session and paste exactly this message:
-   > <exact paste-ready kickoff message for the next agent>
+1. You can clear the context NOW (`/clear`). Everything is saved in PROJECT.md: what was done and the next action.
+2. Then just type: `continue`
 ```
 
-### Filled example
+### Filled example (PROJECT.md side, written BEFORE the block)
 
 ```markdown
-1. You can clear the context NOW. Everything important is saved in PROJECT.md, memory, the skill files, and `next-actions/2026-07-22_15-30-next-actions.html`.
-2. Start a fresh session and paste exactly this message:
-   > Continue the project in this folder. Read PROJECT.md in full, then `project-memory/changelog.md`, then open the newest file in `next-actions/`. We just finished mapping source B's columns onto the existing model; the next action is the capped 500-row validation run described in Part C of that walkthrough. Predict the run time before I start it.
+**Next action (on continue):** run the capped 500-row validation of source B (Part C of
+`next-actions/2026-07-22_15-30-next-actions.html`); first check the column map in
+`project-memory/source-b-mapping.md` still matches the model; predict the run time before starting.
+**Waiting on the owner:** grant the service account read access to source B.
 ```
 
-### What makes the kickoff message good
+And the reply's Summary says it in plain words: "Source B's columns are mapped. Next, after `continue`: the capped 500-row validation run."
 
-- It points the next agent at `PROJECT.md` and the live walkthrough by name.
-- It states the single next action in one line.
-- It is self-contained: a fresh agent with zero prior context can act on it.
+### What makes PROJECT.md's next action good
+
+- A fresh agent with zero chat context can act on it: steps in order, the first check, every file to open by path.
+- Agent work and owner-only work are on separate lines, so `continue` never waits on the owner by accident.
+- It is rewritten in place every handoff (live-document: Current state describes only now).
+
+### What `continue` means to the next agent
+
+A bare `continue` (or "go on", "carry on") as the first message of a fresh session: read PROJECT.md in full,
+open the files its next action names, carry out the agent steps without asking what to do, and stop at the end
+of that chunk or at the first owner decision.
 
 ### Relationship to `session-handoff`
 

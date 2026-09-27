@@ -128,10 +128,10 @@
       "files": [],
       "expectations": [
         "Uses the Summary / Why / What you should do shape",
-        "Includes big-project's context-handoff content: that the context can be cleared now, and a paste-ready kickoff message for the next session",
+        "Includes big-project's context-handoff content: that the context can be cleared now, and that the reader then just types `continue`",
         "The handoff appears INSIDE the numbered actions list as its final steps, not as a separate block appended after the list",
         "Nothing follows the final numbered step - no sign-off or trailing caveat",
-        "The paste-ready kickoff message is in a code block so it can be copied verbatim",
+        "No long paste-ready kickoff message in the chat; the next action is said to live in PROJECT.md, and the Summary names what was done and what comes after `continue`",
         "Contains no long-dash character"
       ]
     }

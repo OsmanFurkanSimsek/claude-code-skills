@@ -41,7 +41,7 @@ Read `references/preferences.md` in full at the start of every `big-project` ses
   matters: the two-step context-handoff block below goes INSIDE the numbered actions as the final steps, never appended after them.
   If a user-level rule in `~/.claude/rules/` defines a structure for open decisions, that rule
   outranks both this bullet and `answer-format` for those replies; everything else is unchanged.
-- **End every completing reply with the two-step context-handoff block** (clear context now + a paste-ready kickoff message for the next agent). This is the owner's signature rule; honor it literally, every reply that finishes work.
+- **End every completing reply with the two-step context-handoff block**: (1) you can clear the context now, everything is in PROJECT.md; (2) then just type `continue`. First make PROJECT.md's next action self-sufficient, because it replaces the old paste-ready kickoff message (owner, 2026-09-27: no long text to copy). A bare `continue` in a fresh session means: read PROJECT.md in full and carry out that next action without asking. This is the owner's signature rule; honor it literally, every reply that finishes work.
 - **No unilateral owner decisions.** Names, write targets, and whether-to-create-something are the owner's call. Propose 2-5 options with trade-offs and ask.
 - **Predict run duration** before any long or expensive run; record the measured actual afterward.
 - **Save feedback to memory the same turn** a correction is given.
@@ -52,7 +52,7 @@ Read `references/preferences.md` in full at the start of every `big-project` ses
 ## Composition contract
 
 - `PROJECT.md`, the thin `CLAUDE.md` and `project-memory/`: created and curated by `live-document`. `big-project` only injects hard-rules bullets, never rewrites the living docs.
-- Ordinary completing replies end with the lightweight two-step handoff block (from `references/walkthrough-and-handoff.md`).
+- Ordinary completing replies end with the lightweight two-step handoff block (clear now / type `continue`; from `references/walkthrough-and-handoff.md`). The handoff content itself lives in `PROJECT.md`'s next action, which `live-document` owns; `big-project` only sets how complete it must be.
 - An explicit "wrap up session" / "summarize before I clear" invokes `session-handoff` for the full seven-section summary.
 - Multi-step manual work for the owner gets exactly ONE file: `live-document`'s interactive `next-actions/<YYYY-MM-DD_HH-MM>-next-actions.html`. Its content follows the walkthrough outline in `references/walkthrough-and-handoff.md`. Never a `.md` twin, never a separate `NEXT STEPS ... .md` (owner, 2026-09-02: "HTML files are enough").
 - Never hijack an active `e2e` or `gsd` flow; stay additive.

@@ -23,3 +23,6 @@ LAST_SNAPSHOT.txt
 Thumbs.db
 .DS_Store
 *.swp
+
+# Python bytecode caches (hold the local absolute path)
+__pycache__/

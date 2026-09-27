@@ -29,7 +29,7 @@ Last run: YYYY-MM-DD
 
 ```markdown
 ### CI-012 Shell commands break on paths with an apostrophe
-- Status: done | Raised: 2026-09-27 | Answered: 2026-09-27
+- Status: done | Raised: 2026-09-27 | Answered: 2026-09-27 | Done: 2026-09-27 11:46 UTC
 - Signal: bash.err.heredoc_eof.per_week; commands containing a path with `'`
 - Evidence: 39 EOF errors in 10 weeks, 13 of them with the apostrophe path in the command
 - Fix: rule "write scripts to a file, run by path" in ~/.claude/CLAUDE.md
@@ -57,6 +57,7 @@ Fields:
 - **Evidence** - counts with their window, plus the example that convinced you.
 - **Fix** - the smallest change and where it lives (file, hook, rule, skill).
 - **Verify by** - metric key + target + baseline. Required before an item can be `done`.
+- **Done** - when the fix landed (UTC). Only traffic after it counts when judging the fix.
 - **Owner** - the owner's answer, verbatim when short; for `muted`, the reason.
 - **History** - dated one-liners: raised, answered, done, verified / not working.
 

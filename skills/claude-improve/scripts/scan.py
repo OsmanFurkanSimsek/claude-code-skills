@@ -18,6 +18,7 @@ HOME = os.path.expanduser("~")
 CLAUDE = os.path.join(HOME, ".claude")
 
 BASH_ERR = {
+    "module_not_found": r"No module named|ModuleNotFoundError|Cannot find module",
     "heredoc_eof": r"unexpected EOF|here-document|unterminated quoted|syntax error near unexpected",
     "unicode": r"UnicodeEncodeError|UnicodeDecodeError|'charmap' codec",
     "cmd_not_found": r"command not found|is not recognized as|Python was not found",
@@ -56,8 +57,21 @@ def text_of(c):
     return "" if c is None else str(c)
 
 
+# Secrets are counted, never printed: every example line passes through redact().
+SECRET = re.compile(
+    # Prefixes written as [x] classes so a leak-gate grep for the literal prefixes never hits this file.
+    r"(sk[-]ant[-][\w-]{10,}|gh[p]_\w{20,}|github[_]pat_\w{20,}|xo[x][baprs]-[\w-]{10,}|A[K]IA[0-9A-Z]{16}|apify_api_\w{10,}"
+    r"|Bearer\s+[\w.~+/-]{16,}"
+    r"|\b[\w-]*(?:token|secret|password|passwd|api[_-]?key|access[_-]?key)[\w-]*[\"']?\s*[=:]\s*[\"']?"
+    r"(?![$%<{(\[])(?=[^\s\"'&;|,]*\d)[^\s\"'&;|,]{12,})", re.I)   # a literal value with a digit, not $VAR/<placeholder>
+
+
+def redact(s):
+    return SECRET.sub(lambda m: m.group(0)[:m.group(0).find("=") + 1 if "=" in m.group(0) else 6] + "[REDACTED]", s or "")
+
+
 def one_line(s, n):
-    return re.sub(r"\s+", " ", s or "").strip()[:n]
+    return redact(re.sub(r"\s+", " ", s or "").strip())[:n]
 
 
 def parse_ts(s):
@@ -76,8 +90,9 @@ def hook_script(cmd):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--days", type=float, default=7)
-    ap.add_argument("--since", help="YYYY-MM-DD (overrides --days)")
-    ap.add_argument("--from-ledger", help="ledger file: scan from its 'Last run:' date to now "
+    ap.add_argument("--since", help="YYYY-MM-DD or 'YYYY-MM-DD HH:MM' in UTC (overrides --days); "
+                    "use a fix's Done time to judge it only on traffic after the fix")
+    ap.add_argument("--from-ledger", help="ledger file: scan from its 'Last run:' date/time to now "
                     "(no Last run: 30 days; less than 3 days ago: 3 days). Overrides --since/--days")
     ap.add_argument("--projects-dir", default=os.path.join(CLAUDE, "projects"))
     ap.add_argument("--out", help="markdown report path (default: stdout)")
@@ -91,12 +106,12 @@ def main():
     if a.from_ledger:
         # From the previous run to now, never a fixed week: a skipped week is still covered.
         with open(a.from_ledger, encoding="utf-8") as fh:
-            m = re.search(r"^Last run:\s*(\d{4}-\d{2}-\d{2})", fh.read(), re.M)
+            m = re.search(r"^Last run:\s*(\d{4}-\d{2}-\d{2})(?:[ T](\d{2}:\d{2}))?", fh.read(), re.M)
         if not m:
             since = now - dt.timedelta(days=30)
         else:
-            since = min(dt.datetime.fromisoformat(m.group(1)).replace(tzinfo=dt.timezone.utc),
-                        now - dt.timedelta(days=3))
+            last = dt.datetime.fromisoformat(m.group(1) + " " + (m.group(2) or "00:00"))
+            since = min(last.replace(tzinfo=dt.timezone.utc), now - dt.timedelta(days=3))
     days = max((now - since).total_seconds() / 86400, 1e-9)
     per_week = lambda n: round(n * 7 / days, 2)
     since_ms = since.timestamp()
@@ -113,7 +128,7 @@ def main():
     skills_win = C(); cmds_win = C(); agents = C(); agent_model_arg = C()
     band_tok = C(); band_turns = C(); compacts = C(); api_err = C(); interrupts = 0
     corrections = []; toolsearch = []; turn_ms = []; ss_sizes = []; cwd_seen = C()
-    model_tok = C()
+    model_tok = C(); heredoc_used = 0; secrets_in_cmds = 0; secret_where = set(); empty_sessions = 0
 
     for f in main_files:
         try:
@@ -200,6 +215,11 @@ def main():
                             w = cmd.strip().split()
                             if w:
                                 bash_first[w[0][:25]] += 1
+                            if "<<" in cmd:
+                                heredoc_used += 1
+                            if SECRET.search(cmd):
+                                secrets_in_cmds += 1
+                                secret_where.add(s["project"] + " " + sid[:8] + " " + ts.strftime("%m-%d"))
                             for var in re.findall(r"\bexport\s+([A-Za-z_][A-Za-z0-9_]*)=", cmd):
                                 exports[var] += 1
                 elif t == "user":
@@ -212,7 +232,7 @@ def main():
                         if cm:
                             cmds_win[cm[0]] += 1
                         elif not c.startswith("<") and len(c) < 2000 and CORRECTION.search(c) and not o.get("isMeta"):
-                            item = (s["project"], ts.strftime("%m-%d"), one_line(c, 260))
+                            item = (s["project"] + " " + sid[:8], ts.strftime("%m-%d %H:%M"), one_line(c, 260))
                             if item not in corrections:
                                 corrections.append(item)
                         continue
@@ -238,7 +258,7 @@ def main():
                             key = (pm.group(1), hook_script(pm.group(2)))
                             pre_blocks[key] += 1
                             if len(pre_ex[key]) < a.examples:
-                                pre_ex[key].append(one_line(pm.group(3), 200))
+                                pre_ex[key].append(f"[{sid[:8]} {ts:%m-%d %H:%M}] " + one_line(pm.group(3), 200))
                             continue
                         if nm in ("Bash", "PowerShell"):
                             hit = False
@@ -246,16 +266,19 @@ def main():
                                 if re.search(p, txt):
                                     bash_err[k] += 1; hit = True
                                     if len(bash_ex[k]) < a.examples:
-                                        bash_ex[k].append((one_line(inp.get("command", ""), 120), one_line(txt, 160)))
+                                        bash_ex[k].append((f"[{sid[:8]} {ts:%m-%d %H:%M}] " + one_line(inp.get("command", ""), 120), one_line(txt, 160)))
                             if not hit:
                                 bash_err["other"] += 1
                                 if len(bash_ex["other"]) < a.examples + 3:
-                                    bash_ex["other"].append((one_line(inp.get("command", ""), 120), one_line(txt, 160)))
+                                    bash_ex["other"].append((f"[{sid[:8]} {ts:%m-%d %H:%M}] " + one_line(inp.get("command", ""), 120), one_line(txt, 160)))
                         elif nm in ("Edit", "Write", "MultiEdit", "NotebookEdit"):
                             k = next((k for k, p in EDIT_ERR.items() if re.search(p, txt)), "other")
                             edit_err[k] += 1
                             if len(edit_ex[k]) < a.examples:
-                                edit_ex[k].append(one_line(txt, 160))
+                                edit_ex[k].append(f"[{sid[:8]} {ts:%m-%d %H:%M}] " + one_line(txt, 160))
+        if s is not None and s["turns"] == 0:       # a failed probe (e.g. claude -p with a dead key)
+            del sessions[sid]; empty_sessions += 1
+            s = None
         if s is not None:
             s["cost"] = cost; s["models"] = cost_models; s["toolsearch"] = ts_n
             for fp, n in reads.items():
@@ -359,7 +382,10 @@ def main():
         "ctx.tokens.m": round(tot_tok / 1e6, 1),
         "ctx.share_above_200k.pct": share(["200_300k", "300_500k", "gt500k"]),
         "ctx.share_above_300k.pct": share(["300_500k", "gt500k"]),
-        "ctx.sessions_over_300k": len(over300), "ctx.sessions_over_200k": len(over200),
+        "ctx.sessions_over_300k.per_week": per_week(len(over300)), "ctx.sessions_over_200k.per_week": per_week(len(over200)),
+        "bash.heredoc_used.per_week": per_week(heredoc_used),
+        "secrets.in_commands.per_week": per_week(secrets_in_cmds),
+        "sessions.empty_skipped": empty_sessions,
         "compactions.per_week": per_week(sum(compacts.values())),
         "bash.calls.per_week": per_week(bash_calls),
         "bash.errors.per_week": per_week(tool_err["Bash"] + tool_err["PowerShell"]),
@@ -390,8 +416,15 @@ def main():
     P = L.append
     P("# Claude Code usage scan")
     P("")
-    P(f"Window: {since:%Y-%m-%d} to {now:%Y-%m-%d} ({days:.1f} days). Sessions: {len(S)}; subagent runs: {sub_n}. "
-      "Assistant usage counted once per message id (transcripts repeat it per content block).")
+    P(f"Window: {since:%Y-%m-%d %H:%M} to {now:%Y-%m-%d %H:%M} UTC ({days:.1f} days). Sessions: {len(S)} "
+      f"(+{empty_sessions} with no assistant turn skipped); subagent runs: {sub_n}. "
+      "Assistant usage counted once per message id (transcripts repeat it per content block). "
+      "Secrets in examples are redacted.")
+    if secrets_in_cmds:
+        P("")
+        P(f"**SECRETS: {secrets_in_cmds} command(s) carried a token-shaped value in plain text** "
+          f"(where: {'; '.join(sorted(secret_where)[:6])}). Count only; never print or copy the value. "
+          "The fix is rotation by the owner, raised first in the report.")
     P("")
     P("## 1. Spend and context")
     P(f"- Spend: ${spend:,.2f} (sum of per-session cost; a session that started before the window counts whole)")
@@ -423,6 +456,8 @@ def main():
                 P(f"  - {k}: {e}")
     if mcp_calls:
         P("- MCP calls (errors) by server: " + ", ".join(f"{k} {v} ({mcp_err[k]})" for k, v in mcp_calls.most_common(10)))
+    P(f"- Bash commands using a heredoc (`<<`): {heredoc_used} of {bash_calls} (a quoting-rule behaviour signal "
+      "even when none failed)")
     if exports:
         P("- Env vars re-exported inside commands (a profile/setup gap if frequent): "
           + ", ".join(f"{k} x{v}" for k, v in exports.most_common(8)))

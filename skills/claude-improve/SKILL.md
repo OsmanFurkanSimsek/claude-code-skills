@@ -31,6 +31,9 @@ again.
   real regression). Do not drop it or smooth it.
 - **The owner decides.** You propose; nothing in the setup changes before the answer, except fixing
   the scan script itself.
+- **Secrets are counted, never printed.** `scan.py` redacts them and flags them at the top of the
+  report. Never grep a transcript in a way that prints the value; locate by session id only. A
+  long-lived secret found in plain text is always the report's first item: the owner rotates it.
 
 ## Step 0 - Find and read the ledger
 
@@ -68,7 +71,9 @@ For every ledger item, in this order:
 
 | Status | What to do this run |
 |---|---|
-| `done` | Compare its `Verify by` metric with the baseline. Improved as expected -> `verified` (write before -> after). No change -> `not working` with the numbers; it goes back to the owner. No traffic in the window -> leave `done`, say "too early". |
+| `done` | Judge it ONLY on traffic after its `Done:` time: re-run `scan.py --since "<Done time>"` for that metric. Fewer than 3 days or 10 sessions since then -> "too early", stays `done`. Improved as expected -> `verified` (before -> after). No change -> `not working`; it goes back to the owner. Never judge a fix on traffic from before it landed. |
+| `open` | Raised but never answered: ask again in Step 5, with this run's numbers. |
+| `not working` | Ask again in Step 5 with a different next move, never the same fix twice. |
 | `approved` | Still not done after 2 runs -> list it under "stuck on our side" with the reason. |
 | `waiting on owner` | List it under "still waiting on you", with the date first raised. Neutral wording, one line. |
 | `later` | Re-raise only if its metric grew, or 4 weeks have passed since the answer. |
@@ -84,7 +89,9 @@ looks worth raising:
 1. **Confirm it in the raw transcripts** before believing it: grep the example text from `scan.md` in
    `~/.claude/projects/*/*.jsonl` and read 1-3 cases in context. Many signals are benign (a gate
    that correctly blocked a real mistake, a correction that was really a new request).
-2. **Match it against the ledger** by its `Signal:` line (the scan metric or pattern it rests on).
+2. **Match it against the ledger** by signal AND cause: the same metric with a different cause (big
+   results from file reads vs. from web fetches) is a new item. A muted item mutes its own proposal,
+   not every future finding on that metric.
 3. **Keep it only if** it recurs (3+ times, or once at real cost), has a concrete fix, and the fix
    costs less than the problem.
 
@@ -104,12 +111,14 @@ In this order, plain words, numbers inline:
    fix and where it lives, effort, and the metric that will show next week whether it worked.
 6. **Muted** - one line: "N muted items skipped" (list them only if asked).
 
-Nothing new? Say so in one line under **New**. When the report runs past about 8 items, also save it
-as `reports/YYYY-MM-DD_claude-improve.md` next to the ledger's project and name the path.
+Nothing new? Say so in one line under **New**. Always save the full report as
+`reports/YYYY-MM-DD_claude-improve.md` in the ledger's project. If the owner's rules say nothing may
+come before a decision pop-up, show the pop-up first (the report path in the first question) and the
+chat summary after the answers.
 
 ## Step 5 - Ask, one decision per recommendation
 
-Use the AskUserQuestion pop-up: one question per new or not-working item, up to 4 questions per
+Use the AskUserQuestion pop-up: one question per new, `open` or `not working` item, up to 4 questions per
 pop-up (a second pop-up for the rest). Chips, in this order:
 
 - `A. Do it (Recommended)` - preview: WHAT IT TAKES (1-3 bullets), RISKS (with high / medium / low)
@@ -123,10 +132,10 @@ instead. Without a pop-up tool, ask the same choices in one short numbered list.
 ## Step 6 - Record, then act
 
 1. **Ledger first, right after the answers:** status, the owner's words in `Owner:` (verbatim when
-   short), today's date in `History:`. Set `Last run:` to today (the next run's `--since`) and add
-   one `Runs` row whose Window shows the exact from and to dates scanned.
+   short), today's date in `History:`. Set `Last run:` to now as `YYYY-MM-DD HH:MM` UTC (the next
+   run's `--since`) and add one `Runs` row whose Window shows the exact from and to scanned.
 2. **Do it** + small and reversible (under ~30 minutes): do it now, verify it, set `done` with
-   `Verify by` + baseline. Larger: status `approved` and add it to the project's plan as its own
+   `Done: YYYY-MM-DD HH:MM` UTC, `Verify by` + baseline. Larger: status `approved` and add it to the project's plan as its own
    chunk; say which session will do it.
 3. **Later** -> `later`. **Never** -> `muted` with the reason. **Own idea** -> rewrite the item from
    the owner's words, then treat it as `Do it`.

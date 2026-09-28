@@ -41,6 +41,8 @@ CORRECTION = re.compile(
     r"you forgot|you missed|don'?t (do|ask|schedule|use)|stop (doing|asking)|still not|instead of|"
     r"I already|as I said|every time|keep (doing|asking|forgetting))", re.I)
 BANDS = [(100e3, "lt100k"), (200e3, "100_200k"), (300e3, "200_300k"), (500e3, "300_500k"), (float("inf"), "gt500k")]
+# First line of the PROJECT.md gate's non-blocking note (hooks/furkan-project-md-gate.js NOTE_HEAD).
+GATE_NOTE = "PROJECT.md lint - new since your last write"
 
 
 def band(ctx):
@@ -125,7 +127,7 @@ def main():
     tool_calls = C(); tool_err = C(); bash_err = C(); bash_ex = collections.defaultdict(list)
     edit_err = C(); edit_ex = collections.defaultdict(list); bash_first = C(); exports = C()
     out_chars = C(); out_n = C(); big_out = []; reads_rep = []; mcp_calls = C(); mcp_err = C()
-    hook_att = C(); hook_msgs = C(); pre_blocks = C(); pre_ex = collections.defaultdict(list)
+    hook_att = C(); hook_msgs = C(); pre_blocks = C(); pre_ex = collections.defaultdict(list); gate_notes = C()
     skills_win = C(); cmds_win = C(); agents = C(); agent_model_arg = C()
     band_tok = C(); band_turns = C(); compacts = C(); api_err = C(); interrupts = 0
     corrections = []; toolsearch = []; turn_ms = []; ss_sizes = []; cwd_seen = C()
@@ -183,6 +185,10 @@ def main():
                             hook_msgs[(ev, script, one_line(first, 110))] += 1
                         if ev == "SessionStart" and at.get("content"):
                             ss_sizes.append(len(text_of(at.get("content"))))
+                        # Non-blocking lint notes after a write (since 2026-09-28 the PROJECT.md gate no
+                        # longer blocks), so ledger CI-3 counts them next to the blocks.
+                        if typ == "hook_additional_context" and text_of(at.get("content")).startswith(GATE_NOTE):
+                            gate_notes[(ev, "furkan-project-md-gate.js")] += 1
                 elif t == "assistant":
                     m = o.get("message") or {}
                     mid = m.get("id")
@@ -409,6 +415,9 @@ def main():
     for (tool, script), v in pre_blocks.items():
         key = "hook.block.PreToolUse." + script + ".per_week"
         metrics[key] = round(metrics.get(key, 0) + per_week(v), 2)
+    for (ev, script), v in gate_notes.items():
+        key = "hook.context." + ev + "." + script + ".per_week"
+        metrics[key] = round(metrics.get(key, 0) + per_week(v), 2)
     for k, v in exports.items():
         metrics["bash.export." + k + ".per_week"] = per_week(v)
     for k, v in skills_win.items():                  # plugin:name and name count as one skill
@@ -478,6 +487,9 @@ def main():
         P("- Blocking errors after tools / at Stop (event, script, first line, count):")
         for (ev, script, msg), v in hook_msgs.most_common(12):
             P(f"  - {ev} / {script}: {v} x \"{msg}\"")
+    if gate_notes:
+        P("- Non-blocking lint notes after writes (event, script, count): "
+          + ", ".join(f"{ev} / {script}: {v}" for (ev, script), v in gate_notes.most_common()))
     if ss_sizes:
         P(f"- SessionStart hook output: {len(ss_sizes)} injections, max {max(ss_sizes)} chars, avg {sum(ss_sizes)//len(ss_sizes)}")
     P("")

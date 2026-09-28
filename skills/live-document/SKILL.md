@@ -391,16 +391,23 @@ a working directory that holds a `PROJECT.md`) are not:
   `PROJECT.md` has been Read in full this session (whole file, no offset/limit). Fail-safe: after 3
   denies it allows, says so, and the next SessionStart reports it.
 - `furkan-project-md-gate.js` (PostToolUse on Read/Write/Edit) records the full Read of
-  `PROJECT.md`, records every substantive project edit (`project-memory/` files count), and on a
-  write to `PROJECT.md` runs `project-md-lint.js` (on a write to a `project-memory/` file, only
-  that file's rules; on a write to `CLAUDE.md`, only its every-message budget); errors come back
-  as feedback to fix in the same turn.
-- `furkan-stop-gate.js` (Stop) refuses to end a turn that edited project files until `PROJECT.md`
-  was written afterwards AND lints clean, and a turn of a session that wrote `CLAUDE.md` while
-  `CLAUDE.md` is over budget (at most 4 blocks per condition, then it gives up loudly).
-  Q&A turns, reads, and edits outside the project or under `next-actions/` never block. If only
-  `project-memory/` files changed, the fix is to re-touch their Map rows / index lines.
+  `PROJECT.md`, records every substantive project edit, and after a write to `PROJECT.md` runs
+  `project-md-lint.js` (after a `project-memory/` write, only that file's rules; after a `CLAUDE.md`
+  write, only its every-message budget). It never blocks: each error comes back ONCE, as a note
+  right after the write that caused it, with a count of the ones still open; a write that adds
+  nothing new stays silent. Fix what it shows in the same turn. When `PROJECT.md` passes 90% of its
+  cap (18 KB / 225 lines) it warns once per session: make room before the next addition.
+- `furkan-stop-gate.js` (Stop) is the one gate that enforces. It refuses to end a turn that edited
+  project files until `PROJECT.md` was written afterwards AND lints clean, and a turn of a session
+  that wrote `CLAUDE.md` while `CLAUDE.md` is over budget (at most 4 blocks per condition, then it
+  gives up loudly). Q&A turns, reads, and edits outside the project or under `next-actions/` never
+  block. `project-memory/decisions.md` or `lessons.md` edits need their index lines re-touched in
+  `PROJECT.md`; `changelog.md` and topic files are only linted (a new topic file still needs its
+  Map row, or the lint blocks).
 - `furkan-precompact-gate.js` (PreCompact) holds one compaction while a reconcile is pending.
+- `furkan-context-budget.js` (PostToolUse and UserPromptSubmit, all projects) never blocks: past
+  30% of the context window it tells the agent to switch to handoff mode (keep `PROJECT.md` current,
+  end completing replies with the big-project handoff block).
 - Legacy grace: the FORMAT rules bite for a project only after its `PROJECT.md` has linted clean
   once under the CURRENT contract (the lint CLI or a clean write sets the flag; the 2026-09-09
   layout renamed the flag so every project re-earns it); until then only the reconcile rule
@@ -411,7 +418,8 @@ a working directory that holds a `PROJECT.md`) are not:
 How to satisfy a block: read the listed files, reconcile home first and `PROJECT.md` last per the
 update algorithm, keep the Map current, end the turn. `node ~/.claude/hooks/project-md-lint.js
 PROJECT.md` runs the lint by hand. Changing a limit means changing `LIMITS` in the lint AND the
-numbers in this skill, its templates, and the e2e / project-partner / big-project clones together.
+numbers in this skill, its templates, and the e2e / project-partner / big-project clones together;
+then run `node ~/.claude/hooks/project-md-lint.test.js`.
 
 ## Coexistence rules (do not fight other tooling)
 

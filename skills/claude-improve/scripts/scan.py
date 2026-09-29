@@ -294,28 +294,41 @@ def main():
             cwd_seen[s.get("cwd", "")] += 1
             toolsearch.append(ts_n)
 
-    # ---- subagent files: which model actually ran ----
-    sub_models = C(); sub_n = 0
+    # ---- subagent files: which model and effort actually ran, minutes and output tokens per run ----
+    sub_models = C(); sub_n = 0; sub_effort = C(); sub_type_effort = C()
+    sub_min = collections.defaultdict(list); sub_out = collections.defaultdict(list)
     for f in sub_files:
         try:
             if os.path.getmtime(f) < since_ms:
                 continue
         except OSError:
             continue
-        mdl = None
+        mdl = eff = t0 = t1 = None; out_tok = {}
         with open(f, encoding="utf-8", errors="replace") as fh:
             for line in fh:
-                if '"type":"assistant"' in line:
-                    try:
-                        o = json.loads(line)
-                    except Exception:
-                        continue
-                    ts = parse_ts(o.get("timestamp") or "")
-                    if ts and ts >= since:
-                        mdl = (o.get("message") or {}).get("model")
-                        break
-        if mdl:
-            sub_models[mdl] += 1; sub_n += 1
+                if '"type":"assistant"' not in line:
+                    continue
+                try:
+                    o = json.loads(line)
+                except Exception:
+                    continue
+                ts = parse_ts(o.get("timestamp") or "")
+                if not ts or ts < since:
+                    continue
+                msg = o.get("message") or {}
+                mdl = mdl or msg.get("model"); eff = eff or o.get("effort")
+                t0 = t0 or ts; t1 = ts
+                out_tok[msg.get("id")] = (msg.get("usage") or {}).get("output_tokens") or 0   # repeated per block
+        if not mdl:
+            continue
+        sub_models[mdl] += 1; sub_n += 1; eff = eff or "(none)"
+        try:
+            with open(f[:-len(".jsonl")] + ".meta.json", encoding="utf-8") as fh:
+                typ = json.load(fh).get("agentType") or "?"
+        except Exception:
+            typ = "?"
+        sub_effort[eff] += 1; sub_type_effort[(typ, eff)] += 1
+        sub_min[eff].append((t1 - t0).total_seconds() / 60); sub_out[eff].append(sum(out_tok.values()))
 
     # ---- all-time skill use (fast path: only lines that can hold a skill call) ----
     skills_all = C(); skills_last = {}
@@ -423,6 +436,13 @@ def main():
     for k, v in skills_win.items():                  # plugin:name and name count as one skill
         key = "skill.calls." + k.split(":")[-1] + ".per_week"
         metrics[key] = round(metrics.get(key, 0) + per_week(v), 2)
+    for k, v in sub_effort.items():                  # helper effort tiers (ledger CI-23)
+        metrics["subagents.effort." + k + ".per_week"] = per_week(v)
+        metrics["subagents.median_minutes." + k] = round(statistics.median(sub_min[k]), 1)
+        metrics["subagents.median_output_tokens." + k] = int(statistics.median(sub_out[k]))
+    all_min = [x for v in sub_min.values() for x in v]; all_out = [x for v in sub_out.values() for x in v]
+    metrics["subagents.median_minutes"] = round(statistics.median(all_min), 1) if all_min else 0
+    metrics["subagents.median_output_tokens"] = int(statistics.median(all_out)) if all_out else 0
 
     # ---- report ----
     L = []
@@ -502,6 +522,10 @@ def main():
     P("- Agent calls by type: " + (", ".join(f"{k} {v}" for k, v in agents.most_common(8)) or "none")
       + "; model argument: " + (", ".join(f"{k} {v}" for k, v in agent_model_arg.most_common()) or "none"))
     P("- Subagent runs by model actually used: " + (", ".join(f"{k} {v}" for k, v in sub_models.most_common()) or "none"))
+    P("- Subagent runs by effort (runs, median minutes, median output tokens per run): " + (", ".join(
+        f"{k} {v} ({statistics.median(sub_min[k]):.1f} min, {int(statistics.median(sub_out[k])):,} tok)"
+        for k, v in sub_effort.most_common()) or "none"))
+    P("- Subagent runs by type/effort: " + (", ".join(f"{t}/{e} {v}" for (t, e), v in sub_type_effort.most_common(10)) or "none"))
     P(f"- ToolSearch calls: {sum(toolsearch)} (max {max(toolsearch) if toolsearch else 0} in one session)")
     P("")
     P("## 5. Context weight")

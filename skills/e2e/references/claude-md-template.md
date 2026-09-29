@@ -78,8 +78,9 @@ Owner: <owner>. Project: <one line>. Dominant rule: <the one constraint that gov
   the context can be cleared safely. Answers with nothing to do: TLDR first, then detail, no steps.
 - Real handoffs (3+ steps or any chunk) also get a Next Actions file in `next-actions/`:
   an interactive self-contained <YYYY-MM-DD_HH-MM>-next-actions.html (TLDR paragraph, then
-  reasoning with alternatives, then simple steps). Keep every dated file - the date-time prefix
-  finds the latest - and announce the path in chat.
+  reasoning with alternatives, then simple steps). Before writing one, move every older-dated
+  file to `next-actions/archive/` (never delete; the root shows only the newest date) and
+  announce the path in chat.
 - Keep the project root tidy: file new screenshots / code examples / reports / next-action files
   into their subfolders; when 3+ loose files of one kind sit at root, propose a move list and tidy
   after ONE confirmation (never move source or config files silently).

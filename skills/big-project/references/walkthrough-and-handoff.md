@@ -6,7 +6,7 @@ Two templates the profile relies on: the numbered walkthrough (rule 5) and the t
 
 ## 1. Walkthrough template
 
-Use for any work the owner must do himself. **The walkthrough IS `live-document`'s Next Actions file**: one interactive, self-contained `next-actions/<YYYY-MM-DD_HH-MM>-next-actions.html` per handoff (HTML template in `live-document/references/next-actions-template.md`). Never write a `.md` twin next to it and never a separate `NEXT STEPS ... .md` - the owner retired that naming on 2026-09-02 ("Why do you create both MD and HTML for Next Actions? ... HTML files are enough."). Every handoff gets a NEW dated file; keep every old one - the date-time prefix says which is live, so no SUPERSEDED banner is needed. The outline below is the CONTENT the HTML carries, in this order.
+Use for any work the owner must do himself. **The walkthrough IS `live-document`'s Next Actions file**: one interactive, self-contained `next-actions/<YYYY-MM-DD_HH-MM>-next-actions.html` per handoff (HTML template in `live-document/references/next-actions-template.md`). Never write a `.md` twin next to it and never a separate `NEXT STEPS ... .md` - the owner retired that naming on 2026-09-02 ("Why do you create both MD and HTML for Next Actions? ... HTML files are enough."). Every handoff gets a NEW dated file; before writing it, move every older-dated file to `next-actions/archive/` (never delete), so the root shows only the live date and no SUPERSEDED banner is needed. The outline below is the CONTENT the HTML carries, in this order.
 
 ```markdown
 # <topic> - YYYY-MM-DD HH:MM

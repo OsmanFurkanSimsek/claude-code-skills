@@ -47,7 +47,7 @@ Anything the owner READS (run reports, analyses, tracking plans) is a Markdown f
 
 **Why:** `.md` renders readably for reports; the HTML walkthrough is interactive (tick-off steps, copy buttons), and one file per handoff keeps the folder unambiguous. Two files with the same content were pure double production.
 
-**How to apply:** keep every old dated file (the folder is the history); never edit an old walkthrough in place, write a new dated HTML.
+**How to apply:** before writing a new dated file, move every older-dated one to `next-actions/archive/` (never delete; the archive is the history); never edit an old walkthrough in place, write a new dated HTML.
 
 ## 5. Numbered, one-action-per-step walkthroughs
 

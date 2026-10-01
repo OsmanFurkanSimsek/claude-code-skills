@@ -30,6 +30,7 @@ Every chat reply that completes work ends with:
 - The reply's Summary says what was done and what the next agent will do after `continue` (the same next action, one or two lines), so the owner sees both without opening PROJECT.md.
 - The block goes INSIDE the `What you should do` list as its final two steps (answer-format: nothing follows the numbered list). Template: `walkthrough-and-handoff.md`.
 - **Only when the agent has a next action queued.** When the work is finished and nothing is left for an agent, say plainly "Nothing left - you can close this terminal" and leave out `continue` (tasks only the owner can do are no reason to type it). Owner, 2026-09-28: "Why do you say I should write 'continue' if there is no task left?"
+- **Only when it is true.** Never while a background agent or command is still running, or while a result sits only in the scratchpad: say "Not yet" and what is still running. Full rule: `~/.claude/rules/clear-context-only-when-saved.md` (owner, 2026-09-30: "why did you give me wrong information ... Why did you say 'clear the context'?").
 - On a bare `continue` (or "go on", "carry on") as the first message of a fresh session: read PROJECT.md in full, open the files its next action names, and carry out the agent steps without asking what to do; stop at the end of that chunk or at the first owner decision.
 - For a heavy explicit wrap-up ("summarize before I clear"), use the `session-handoff` skill's full summary instead.
 

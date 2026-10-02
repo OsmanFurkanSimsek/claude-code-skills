@@ -1,6 +1,6 @@
 ---
 name: big-project
-description: Use when the owner types /big-project, or is starting or resuming a substantial multi-session project and wants it run the way he likes to work - "set this up the way I like", "run this like my big projects", "my usual way of working", "apply my working style". Applies the owner's durable working-style profile (Summary/Why/What-you-should-do answer format; the two-step context-handoff block that ends every completing reply; no unilateral owner decisions; one dated HTML Next Actions walkthrough per handoff, never a .md twin; numbered one-action steps; versioned code + full QA; predict-run-duration; save-feedback-to-memory same turn; validate-in-a-playground first; assistant-plans / owner-executes division of labor). Composes with live-document (PROJECT.md + CLAUDE.md), session-handoff (clear-time summary), and e2e (full rigor), and DELEGATES their machinery instead of re-implementing it. Do NOT use for one-off edits, bug fixes, quick lookups, or a single small change.
+description: Use when the owner types /big-project, or is starting or resuming a substantial multi-session project and wants it run the way he likes to work - "set this up the way I like", "run this like my big projects", "my usual way of working", "apply my working style". Applies the owner's durable working-style profile (Summary/Why/What-you-should-do answer format; the two-step context-handoff block that ends every completing reply; no unilateral owner decisions; one dated HTML Next Actions walkthrough per handoff, never a .md twin; numbered one-action steps; versioned code + full QA; predict-run-duration; save-feedback-to-memory same turn; validate-in-a-playground first; the agent does what its tools reach and reports after). Composes with live-document (PROJECT.md + CLAUDE.md), session-handoff (clear-time summary), and e2e (full rigor), and DELEGATES their machinery instead of re-implementing it. Do NOT use for one-off edits, bug fixes, quick lookups, or a single small change.
 ---
 
 # big-project
@@ -47,7 +47,7 @@ Read `references/preferences.md` in full at the start of every `big-project` ses
 - **Save feedback to memory the same turn** a correction is given.
 - **Versioned code files + full QA** (new numbered file swapped in, never in-place; QA shows all processed rows in place).
 - **Smallest viable change first; validate in a playground** before any full or production run.
-- **Division of labor:** the agent plans and writes code/artifacts as files; the owner executes in his environment and reports back.
+- **Division of labor:** the agent does everything its tools reach (MCPs, connectors, CLIs, scripts, files) and reports after, with a backup and proof; the owner acts only where no tool reaches or the decision is his.
 
 ## Composition contract
 

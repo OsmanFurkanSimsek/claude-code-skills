@@ -112,8 +112,8 @@ Facts that feed a deliverable (mappings, categorizations, numbers) come from rea
 
 **Why:** a confident-but-wrong fact in a report is worse than a gap; it misleads silently.
 
-## 14. Division of labor: agent plans and writes files, owner executes
+## 14. Division of labor: the agent does what its tools reach, then reports
 
-The agent plans in detail and writes code and artifacts as files. The owner runs them in his own environment and reports results back. Assume the agent has no direct access to that environment.
+When a task can be done with a tool the session has (an MCP server, a connector, a CLI, a script on the owner's PC, a REST API with his own login, local files), the agent does it itself: back up first, smallest change, read back, run, verify with real data, then report what changed and the proof. No click-step page, no "please run X", no "shall I?" for work a tool can reach. The owner acts only where no tool reaches (an interactive sign-in: one `! <command>` line) or where the decision is his (anything that reaches other people, deleting his files, names and write targets, other people's systems, his environment and security limits).
 
-**Why:** the owner controls the execution environment; the agent's job is to make execution foolproof, not to run it.
+**Why:** the owner asked twice (2026-09-30, 2026-10-02) why he was handed steps the agent could run itself; the old rule ("agent plans, owner executes") dates from before the tools were connected. Global home: `~/.claude/rules/do-it-yourself-then-report.md`.

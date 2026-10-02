@@ -127,6 +127,7 @@ def main():
     tool_calls = C(); tool_err = C(); bash_err = C(); bash_ex = collections.defaultdict(list)
     edit_err = C(); edit_ex = collections.defaultdict(list); bash_first = C(); exports = C()
     out_chars = C(); out_n = C(); big_out = []; reads_rep = []; mcp_calls = C(); mcp_err = C()
+    out_max = C(); out_big = C()       # per tool: largest result, results over 25K (cost per source)
     hook_att = C(); hook_msgs = C(); pre_blocks = C(); pre_ex = collections.defaultdict(list); gate_notes = C()
     skills_win = C(); cmds_win = C(); agents = C(); agent_model_arg = C()
     band_tok = C(); band_turns = C(); compacts = C(); api_err = C(); interrupts = 0
@@ -252,8 +253,9 @@ def main():
                             continue
                         nm, inp = id2.get(b.get("tool_use_id"), ("?", {}))
                         txt = text_of(b.get("content"))
-                        out_chars[nm] += len(txt); out_n[nm] += 1
+                        out_chars[nm] += len(txt); out_n[nm] += 1; out_max[nm] = max(out_max[nm], len(txt))
                         if len(txt) > 25000:
+                            out_big[nm] += 1
                             big_out.append((len(txt), nm, s["project"], one_line(json.dumps(inp)[:200], 110)))
                         if not b.get("is_error"):
                             continue
@@ -443,6 +445,18 @@ def main():
     all_min = [x for v in sub_min.values() for x in v]; all_out = [x for v in sub_out.values() for x in v]
     metrics["subagents.median_minutes"] = round(statistics.median(all_min), 1) if all_min else 0
     metrics["subagents.median_output_tokens"] = int(statistics.median(all_out)) if all_out else 0
+    src_chars = C(); src_n = C(); src_max = C(); src_big = C()   # cost per source: each MCP server, Bash, Read
+    for nm, v in out_chars.items():
+        if nm.startswith("mcp__") or nm in ("Bash", "Read"):
+            src = nm.split("__")[1] if nm.startswith("mcp__") else nm
+            src_chars[src] += v; src_n[src] += out_n[nm]; src_big[src] += out_big[nm]
+            src_max[src] = max(src_max[src], out_max[nm])
+    for src, v in src_chars.items():
+        metrics["tool.out." + src + ".calls.per_week"] = per_week(src_n[src])
+        metrics["tool.out." + src + ".chars.per_week"] = per_week(v)
+        metrics["tool.out." + src + ".avg"] = v // max(1, src_n[src])
+        metrics["tool.out." + src + ".max"] = src_max[src]
+        metrics["tool.out." + src + ".over_25k.per_week"] = per_week(src_big[src])
 
     # ---- report ----
     L = []
@@ -537,6 +551,9 @@ def main():
     P(f"- Tool results over 25K chars: {len(big_out)}")
     for n, nm, proj, inp in sorted(big_out, reverse=True)[:8]:
         P(f"  - {n//1000}K {nm} ({proj}): {inp}")
+    P("- Cost per source, main session only (helper output is not counted): calls / chars total / avg / largest / over 25K")
+    for src, v in src_chars.most_common():
+        P(f"  - {src}: {src_n[src]} / {v//1000}K / {v//max(1, src_n[src])} / {src_max[src]//1000}K / {src_big[src]}")
     P(f"- Same file Read 3+ times in one session: {len(reads_rep)}"
       + (" - top: " + ", ".join(f"{f} x{n} ({p})" for n, p, f in sorted(reads_rep, reverse=True)[:6]) if reads_rep else ""))
     P("")

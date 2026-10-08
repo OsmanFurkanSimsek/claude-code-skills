@@ -10,6 +10,8 @@ Usage:
   python scan.py --days 7 --out scan.md --json scan.json
   python scan.py --since 2026-09-20 --out scan.md --json scan.json
 Standard library only. Read-only: it never writes anywhere except --out / --json.
+Test runs (eval relays, temp-folder child runs) stay out of every metric and are counted in the header;
+--include-test-runs keeps them in.
 """
 import argparse, collections, datetime as dt, glob, json, os, re, statistics, sys
 import contextlib, importlib.util
@@ -31,6 +33,9 @@ BASH_ERR = {
     "powershell_parse": r"ParserError|CommandNotFoundException|ParameterBindingException",
     "hook_block": r"hook error|blocked by|BLOCKED",
 }
+# Project folders of test runs, not the owner's work: eval relays (skill-creator `*-workspace-*`) and child
+# runs started in a temp or scratchpad folder. 2026-10-08: 379 of 444 sessions in one window were these.
+TEST_RUN_DIR = re.compile(r"AppData-Local-Temp|-workspace-", re.I)
 EDIT_ERR = {
     "not_read_first": r"has not been read|must Read|Read it first",
     "no_match": r"String to replace not found|not found in file|old_string",
@@ -146,6 +151,8 @@ def main():
     ap.add_argument("--examples", type=int, default=3, help="examples kept per signal")
     ap.add_argument("--private-dir", default=os.path.dirname(os.path.abspath(__file__)),
                     help="folder whose *.private.py add-ons add their own sections (default: this script's folder)")
+    ap.add_argument("--include-test-runs", action="store_true",
+                    help="count eval and temp-folder test runs too (default: left out, named in the header)")
     a = ap.parse_args()
 
     now = dt.datetime.now(dt.timezone.utc)
@@ -167,6 +174,27 @@ def main():
 
     main_files = glob.glob(os.path.join(a.projects_dir, "*", "*.jsonl"))
     sub_files = glob.glob(os.path.join(a.projects_dir, "*", "*", "subagents", "*.jsonl"))
+
+    # ---- test runs: left out of every metric, but counted (with their spend) so nothing is hidden ----
+    is_test = lambda f: TEST_RUN_DIR.search(os.path.relpath(f, a.projects_dir).replace("\\", "/").split("/")[0])
+    test_n = 0; test_cost = 0.0
+    if not a.include_test_runs:
+        test_files = [f for f in main_files if is_test(f)]
+        main_files = [f for f in main_files if not is_test(f)]
+        sub_files = [f for f in sub_files if not is_test(f)]
+        for f in test_files:
+            try:
+                if os.path.getmtime(f) < since_ms:
+                    continue
+            except OSError:
+                continue
+            test_n += 1; cost = None
+            with open(f, encoding="utf-8", errors="replace") as fh:
+                for line in fh:
+                    if '"cost-state"' in line:
+                        with contextlib.suppress(Exception):
+                            cost = json.loads(line).get("totalCostUSD")
+            test_cost += cost or 0
 
     # ---- accumulators ----
     sessions = {}                      # sid -> dict
@@ -457,6 +485,7 @@ def main():
         "bash.heredoc_used.per_week": per_week(heredoc_used),
         "secrets.in_commands.per_week": per_week(secrets_in_cmds),
         "sessions.empty_skipped": empty_sessions,
+        "sessions.test_runs_left_out": test_n,
         "compactions.per_week": per_week(sum(compacts.values())),
         "bash.calls.per_week": per_week(bash_calls),
         "bash.errors.per_week": per_week(tool_err["Bash"] + tool_err["PowerShell"]),
@@ -516,6 +545,8 @@ def main():
     P("")
     P(f"Window: {since:%Y-%m-%d %H:%M} to {now:%Y-%m-%d %H:%M} UTC ({days:.1f} days). Sessions: {len(S)} "
       f"(+{empty_sessions} with no assistant turn skipped); subagent runs: {sub_n}. "
+      + (f"Left out: {test_n} test-run session files (${test_cost:,.2f}; eval and temp-folder runs, "
+         "`--include-test-runs` keeps them). " if test_n else "") +
       "Assistant usage counted once per message id (transcripts repeat it per content block). "
       "Secrets in examples are redacted.")
     if secrets_in_cmds:

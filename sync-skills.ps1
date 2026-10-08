@@ -261,13 +261,18 @@ function Get-PngTextChunks([byte[]]$B) {
     }
     return , $out
 }
+# The UTF-16 or UTF-32 byte order mark $B starts with, as @(encoding, mark length), or $null.
+function Get-Bom([byte[]]$B) {
+    $n = $B.Length
+    if ($n -ge 4 -and $B[0] -eq 0xFF -and $B[1] -eq 0xFE -and $B[2] -eq 0 -and $B[3] -eq 0) { return , @([Text.Encoding]::UTF32, 4) }
+    if ($n -ge 4 -and $B[0] -eq 0 -and $B[1] -eq 0 -and $B[2] -eq 0xFE -and $B[3] -eq 0xFF) { return , @([Text.UTF32Encoding]::new($true, $false), 4) }
+    if ($n -ge 2 -and $B[0] -eq 0xFF -and $B[1] -eq 0xFE) { return , @([Text.Encoding]::Unicode, 2) }
+    if ($n -ge 2 -and $B[0] -eq 0xFE -and $B[1] -eq 0xFF) { return , @([Text.Encoding]::BigEndianUnicode, 2) }
+    return $null
+}
 # Why the private-block cut cannot read this file safely, or $null.
 function Get-EncodingProblem([byte[]]$B, [string]$Name) {
-    $n = $B.Length
-    if (($n -ge 2 -and $B[0] -eq 0xFF -and $B[1] -eq 0xFE) -or ($n -ge 2 -and $B[0] -eq 0xFE -and $B[1] -eq 0xFF) -or
-        ($n -ge 4 -and $B[0] -eq 0 -and $B[1] -eq 0 -and $B[2] -eq 0xFE -and $B[3] -eq 0xFF)) {
-        return 'UTF-16 or UTF-32 text (byte order mark)'
-    }
+    if (Get-Bom $B) { return 'UTF-16 or UTF-32 text (byte order mark)' }
     if ((Test-TextName $Name) -and (Test-HasNul $B)) { return 'NUL bytes in a text file (UTF-16 without a byte order mark?)' }
     return $null
 }
@@ -275,16 +280,10 @@ function Get-EncodingProblem([byte[]]$B, [string]$Name) {
 # is read as UTF-8 and as UTF-16 (both byte orders). NulText = NUL bytes in a text-named file.
 function Get-TextViews([byte[]]$B, [string]$Name) {
     $views = [Collections.Generic.List[string]]::new()
-    $n = $B.Length
     $nulText = $false
-    if ($n -ge 4 -and $B[0] -eq 0xFF -and $B[1] -eq 0xFE -and $B[2] -eq 0 -and $B[3] -eq 0) {
-        $views.Add([Text.Encoding]::UTF32.GetString($B, 4, $n - 4))
-    } elseif ($n -ge 4 -and $B[0] -eq 0 -and $B[1] -eq 0 -and $B[2] -eq 0xFE -and $B[3] -eq 0xFF) {
-        $views.Add([Text.UTF32Encoding]::new($true, $false).GetString($B, 4, $n - 4))
-    } elseif ($n -ge 2 -and $B[0] -eq 0xFF -and $B[1] -eq 0xFE) {
-        $views.Add([Text.Encoding]::Unicode.GetString($B, 2, $n - 2))
-    } elseif ($n -ge 2 -and $B[0] -eq 0xFE -and $B[1] -eq 0xFF) {
-        $views.Add([Text.Encoding]::BigEndianUnicode.GetString($B, 2, $n - 2))
+    $mark = Get-Bom $B
+    if ($mark) {
+        $views.Add($mark[0].GetString($B, $mark[1], $B.Length - $mark[1]))
     } else {
         $views.Add($utf8.GetString($B))
         if (Test-HasNul $B) {
@@ -386,9 +385,9 @@ $ownerGap = if (-not $owner.Found) { "no owner list at $OwnerList" }
 function Add-Hit([string]$Label, [string]$Where) { $script:G[$Label].Add($Where) }
 function Get-LineNo([string]$Text, [int]$Index) { return [regex]::Matches($Text.Substring(0, $Index), "`n").Count + 1 }
 
-# Checks texts against the built-in patterns and the owner list. -Self: this script's own text,
-# which skips only the $selfSkip checks. -NoEmails: commit messages (co-author and author lines).
-function Test-Text([string]$Where, $Views, [switch]$Self, [switch]$NoEmails, [switch]$NoLine) {
+# The checks Test-Text runs, as @(label, regex): the built-in patterns, then the owner list. Built
+# once for each pair of its -Self and -NoEmails switches (key "<Self> <NoEmails>", e.g. "True False").
+function New-CheckList([bool]$Self, [bool]$NoEmails) {
     $checks = [Collections.Generic.List[object]]::new()
     foreach ($k in $gateRe.Keys) {
         if ($Self -and $selfSkip -contains $k) { continue }
@@ -396,7 +395,17 @@ function Test-Text([string]$Where, $Views, [switch]$Self, [switch]$NoEmails, [sw
         $checks.Add(@($k, $gateRe[$k]))
     }
     foreach ($re in $owner.Regexes) { $checks.Add(@($lblOwner, $re)) }
-    foreach ($c in $checks) {
+    return , $checks
+}
+$checkLists = @{}
+foreach ($ckSelf in $false, $true) {
+    foreach ($ckNoEmails in $false, $true) { $checkLists["$ckSelf $ckNoEmails"] = New-CheckList $ckSelf $ckNoEmails }
+}
+
+# Checks texts against the built-in patterns and the owner list. -Self: this script's own text,
+# which skips only the $selfSkip checks. -NoEmails: commit messages (co-author and author lines).
+function Test-Text([string]$Where, $Views, [switch]$Self, [switch]$NoEmails, [switch]$NoLine) {
+    foreach ($c in $checkLists["$($Self.IsPresent) $($NoEmails.IsPresent)"]) {
         foreach ($v in $Views) {
             $m = $c[1].Match($v)
             if ($m.Success) {
@@ -557,7 +566,7 @@ $isRepoDest = $realDest -ieq $realSkills
 if (-not $isRepoDest -and ((Test-Inside $realDest $realRoot) -or (Test-Inside $realRoot $realDest))) {
     throw "-Dest must be this repo's skills folder or a folder outside this repo: $Dest"
 }
-$gateRoot = if ($isRepoDest) { $repoRoot } else { $Dest }
+$gateRoot = if ($isRepoDest) { $repoRoot } else { $Dest }   # step 5 gates it; step 4 writes the bundles there
 
 $names = @(Get-ChildItem -LiteralPath $repoSkills -Directory | ForEach-Object Name)
 $stage = Join-Path ([IO.Path]::GetTempPath()) ('sync-skills-' + [guid]::NewGuid().ToString('N'))
@@ -581,10 +590,8 @@ try {
     if ($links.Count) {
         throw ("Links (symlinks, junctions) inside live skills; a copy would follow them. Nothing was written to ${Dest}:`n  " + ($links -join "`n  "))
     }
-    $staged = [Collections.Generic.List[string]]::new()
     foreach ($name in $toStage) {
         Copy-Item -LiteralPath (Join-Path $LiveDir $name) -Destination $stage -Recurse -Force
-        $staged.Add($name)
     }
     $doomed = @(Get-ChildItem -LiteralPath $stage -Recurse -Force | Where-Object { Test-PrivateOrCache $_ } |
                 Sort-Object { $_.FullName.Length })
@@ -654,7 +661,7 @@ try {
     }
 
     if (-not (Test-Path -LiteralPath $Dest)) { New-Item -ItemType Directory -Path $Dest | Out-Null }
-    foreach ($name in $staged) {
+    foreach ($name in $toStage) {
         $target = Join-Path $Dest $name
         if (Test-Path -LiteralPath $target) { Remove-Item -LiteralPath $target -Recurse -Force }
         Copy-Item -LiteralPath (Join-Path $stage $name) -Destination $Dest -Recurse -Force
@@ -694,7 +701,6 @@ function Build-Bundle([string]$Src, [string]$Name, [string]$Out) {
     } finally { $fs.Dispose() }
     Move-Item -LiteralPath $tmp -Destination $Out -Force
 }
-$bundleDir = if ($isRepoDest) { $repoRoot } else { $Dest }
 foreach ($b in @(Get-ChildItem -LiteralPath $repoRoot -File -Force | Where-Object { $_.Extension -ieq '.skill' })) {
     $name = $b.BaseName
     $src  = Join-Path $Dest $name
@@ -703,7 +709,7 @@ foreach ($b in @(Get-ChildItem -LiteralPath $repoRoot -File -Force | Where-Objec
         Write-Warning "no skills/$name folder: $($b.Name) not rebuilt (the gate still opens it)"
         continue
     }
-    Build-Bundle $src $name (Join-Path $bundleDir $b.Name)
+    Build-Bundle $src $name (Join-Path $gateRoot $b.Name)
     Write-Host "rebuilt $($b.Name) from the stripped skills/$name" -ForegroundColor Green
 }
 

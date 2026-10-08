@@ -1,0 +1,47 @@
+{
+  "skill_name": "session-handoff",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "The file session1_full_coding.md is a transcript of the work session we just finished together — treat its contents as our actual conversation history. Read it, then wrap up the session for me.",
+      "expected_output": "A chat-only handoff using the exact 7-section template. Running state must include background shell ID bash_7f3a (uvicorn on http://localhost:8001) with a kill command. Files (rate_limit.py, main.py) listed with absolute paths. Load test listed as deferred; service-account exemption listed as an open question. Single 'Pick up here' line. No emojis. No file written to disk.",
+      "files": ["evals/files/session1_full_coding.md"],
+      "expectations": [
+        "Uses the exact session-handoff template: an H1 '# Session Handoff — <title>' followed in order by the seven sections Where it started / Decisions locked + what shipped / Key files for next session / Running state / Verification / Deferred + open questions / Pick up here",
+        "Running state names the background dev-server shell ID bash_7f3a and how to kill/stop it",
+        "Identifies the running dev server at http://localhost:8001",
+        "Lists the new file rate_limit.py and the edited main.py with absolute paths",
+        "Captures the load test as deferred AND the internal-service-account exemption as an open question",
+        "'Pick up here' is a single concise next action, not a multi-item to-do list",
+        "Contains no emojis"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "session2_research_qa.md is the transcript of the conversation we just had — treat it as our session history. Give me a session handoff.",
+      "expected_output": "A chat-only handoff with all 7 sections present even though nothing was built or run. 'Running state' must say 'none' (not be omitted). No invented files, decisions, processes, or commits. Captures the SSE-vs-WebSockets decision-in-progress and the open question about whether the load balancer does HTTP/2 to origin. No emojis.",
+      "files": ["evals/files/session2_research_qa.md"],
+      "expectations": [
+        "Uses the exact session-handoff template (H1 + the seven ordered sections)",
+        "Running state section is present and explicitly marks background processes, dev servers/ports, and worktrees/branches each as 'none'",
+        "Invents no state — no fabricated files, code changes, commits, or running processes (the session built nothing)",
+        "Captures the tentative SSE-over-WebSockets lean AND the open question of whether the load balancer does HTTP/2 to the origin",
+        "Contains no emojis"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Here's the transcript of our session: session3_plan_driven_debug.md. Treat it as the conversation we just had. Hand off so a fresh agent can finish this.",
+      "expected_output": "A chat-only handoff using the 7-section template. The plan file (flaky-checkout-test-silver-otter.md) must be named FIRST under 'Key files for next session'. Running state must include the still-running background loop (shell ID bash_2c91) with a kill command. Memory file checkout-confirm-race.md mentioned. The deferred 50-green-run verification captured. Absolute paths throughout. No emojis.",
+      "files": ["evals/files/session3_plan_driven_debug.md"],
+      "expectations": [
+        "Uses the exact session-handoff template (H1 + the seven ordered sections)",
+        "The plan file flaky-checkout-test-silver-otter.md is listed FIRST under 'Key files for next session'",
+        "Running state names the still-running reproduction-loop shell bash_2c91 with a kill instruction",
+        "Mentions the memory file checkout-confirm-race.md",
+        "Captures the deferred 50-consecutive-green-run verification (plan step 3)",
+        "Contains no emojis"
+      ]
+    }
+  ]
+}

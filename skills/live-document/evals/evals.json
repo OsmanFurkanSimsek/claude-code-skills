@@ -1,0 +1,100 @@
+{
+  "skill_name": "live-document",
+  "evals": [
+    {
+      "id": 0,
+      "name": "blank-new-project-setup",
+      "prompt": "I'm starting a new side project: a small CLI tool in Python that watches a folder and auto-converts any new HEIC photos to JPG. I work on it in bursts and keep forgetting where I left off between sessions. The working folder is empty right now except for this. Help me set things up so I never lose the thread.",
+      "expected_output": "Runs an adaptive interview (asks focused questions about goal/done, scope, constraint, current state) BEFORE creating anything, summarizes back and asks for confirmation, then scaffolds a thin root CLAUDE.md (with the live-document:start/end markers and a start-of-session protocol) plus a populated PROJECT.md with the 8 canonical sections (Goal, Scope, Map, Current state, Decisions locked, Plan, Open questions, Lessons - no Change log section) and a project-memory/ folder holding decisions.md, lessons.md and changelog.md, each with the standard header and a Map row in PROJECT.md. Does not create a tracking file outside project-memory/.",
+      "files": [],
+      "expectations": []
+    },
+    {
+      "id": 1,
+      "name": "existing-claude-md-append",
+      "prompt": "This repo already has a CLAUDE.md with my coding conventions in it. I want to add a self-maintaining living project doc so future sessions remember the project state, but DO NOT lose anything that's already in CLAUDE.md.",
+      "expected_output": "Detects the existing CLAUDE.md, preserves every existing line, and APPENDS a delimited <!-- live-document:start -->...<!-- live-document:end --> bootstrap block at the end. Creates/augments PROJECT.md. The original conventions content is byte-for-byte intact above the appended block.",
+      "files": [
+        "fixtures/existing-claude-md/CLAUDE.md"
+      ],
+      "expectations": []
+    },
+    {
+      "id": 2,
+      "name": "midstream-project-md-curation",
+      "prompt": "We've been building this for a few weeks and there's already a PROJECT.md tracking it, but it's gotten messy and out of date and I'm not sure it reflects reality anymore. Can you bring it back in line with where we actually are and make sure it'll stay maintained going forward?",
+      "expected_output": "Enters curation/augment behavior rather than overwriting: reads the existing PROJECT.md in full, restructures it into the canonical sections with Current state / Plan / Open questions reflecting now, moves detail (decision wording, lesson stories, history) into project-memory/decisions.md, lessons.md and changelog.md with Map rows, keeps only rule lines in PROJECT.md WITHOUT losing any locked decision or lesson, and ensures the start-of-session protocol is in place (appends the CLAUDE.md block if missing) so it stays self-maintained.",
+      "files": [
+        "fixtures/midstream-project/PROJECT.md",
+        "fixtures/midstream-project/CLAUDE.md"
+      ],
+      "expectations": []
+    },
+    {
+      "id": 3,
+      "name": "routine-update-reconciles-not-appends",
+      "prompt": "Quick update on the invoice parser: Globex parsing is done now (100%, shipped this morning), and we made the switch to xlsx output official - finance signed off, one sheet per vendor, CSV is dead. Also the rounding bug is fixed, we moved the totals to Decimal. Bring PROJECT.md up to date.",
+      "expected_output": "Updates PROJECT.md by reconciling in place, not appending: the current-state/progress text is rewritten so Globex reads as done (the '80% there' line is gone), the CSV output decision is REPLACED by the xlsx decision (the old CSV line no longer appears anywhere), finished todos (Globex, xlsx switch, rounding fix) are removed from the todo list rather than left alongside new text, the resolved rounding note is deleted or folded into a lesson (sum floats -> use Decimal), and at most one milestone-level entry is added to project-memory/changelog.md (never a Change log section inside PROJECT.md). FAILS if the update is append-only: superseded content (CSV decision, 80% Globex, open rounding todo) still present with new lines merely stacked below or beside it, or if a per-item diary of lines is appended instead of sections being rewritten.",
+      "files": [
+        "fixtures/midstream-project/PROJECT.md",
+        "fixtures/midstream-project/CLAUDE.md"
+      ],
+      "expectations": []
+    },
+    {
+      "id": 4,
+      "name": "real-handoff-writes-next-actions-file",
+      "prompt": "Finance approved the xlsx output. Now I have to set up the monthly delivery myself: create the shared folder, give the finance group read access, and schedule the parser with Windows Task Scheduler. I've never used Task Scheduler - walk me through all of it.",
+      "expected_output": "Delivers Action mode in chat (Summary, Reasoning, numbered Steps in super simple language) AND, because this is a real multi-step handoff, writes ONE Next Actions file in next-actions/ at the project root: <YYYY-MM-DD_HH-MM>-next-actions.html. It carries TLDR paragraph first, then reasoning including alternatives considered and why this path won, then the steps; it is fully self-contained (inline CSS/JS, no external URLs) with an interactive step checklist. Announces the file path in one chat line. FAILS if no file is written, a separate .md is also written, the filename lacks the date-time prefix, the file lives outside next-actions/, the TLDR is not first, or the .html loads any external resource.",
+      "files": [
+        "fixtures/midstream-project/PROJECT.md",
+        "fixtures/midstream-project/CLAUDE.md"
+      ],
+      "expectations": []
+    },
+    {
+      "id": 5,
+      "name": "trivial-ask-stays-chat-only",
+      "prompt": "Quick one: what's the command to run the parser's tests again?",
+      "expected_output": "Answers briefly in chat in three short parts (Summary = the test command, Why = one line of context at most, last part either 'Nothing to do' or one step that runs the command). Does NOT write a Next Actions file, does not create next-actions/, and does not deliver a chunked step plan for a one-command ask. FAILS if any next-actions file is created, if the answer balloons into a chunked step plan, or if it is not in three parts.",
+      "files": [
+        "fixtures/midstream-project/PROJECT.md",
+        "fixtures/midstream-project/CLAUDE.md"
+      ],
+      "expectations": []
+    },
+    {
+      "id": 6,
+      "name": "messy-root-propose-then-move",
+      "prompt": "Back on the weather dashboard. Give me a quick status from the project doc and let's continue where we left off.",
+      "expected_output": "Reads PROJECT.md and reports status; notices the messy project root (3 loose .png screenshots, 2 loose example scripts, 2 loose report files - the tidiness tripwire) and proposes a FULL move list grouping them into screenshots/, code-examples/, and reports/, then asks ONE yes/no confirmation and STOPS - no file is moved before the user says yes. CLAUDE.md, PROJECT.md, dashboard.py and anything under project-memory/ are never in the move list. FAILS if it moves or renames any file without the confirmation, proposes moving the living docs or the source file, or finishes the status update without mentioning the mess at all.",
+      "files": [
+        "fixtures/messy-root/CLAUDE.md",
+        "fixtures/messy-root/PROJECT.md",
+        "fixtures/messy-root/dashboard.py",
+        "fixtures/messy-root/screenshot-2026-07-10-login.png",
+        "fixtures/messy-root/screenshot-2026-07-12-chart.png",
+        "fixtures/messy-root/screenshot-2026-07-14-error.png",
+        "fixtures/messy-root/example-api-call.py",
+        "fixtures/messy-root/example-cache-check.py",
+        "fixtures/messy-root/weekly-report-2026-07-06.md",
+        "fixtures/messy-root/weekly-report-2026-07-13.md"
+      ],
+      "expectations": []
+    },
+    {
+      "id": 7,
+      "name": "bloated-claude-md-slimming",
+      "prompt": "/live-document - please curate this project's living docs so they're in good shape and efficient for the next sessions.",
+      "expected_output": "Detects that CLAUDE.md (9.4 KB / 109 lines, ~5.5 KB outside the live-document block) is over the 8 KB / 100-line every-message budget and runs the CLAUDE.md slimming self-heal: builds a move list with the CLAUDE.md routing test (API reference table + limits and the dated API notes -> a project-memory/ topic file such as api-reference.md with a Map row; incident log -> a project-memory/ topic file (e.g. incidents.md) or lessons.md stories, rule lines only if they change how we work; How to run / Files -> a project-memory topic file or README / the Map; Purpose -> already covered by PROJECT.md Goal; per-message conventions such as 'never call the API in tests' -> at most a 1-2 line Hard rules bullet inside the block), shows it, and asks ONE yes/no before moving anything. FAILS if it leaves the bloat untouched citing 'never delete or rewrite content you did not create', adds a Map row that makes CLAUDE.md the home of reference content (API limits, run commands), proposes a slimmed CLAUDE.md that still holds reference tables / dated notes / run instructions, or moves content without asking.",
+      "files": [
+        "fixtures/bloated-claude-md/CLAUDE.md",
+        "fixtures/bloated-claude-md/PROJECT.md",
+        "fixtures/bloated-claude-md/project-memory/decisions.md",
+        "fixtures/bloated-claude-md/project-memory/lessons.md",
+        "fixtures/bloated-claude-md/project-memory/changelog.md"
+      ],
+      "expectations": []
+    }
+  ]
+}

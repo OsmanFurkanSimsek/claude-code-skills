@@ -95,6 +95,24 @@
         "Judges only the one /insights point a session after Last run backs (the test suite re-run, 1 case) and does not re-map the points already under 'Checked, no action' one by one",
         "Ends short: nothing new needs the owner's decision (CI-7 too early with 2 sessions), Last run becomes 2026-10-09 12:00 UTC, and both Since Done lines run through 12:00"
       ]
+    },
+    {
+      "id": 7,
+      "name": "sync-only-runs-just-the-update-step",
+      "prompt": "sync my skills. Everything is in this folder (invented test data): changed-skills.json is what the changed-skills check prints now, cloud-check.json what the claude.ai copies check prints, upstream-check.json what the third-party upstream check prints, and git-status.txt the backup repo's `git status --short` (empty). Take them as the outputs of the update step's checks run right now.",
+      "expected_output": "Only the update step runs: no transcript scan, no ledger, no review and no recommendation pop-up. The checks show nothing changed, so it runs no snapshot, commit, push, public sync or upload and answers in one or two lines that the setup is backed up and nothing changed.",
+      "files": [
+        "evals/files/e7/changed-skills.json",
+        "evals/files/e7/cloud-check.json",
+        "evals/files/e7/upstream-check.json",
+        "evals/files/e7/git-status.txt"
+      ],
+      "expectations": [
+        "Runs only the update step: does not run or plan scan.py, /insights, /doctor or a ledger review, and asks no recommendation question",
+        "Decides from the four check outputs that nothing changed (no changed skill, claude.ai copies in step, the imported skill up to date, a clean repo)",
+        "Runs or plans no backup snapshot, commit, push, public sync or upload for this no-op",
+        "Answers short: one or two lines saying the setup is backed up and nothing changed"
+      ]
     }
   ]
 }

@@ -123,3 +123,44 @@ def test_new_owner_keys_are_zero_when_nothing_matches(projects):
     _, m = run_scan(projects)
     for k in ("owner.time_asks", "owner.corrections", "owner.corrections.voice", "tool.err.no_such_tool"):
         assert m[k + ".count"] == 0 and m[k + ".per_week"] == 0
+
+
+def test_unused_installed_skills_are_zero_in_json_only(projects):
+    md, m = run_scan(projects)
+    sk = os.path.join(scan.CLAUDE, "skills")
+    names = [d for d in os.listdir(sk) if os.path.isfile(os.path.join(sk, d, "SKILL.md"))] if os.path.isdir(sk) else []
+    for n in names:                       # the fixture calls no skill: each installed one is written as 0
+        assert m["skill.calls." + n + ".count"] == 0 and m["skill.calls." + n + ".per_week"] == 0
+        assert '"skill.calls.' + n + '.per_week"' not in md          # scan.md's metrics block stays as it was
+
+
+def test_known_quirks_are_explained_in_place(projects):
+    md, _ = run_scan(projects)                      # the fixture has no cost-state line: its cost is unknown
+    assert "1 session(s) have no cost record in the transcript yet (shown as $0), so this is a lower bound" in md
+    assert "(? = no SessionStart" not in md         # its SessionStart (10:00) is inside the window
+    md2, _ = run_scan(projects, "--since", "2026-10-09 10:01")
+    assert "Sessions by start source: ? 1 (? = no SessionStart record inside the window: the session started " \
+           "before it)" in md2
+
+
+def test_big_read_names_its_file(projects):
+    d = projects / "projects" / "-work-proj"
+    rows = [tool("2026-10-09T10:20:00Z", "8", "Read", {"file_path": "C:\\work\\proj\\notes\\big-file.md"}),
+            line(type="user", timestamp="2026-10-09T10:20:01Z", cwd="/work/proj",
+                 message={"role": "user", "content": [{"type": "tool_result", "tool_use_id": "t8",
+                                                       "content": "x" * 30000}]})]
+    with open(d / "s1.jsonl", "a", encoding="utf-8") as fh:
+        fh.write("\n".join(rows) + "\n")
+    md, _ = run_scan(projects)
+    assert "  - 30K Read (" in md and "): big-file.md [s1 10-09 10:20]" in md
+
+
+def test_time_left_and_time_estimate_count_as_time_asks(projects):
+    d = projects / "projects" / "-work-proj"
+    rows = [user("2026-10-09T10:30:00Z", "how long time left?"),               # missed before 2026-10-09
+            user("2026-10-09T10:31:00Z", "What is your final time estimate?"),
+            user("2026-10-09T10:32:00Z", "the time table is fine")]               # no ask
+    with open(d / "s1.jsonl", "a", encoding="utf-8") as fh:
+        fh.write("\n".join(rows) + "\n")
+    _, m = run_scan(projects)
+    assert m["owner.time_asks.count"] == 2

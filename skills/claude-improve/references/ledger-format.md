@@ -81,6 +81,9 @@ Fields:
     window's edge counts in both windows' `sessions`, so that sum runs a little high; `startup` counts each fresh
     start once, and event counts never repeat. `scripts/quick_ledger.py --scan-json` prints these sums; it reads the
     count from `<key>.count` when Signal or Verify by names a `<key>.per_week`, so name the key there when one fits.
+    With one key and a numeric target (`<key>.per_week below 2 (baseline 5)`, or `= 0` / a leading `0`) it also
+    prints a suggested verdict (`Hint:`); a second condition in Verify by ("and ...", "; ...") keeps it "needs
+    reading".
   - **Not a plain count:** a share keeps its numerator and denominator ("3 of 23 outputs untouched"); a median or
     another number that cannot be summed lists each window's value with its sessions ("10-09: median 1 in 11
     sessions; 10-10: median 2 in 6"). A metric only reading can count (owner asks, a test child) names the count

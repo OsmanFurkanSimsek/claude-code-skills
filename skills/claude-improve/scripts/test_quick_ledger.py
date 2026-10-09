@@ -92,10 +92,10 @@ def test_e6_fixture_view_and_tallies():
     assert 'start the tally with `scan.py --since "2026-10-09 10:30" --until "2026-10-09 12:00"' in out
     # CI-6: 8 (5) + this window's 4 (3); heredoc_eof absent from scan.json = 0 events
     assert "New: 12 sessions (8 startup), 0 heredoc_eof errors, through 2026-10-09 12:00 UTC" in out
-    assert ("(+0 from bash.err.heredoc_eof.count) -> under 10 startup: too early only for a fix that needs a "
+    # CI-6's Fix is a rule line, not a restart: 8 startup of 12 does not make it too early
+    assert ("(+0 from bash.err.heredoc_eof.count) -> under 10 startup does not matter: its Fix line names no "
             "restart") in out
-    assert "  Fix: rule \"a script over ~10 lines goes to a file and runs by path\"" in out   # restart or not: no grep
-    assert out.count("  Fix:") == 1                                       # CI-7 (2 sessions) needs no Fix line
+    assert out.count("  Fix:") == 0                                       # no restart fix, so no Fix line
     assert len(out.splitlines()) < 40
 
 
@@ -171,3 +171,131 @@ def test_time_ask_key_turns_a_read_into_a_count(tmp_path):
     out = run(tmp_path, led, dict(SCAN, **{"owner.time_asks.count": 0}))
     assert "New: 14 sessions (5 startup), 0 asks, through 2026-10-09 12:00 UTC (+0 from owner.time_asks.count)" in out
     assert "no scan key" not in out
+
+
+def item(verify, since="10 sessions (10 startup), 0 errors, through 2026-10-09 09:00 UTC", fix="a rule line",
+         status="done", done="2026-10-02 09:00 UTC", head="CI-9 Hinted"):
+    return MINI.split("### CI-9")[0] + (f"### {head}\n- Status: {status} | Raised: 2026-10-01 | Done: {done}\n"
+                                         f"- Fix: {fix}\n- Verify by: {verify}\n- Since Done: {since}\n\n"
+                                         "## Checked, no action\n\n## Closed items\n")
+
+
+def hint_line(out):
+    return [l.strip() for l in out.splitlines() if l.strip().startswith("Hint:")]
+
+
+def test_window_edge_is_one_line_with_a_scan_only(tmp_path):
+    out = run(tmp_path, MINI, SCAN)
+    assert out.count("Window edge: a session that crosses a window edge counts in both windows") == 1
+    assert "nothing to check" in out
+    assert "Window edge" not in run(tmp_path, MINI)
+
+
+def test_e6_hints_verified_on_the_tally_and_start_first():
+    out = subprocess.run([sys.executable, os.path.join(HERE, "quick_ledger.py"), "--ledger", LEDGER,
+                          "--scan-json", os.path.join(E6, "scan.json")],
+                         capture_output=True, text=True, encoding="utf-8", check=True).stdout
+    assert hint_line(out) == [
+        "Hint: needs the Start scan above first; under 10 sessions there -> too early",
+        "Hint: verified - bash.err.heredoc_eof: 5.0 -> 0.0 a week, target < 2, 12 sessions since Done; "
+        "its Fix line names no restart"]
+
+
+def test_hint_too_early_by_sessions_judge_date_and_restart(tmp_path):
+    few = item("bash.err.x.per_week below 1 (baseline 3)", since="2 sessions (2 startup), 0 errors, through "
+               "2026-10-09 09:00 UTC")
+    assert hint_line(run(tmp_path, few, SCAN)) == ["Hint: too early - 6 sessions since Done, under 10"]
+    later = item("rounds per output fall. Judge on 2026-11-05 (`--since 2026-10-08`)")
+    assert hint_line(run(tmp_path, later, SCAN)) == ["Hint: too early - its Verify by judges it on 2026-11-05"]
+    restart = item("bash.err.x.per_week below 1", since="20 sessions (3 startup), 0 errors, through 2026-10-09 "
+                   "09:00 UTC", fix="a block in `~/.bashrc`")
+    assert hint_line(run(tmp_path, restart, SCAN)) == [
+        "Hint: too early - the fix needs a restart (its Fix line names .bashrc) and only 5 sessions since Done were "
+        "fresh starts"]
+    # MINI's CI-9: 14 sessions, 5 startup, Fix "settings env" -> a restart fix; CI-8 (later) gets no hint
+    out = run(tmp_path, MINI, SCAN)
+    assert hint_line(out)[0].startswith("Hint: too early - the fix needs a restart (its Fix line names settings env)")
+    assert "Hint:" not in out.split("- CI-8")[1].split("- CI-7")[0]           # later: no hint
+    assert hint_line(out)[1] == "Hint: needs reading - no Since Done tally in the standard form"   # CI-7
+
+
+def test_only_a_restart_fix_makes_few_fresh_starts_too_early(tmp_path):
+    since = "11 sessions (1 startup), 0 errors, through 2026-10-09 09:00 UTC"
+    # skill files moved, pointer files, a taste profile, the MCP tools used, a plugin skill: none needs a restart
+    for fix in ("voice rules move into `skill-a/references/voice/`; about 20 pointer files (rules, hooks)",
+                "a working-style profile section in the skill", "the report reads the MCP tools' output",
+                "a new plugin skill folder"):
+        out = run(tmp_path, item("bash.err.x.per_week below 1 (baseline 3)", since=since, fix=fix), SCAN)
+        assert ("New: 15 sessions (3 startup), 0 errors, through 2026-10-09 12:00 UTC (+0 from bash.err.x.count) -> "
+                "under 10 startup does not matter: its Fix line names no restart") in out, fix
+        assert "  Fix:" not in out and "needs a restart" not in out, fix
+        assert "restart" not in hint_line(out)[0].split("; its Fix line")[0], fix
+    # a settings env value, an MCP server, the shell profile or the enabled plugins: too early under 10 fresh starts
+    for fix, word in (("UTF-8 variables in the settings env block", "settings env"),
+                      ("adds the `reports` MCP server to the user config", "MCP server"),
+                      ("two blocks in `~/.bash_profile`", ".bash_profile"),
+                      ("`enabledPlugins` false for both", "enabledPlugins")):
+        out = run(tmp_path, item("bash.err.x.per_week below 1 (baseline 3)", since=since, fix=fix), SCAN)
+        assert (f"-> under 10 startup and the fix needs a restart (its Fix line names {word}): too early") in out, fix
+        assert f"  Fix: {fix}" in out, fix
+        assert hint_line(out)[0].startswith(f"Hint: too early - the fix needs a restart (its Fix line names {word})")
+
+
+def test_hint_from_a_numeric_target(tmp_path):
+    scan = dict(SCAN, **{"bash.err.x.count": 1})
+    met = item("bash.err.x.per_week below 2 (baseline 5)")          # 0 + 1 over 7.1 days -> 1.0 a week
+    assert hint_line(run(tmp_path, met, scan)) == [
+        "Hint: verified - bash.err.x: 5 -> 1.0 a week, target < 2, 14 sessions since Done"]
+    track = item("bash.err.x.per_week below 0.5 (baseline 5)")
+    assert hint_line(run(tmp_path, track, scan))[0].startswith(
+        "Hint: on track - bash.err.x down from 5 to 1.0 a week, target < 0.5 not reached yet")
+    bad = item("bash.err.x.per_week below 0.5 (baseline 1)")
+    assert hint_line(run(tmp_path, bad, scan))[0].startswith("Hint: not working - bash.err.x at 1.0 a week, baseline 1")
+    nobase = item("bash.err.x.per_week below 0.5")
+    assert hint_line(run(tmp_path, nobase, scan))[0].startswith("Hint: needs reading - bash.err.x misses its target")
+
+
+def test_hint_zero_target_forms_and_extra_conditions(tmp_path):
+    lead = item("0 tasks that needed it (asks or failed calls); scan key tool.err.no_such_tool.per_week")
+    assert hint_line(run(tmp_path, lead, SCAN))[0].startswith("Hint: verified - tool.err.no_such_tool: 0.0 a week")
+    two = item("after the merge, 0 corrections (baseline 3) and every prompt still loads the rules; "
+               "scan key owner.corrections.voice.per_week")
+    assert hint_line(run(tmp_path, two, SCAN)) == [
+        "Hint: needs reading - owner.corrections.voice meets its target (0 since Done, target = 0); read the other "
+        "Verify by conditions"]
+    cand = item("owner.corrections.voice.per_week = 0")
+    out = run(tmp_path, cand, dict(SCAN, **{"owner.corrections.voice.count": 2}))
+    assert hint_line(out) == ["Hint: needs reading - 2 owner.corrections.voice candidates; read them in scan.md section 6"]
+    nokey = item("0 asks a week")
+    assert hint_line(run(tmp_path, nokey, SCAN)) == [
+        "Hint: needs reading - no scan key; judge it from the Verify by line"]
+
+
+def test_other_condition_on_an_unused_skill_stays_done(tmp_path):
+    vb = ("after the merge, 0 corrections (baseline 3) and every helper-skill trigger prompt still loads the rules; "
+          "scan key owner.corrections.voice.per_week")
+    led = item(vb, head="CI-9 Merge helper-skill into main-skill")
+    unused = dict(SCAN, **{"skill.calls.helper-skill.count": 0, "skill.calls.main-skill.count": 2})
+    assert hint_line(run(tmp_path, led, unused)) == [
+        "Hint: stays done, not judged yet - owner.corrections.voice meets its target (0 since Done, target = 0), but "
+        "its other Verify by condition needs helper-skill to run, and it ran 0 times in this window"]
+    # the skill ran: the other condition can be judged now, so the item needs reading as before
+    used = dict(unused, **{"skill.calls.helper-skill.count": 1})
+    assert hint_line(run(tmp_path, led, used))[0].startswith("Hint: needs reading - owner.corrections.voice meets")
+    # a second other condition that names no unused skill: still needs reading
+    two = item(vb.replace("; scan key", " and the report lists it; scan key"), head="CI-9 Merge helper-skill")
+    assert hint_line(run(tmp_path, two, unused))[0].startswith("Hint: needs reading - owner.corrections.voice meets")
+    # the key misses its target: the unused skill changes nothing
+    miss = dict(unused, **{"owner.corrections.voice.count": 1})
+    assert "stays done" not in hint_line(run(tmp_path, led, miss))[0]
+
+
+def test_named_skill_count_is_printed_zero_included(tmp_path):
+    led = item("every helper-skill prompt still loads, counted by `other-skill/scripts/x.py`; scan key "
+               "owner.corrections.voice.per_week",
+               head="CI-9 Merge helper-skill into main-skill")
+    scan = dict(SCAN, **{"skill.calls.helper-skill.count": 0, "skill.calls.main-skill.count": 3,
+                         "skill.calls.other-skill.count": 5})
+    out = run(tmp_path, led, scan)
+    assert "  Skill calls this window: helper-skill 0, main-skill 3 (from scan.json; 0 = not used" in out
+    assert "other-skill" not in [l for l in out.splitlines() if "Skill calls" in l][0]   # a path, not a mention

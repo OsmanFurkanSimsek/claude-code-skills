@@ -5,6 +5,7 @@ Reads ~/.claude/projects/*/*.jsonl (main sessions) and their subagent files, cou
 entries whose timestamp falls inside the window, and writes:
   --out   a markdown report the agent reads (numbers + a few examples per signal)
   --json  stable metric keys, normalised to "per 7 days", for comparing runs, plus each one's raw <key>.count
+          (every installed skill gets skill.calls.<name>.count, 0 when unused, so a zero is never missing)
 
 Usage:
   python scan.py --days 7 --out scan.md --json scan.json
@@ -57,7 +58,8 @@ CORRECTION = re.compile(
     r"I already|as I said|every time|keep (doing|asking|forgetting))", re.I)
 # Owner asks about the time left while work runs (a pattern count, ledger key owner.time_asks).
 TIME_ASK = re.compile(r"\b(how far are you|how long (will|does|is|do)|how much (more )?time|when will (it|you|this|that)|"
-                      r"your estimate|take a long time|are you still working|still running\?)", re.I)
+                      r"your estimate|time left|time estimate|take a long time|are you still working|still running\?)",
+                      re.I)
 # A correction candidate about voice, tone or wording of a text written as the owner (owner.corrections.voice).
 VOICE = re.compile(r"\b(voice|tone|sounds? like me|my style|my wording)\b", re.I)
 # The tool a call named does not exist in that session (a disabled plugin or server, a wrong name).
@@ -363,7 +365,11 @@ def main():
                         out_chars[nm] += len(txt); out_n[nm] += 1; out_max[nm] = max(out_max[nm], len(txt))
                         if len(txt) > 25000:
                             out_big[nm] += 1
-                            big_out.append((len(txt), nm, s["project"], one_line(json.dumps(inp)[:200], 110)))
+                            fp = inp.get("file_path") if isinstance(inp, dict) else None
+                            big_out.append((len(txt), nm, s["project"], (
+                                os.path.basename(str(fp).replace("\\", "/")) + (" (offset/limit)" if inp.get("offset")
+                                or inp.get("limit") else "") + f" [{sid[:8]} {ts:%m-%d %H:%M}]") if fp
+                                else one_line(json.dumps(inp)[:200], 110)))
                         if not b.get("is_error"):
                             continue
                         tool_err[nm] += 1
@@ -604,7 +610,10 @@ def main():
           "The fix is rotation by the owner, raised first in the report.")
     P("")
     P("## 1. Spend and context")
-    P(f"- Spend: ${spend:,.2f} (sum of per-session cost; a session that started before the window counts whole)")
+    no_cost = sum(1 for x in S if x["cost"] is None)
+    P(f"- Spend: ${spend:,.2f} (sum of per-session cost; a session that started before the window counts whole)"
+      + (f"; {no_cost} session(s) have no cost record in the transcript yet (shown as $0), so this is a lower "
+         "bound" if no_cost else ""))
     P(f"- Context tokens processed: {tot_tok/1e6:,.1f} M; share processed on turns above 200K: "
       f"{metrics['ctx.share_above_200k.pct']}%, above 300K: {metrics['ctx.share_above_300k.pct']}%")
     P("- By band (share of tokens, turns): " + ", ".join(
@@ -627,6 +636,7 @@ def main():
         for cmd, err in bash_ex[k]:
             P(f"    - `{cmd}` -> {err}")
     P(f"- Sessions by start source: " + ", ".join(f"{k} {v}" for k, v in starts.most_common())
+      + (" (? = no SessionStart record inside the window: the session started before it)" if starts.get("?") else "")
       + f"; Windows-twin failures in forked sessions: {twin_fork}")
     if edit_err:
         P("- Edit/Write errors: " + ", ".join(f"{k} {v}" for k, v in edit_err.most_common()))
@@ -722,7 +732,11 @@ def main():
         sys.stdout.write(report)
     if a.json:
         with open(a.json, "w", encoding="utf-8") as fh:
-            json.dump({**metrics, **counts}, fh, indent=1, sort_keys=True)
+            unused = {}                  # an installed skill with no call this window: its 0 is written, not missing
+            for n in installed:
+                if "skill.calls." + n + ".count" not in counts:
+                    unused["skill.calls." + n + ".count"] = unused["skill.calls." + n + ".per_week"] = 0
+            json.dump({**metrics, **counts, **unused}, fh, indent=1, sort_keys=True)
     print(f"scan: {len(S)} sessions, {days:.1f} days, report {len(report)//1024} KB"
           + (f" -> {a.out}" if a.out else ""), file=sys.stderr)
 

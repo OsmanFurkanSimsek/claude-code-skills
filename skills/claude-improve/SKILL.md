@@ -1,6 +1,6 @@
 ---
 name: claude-improve
-description: Use when the user types /claude-improve, asks for the Claude Code review (weekly, monthly, or whenever), or asks to go through past Claude Code conversations or transcripts to find what to improve ("how can we use Claude Code better", "review our sessions", "what keeps going wrong", "improve my Claude setup", "audit my transcripts"), types /doctor or asks for /insights together with the review, or when a session-start note says the review is due. Do NOT use to debug one live failure, to review a code diff, or to sync or back up skills.
+description: Use when the user types /claude-improve, asks for the Claude Code review (weekly, monthly, or whenever), or asks to go through past Claude Code conversations or transcripts to find what to improve ("how can we use Claude Code better", "review our sessions", "what keeps going wrong", "improve my Claude setup", "audit my transcripts"), types /doctor or asks for /insights together with the review, or when a session-start note says the review is due. Also use when the user types /skill-update or asks only to sync, back up or snapshot their skills ("sync my skills", "back up my skills", "check what changed across my skills", "keep the private repo updated"). Do NOT use to debug one live failure, to review a code diff, to back up the one skill the user names (back that one up directly), or for skill-authoring work.
 ---
 
 # Claude Improve - review how Claude Code has been working since the last review
@@ -14,6 +14,12 @@ there is no quota in either direction.
 The ledger is what makes this a continuing review instead of a one-off: it remembers every recommendation, the
 owner's answer, the baseline number, and how to check it. An item the owner muted is never raised
 again.
+
+Every run ends with the **update step** (Step 7) when the owner's setup has one: it backs up and syncs what
+changed, so the ledger and every fix of the run are saved too. **Asked only to sync or back up skills**
+("/skill-update", "sync my skills", "back up my skills"): run only Step 7, no scan and no review. The final
+answer stays short; "Nothing new to improve since <Last run>" plus "Setup backed up, nothing changed" is a
+valid whole answer. Speed comes only from never redoing audited work, never from a lower effort.
 
 ## Quick path: `Last run:` is under 24 hours old
 
@@ -31,19 +37,26 @@ handful of sessions, under 10 minutes for a busy day. A `Last run:` 24 hours old
    `quick_ledger.py` prints what the quick path needs from the ledger: Last run, the last Runs row, each open item
    with its Verify by and its `Since Done:` tally already brought to the window's end (`New:`; `Start:` from the one
    scan it runs for a Done inside the window), a "too early" mark under 10 sessions, and every "Checked, no action"
-   point, and each closed item's `Signal:` line (ID, status, Signal). Do not read or grep the ledger file; match a
-   candidate on those printed lines. Nothing else is scanned.
-2. **Tallies:** judge each item on its `New:` or `Start:` line (Step 2). A "too early" item needs nothing more. A
-   count marked "no scan key" is read in context only when the item could change status now.
+   point, and each closed item's `Signal:` line (ID, status, Signal). It also prints each done item's `Hint:` (a
+   suggested verdict with its reason), the call count of any skill an item names (0 = not used), and one line on
+   the window edge (a session crossing it counts in both windows: known, nothing to check). Do not read or grep the
+   ledger file; match a candidate on those printed lines. Nothing else is scanned.
+2. **Verdicts:** accept each done item's `Hint:` unless the scan or the window shows a reason not to (the hints
+   apply Step 2's rules). Reason only about items marked "needs reading", on their `New:` or `Start:` line, and
+   about new signals. A count marked "no scan key" is read in context only when such an item could change status
+   now; a skill call count of 0 needs no read.
 3. **New signals:** read `scan.md` and `insights-diff.md`; keep only what the ledger view does not hold yet. No
    helper agent, unless a new signal truly needs transcript reading; then one. The playbook is opened only for such
    a signal.
 4. **/insights:** start no new run while the newest report is under 24 hours old (it can only repeat itself); judge
    only what sessions after `Last run:` added (Step 1b). **/doctor** only when he typed it.
-5. **Answer in a few lines.** Nothing changed: one line, "Nothing new to improve since <Last run>", plus any
-   tally that moved an item (verified, not working). A pop-up only for items that need his answer.
+5. **Answer in a few lines; no plan and no full report.** Nothing changed: one line, "Nothing new to improve since
+   <Last run>". Then the too-early items in one line by ID (the reason in a few words), one line per item that moved
+   (verified, not working) or needs his answer, and one line per new signal kept. A pop-up only for items that
+   need his answer.
 6. **Record** as Step 6: `Last run:` = the scan's end, one Runs row, and every `Since Done:` line brought to that
    end (copy the `New:` and `Start:` lines), a newly verified item's too.
+7. **Update step** as Step 7, as in every run: its checks decide; with no change beyond the ledger it is one line.
 
 ## Rules that hold in every run
 
@@ -219,7 +232,29 @@ ask the same choices in one short numbered list.
    chunk; say which session will do it.
 3. **Later** -> `later`. **Never** -> `muted` with the reason. **Own idea** -> rewrite the item from
    the owner's words, then treat it as `Do it`.
-4. If the ledger lives in a git repo, commit it with that repo's normal flow.
+4. If the ledger lives in a git repo, Step 7 commits it with that repo's normal flow, together with the report
+   and the fixes (without an update step, commit it now).
+
+## Step 7 - Update step: back up and sync, last in every run
+
+The run's last step, after the fixes, so the ledger, the report and every fix of the run are saved with the
+rest of the setup. It runs when the owner's setup has one (a backup repo or a mirror of the skills, named in
+the owner's own instructions); without one, Step 6 ends the run.
+
+1. **Check first; the checks decide.** What changed since the last snapshot: the skill folders against the
+   backup (content hashes, not file times), the repo's own uncommitted files, and whatever this run's fixes
+   touched. Each check takes seconds.
+2. **Nothing changed** -> one line, "Setup backed up, nothing changed", and no snapshot, sync, commit or upload.
+   A review run always changed its ledger, so after a review the least this step does is commit that: "Setup
+   backed up: ledger and report only, nothing else changed".
+3. **Something changed** -> snapshot it, then publish only what is meant to be public, through its leak gate;
+   one combined commit per repo. A gate hit stops the publish and goes to the owner; never work around it.
+4. **Asked only to sync or back up** ("/skill-update", "sync my skills", "back up my skills", "keep the private
+   repo updated"): run only this step. No scan, no ledger, no review, no recommendation pop-up. When the owner
+   names one skill, back that one up directly instead of the whole batch.
+5. **Open decisions** this step raises (a diff that may hold private content, an upstream update to an
+   imported skill) go to the owner as one pop-up at the end, each with a recommendation.
+
 
 ## Common mistakes
 
@@ -235,6 +270,8 @@ ask the same choices in one short numbered list.
 | Re-mapping /insights points whose cases all predate `Last run:` | `insights_diff.py`; judge only what sessions after `Last run:` back, the rest in one count line |
 | Re-scanning from an old `Done:` time to judge a fix | Add this window's counts to the item's `Since Done:` tally |
 | Leaving "not working" fixes silently `done` | Re-open them with the numbers; they go to the owner |
+| Ending a run without the update step, or running a snapshot, sync or upload its checks found no need for | Step 7 once, last; its checks decide; nothing changed is one line |
+| Starting a review when the owner asked only to sync or back up skills | Step 7 alone |
 
 ## Reminder (optional, never a limit)
 

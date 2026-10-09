@@ -55,6 +55,13 @@ CORRECTION = re.compile(
     r"\b(why did you|why didn'?t you|I told you|I said|again\b|third time|not what I|that'?s wrong|"
     r"you forgot|you missed|don'?t (do|ask|schedule|use)|stop (doing|asking)|still not|instead of|"
     r"I already|as I said|every time|keep (doing|asking|forgetting))", re.I)
+# Owner asks about the time left while work runs (a pattern count, ledger key owner.time_asks).
+TIME_ASK = re.compile(r"\b(how far are you|how long (will|does|is|do)|how much (more )?time|when will (it|you|this|that)|"
+                      r"your estimate|take a long time|are you still working|still running\?)", re.I)
+# A correction candidate about voice, tone or wording of a text written as the owner (owner.corrections.voice).
+VOICE = re.compile(r"\b(voice|tone|sounds? like me|my style|my wording)\b", re.I)
+# The tool a call named does not exist in that session (a disabled plugin or server, a wrong name).
+NO_SUCH_TOOL = "No such tool available"
 BANDS = [(100e3, "lt100k"), (200e3, "100_200k"), (300e3, "200_300k"), (500e3, "300_500k"), (float("inf"), "gt500k")]
 # First line of the PROJECT.md gate's non-blocking note (hooks/furkan-project-md-gate.js NOTE_HEAD).
 GATE_NOTE = "PROJECT.md lint - new since your last write"
@@ -220,6 +227,7 @@ def main():
     corrections = []; toolsearch = []; turn_ms = []; ss_sizes = []; cwd_seen = C()
     model_tok = C(); heredoc_used = 0; secrets_in_cmds = 0; secret_where = set(); empty_sessions = 0
     twin_fork = 0; stop_blocks = 0; stop_followed = 0; stop_unfollowed = []
+    time_asks = 0; voice_corr = 0; no_such_tool = 0
 
     for f in main_files:
         try:
@@ -336,10 +344,12 @@ def main():
                         cm = re.findall(r"<command-name>/?([^<\s]+)</command-name>", c)
                         if cm:
                             cmds_win[cm[0]] += 1
-                        elif not c.startswith("<") and len(c) < 2000 and CORRECTION.search(c) and not o.get("isMeta"):
+                        elif not c.startswith("<") and len(c) < 2000 and not o.get("isMeta"):
+                            time_asks += bool(TIME_ASK.search(c))
                             item = (s["project"] + " " + sid[:8], ts.strftime("%m-%d %H:%M"), one_line(c, 260))
-                            if item not in corrections:
+                            if CORRECTION.search(c) and item not in corrections:
                                 corrections.append(item)
+                                voice_corr += bool(VOICE.search(c))
                         continue
                     for b in c or []:
                         if not isinstance(b, dict):
@@ -357,6 +367,7 @@ def main():
                         if not b.get("is_error"):
                             continue
                         tool_err[nm] += 1
+                        no_such_tool += NO_SUCH_TOOL in txt
                         if nm.startswith("mcp__"):
                             mcp_err[nm.split("__")[1]] += 1
                         pm = re.match(r"PreToolUse:(\w+) hook error: \[(.*?)\]: (.*)", txt, re.S)
@@ -532,7 +543,9 @@ def main():
                    ("compactions.per_week", sum(compacts.values())), ("bash.calls.per_week", bash_calls),
                    ("bash.errors.per_week", tool_err["Bash"] + tool_err["PowerShell"]), ("interrupts.per_week", interrupts),
                    ("subagents.per_week", sub_n), ("toolsearch.per_week", sum(toolsearch)),
-                   ("big_outputs_25k.per_week", len(big_out)), ("repeated_reads.per_week", len(reads_rep))):
+                   ("big_outputs_25k.per_week", len(big_out)), ("repeated_reads.per_week", len(reads_rep)),
+                   ("owner.time_asks.per_week", time_asks), ("owner.corrections.per_week", len(corrections)),
+                   ("owner.corrections.voice.per_week", voice_corr), ("tool.err.no_such_tool.per_week", no_such_tool)):
         rate(key, n)
     for k, v in bash_err.items():
         rate("bash.err." + k + ".per_week", v)
@@ -679,7 +692,8 @@ def main():
       + (" - top: " + ", ".join(f"{f} x{n} ({p})" for n, p, f in sorted(reads_rep, reverse=True)[:6]) if reads_rep else ""))
     P("")
     P("## 6. Owner friction")
-    P(f"- Interrupts: {interrupts}. API/system errors: {dict(api_err) or 0}")
+    P(f"- Interrupts: {interrupts}. API/system errors: {dict(api_err) or 0}. Owner asks about the time left: "
+      f"{time_asks}. Calls to a tool that does not exist: {no_such_tool}")
     P(f"- Owner messages that read like a correction ({len(corrections)} candidates; read in context before counting any):")
     for proj, day, txt in corrections[:40]:
         P(f"  - [{proj} {day}] {txt}")

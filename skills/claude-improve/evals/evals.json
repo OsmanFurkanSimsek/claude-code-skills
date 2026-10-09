@@ -77,13 +77,14 @@
     {
       "id": 6,
       "name": "same-day-rerun-takes-the-quick-path",
-      "prompt": "/claude-improve - I already ran it this morning, run it again. The ledger is at project-memory/claude-improve-ledger.md (Last run: 2026-10-09 09:00 UTC); it is now 2026-10-09 12:00 UTC. Everything is in this folder (invented test data): this window's scan in scan.md and scan.json, the one in-window re-run for CI-7 in since-done.md, and the /insights files: insights-diff.md (the output of scripts/insights_diff.py --since the ledger's Last run), insights-prev.txt (the report the morning run mapped, made 09:05 UTC) and insights-new.txt (a report I made myself at 11:30 UTC, 30 minutes ago). The transcripts behind the scan are not available, so take the scan's and the facets' lines as read in context.",
+      "prompt": "/claude-improve - I already ran it this morning, run it again. The ledger is at project-memory/claude-improve-ledger.md (Last run: 2026-10-09 09:00 UTC); it is now 2026-10-09 12:00 UTC. Everything is in this folder (invented test data): this window's scan in scan.md and scan.json, the one in-window re-run for CI-7 in since-done.md, the ledger view in quick-ledger.md (the output of scripts/quick_ledger.py --scan-json scan.json), and the /insights files: insights-diff.md (the output of scripts/insights_diff.py --since the ledger's Last run), insights-prev.txt (the report the morning run mapped, made 09:05 UTC) and insights-new.txt (a report I made myself at 11:30 UTC, 30 minutes ago). The transcripts behind the scan are not available, so take the scan's and the facets' lines as read in context.",
       "expected_output": "A short quick-path answer: no new /insights run, no /doctor, no helper; CI-6 verified on its running tally (8 + 4 = 12 sessions after Done, 0 heredoc errors, 5.0 -> 0) without re-scanning from its 10-02 Done time; CI-7 too early (2 sessions); only the one /insights point a session after Last run backs (the test suite re-run, 1 case) is judged, in one line; nothing needs the owner's decision; Last run set to 2026-10-09 12:00 UTC and both Since Done lines written through 12:00.",
       "files": [
         "evals/files/e6/project-memory/claude-improve-ledger.md",
         "evals/files/e6/scan.md",
         "evals/files/e6/scan.json",
         "evals/files/e6/since-done.md",
+        "evals/files/e6/quick-ledger.md",
         "evals/files/e6/insights-diff.md",
         "evals/files/e6/insights-prev.txt",
         "evals/files/e6/insights-new.txt"

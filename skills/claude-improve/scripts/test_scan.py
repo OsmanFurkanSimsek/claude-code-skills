@@ -91,3 +91,35 @@ def test_until_stops_the_window_and_counts_stay_raw(projects):
     assert "not followed:" in md
     assert m["bash.calls.count"] == 1 and m["bash.calls.per_week"] == round(1 * 7 / (2 / 24), 2)
     assert "bash.calls.count" not in md               # raw counts live in the --json file only
+
+
+def user(ts, text):
+    return line(type="user", timestamp=ts, cwd="/work/proj", message={"role": "user", "content": text})
+
+
+def test_owner_time_asks_voice_corrections_and_missing_tools_are_counted(projects):
+    d = projects / "projects" / "-work-proj"
+    rows = [
+        user("2026-10-09T10:10:00Z", "How far are you? How long will it take?"),     # one message, one ask
+        user("2026-10-09T10:11:00Z", "are you still working on it"),
+        user("2026-10-09T10:12:00Z", "That's wrong, it does not sound like me"),        # correction about voice
+        user("2026-10-09T10:13:00Z", "you forgot the second table"),                     # correction, not voice
+        user("2026-10-09T10:14:00Z", "<command-name>/clear</command-name> how far are you"),   # a command: no ask
+        tool("2026-10-09T10:15:00Z", "9", "Gone", {}),
+        line(type="user", timestamp="2026-10-09T10:15:01Z", cwd="/work/proj",
+             message={"role": "user", "content": [{"type": "tool_result", "tool_use_id": "t9", "is_error": True,
+                      "content": "<tool_use_error>Error: No such tool available: Gone</tool_use_error>"}]}),
+    ]
+    with open(d / "s1.jsonl", "a", encoding="utf-8") as fh:
+        fh.write("\n".join(rows) + "\n")
+    md, m = run_scan(projects)
+    assert m["owner.time_asks.count"] == 2
+    assert m["owner.corrections.count"] == 2 and m["owner.corrections.voice.count"] == 1
+    assert m["tool.err.no_such_tool.count"] == 1
+    assert "Owner asks about the time left: 2. Calls to a tool that does not exist: 1" in md
+
+
+def test_new_owner_keys_are_zero_when_nothing_matches(projects):
+    _, m = run_scan(projects)
+    for k in ("owner.time_asks", "owner.corrections", "owner.corrections.voice", "tool.err.no_such_tool"):
+        assert m[k + ".count"] == 0 and m[k + ".per_week"] == 0

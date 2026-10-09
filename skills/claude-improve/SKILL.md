@@ -23,19 +23,27 @@ nothing to improve", and of a run minutes after the last one: "It takes forever,
 with only a 3-minute difference." Target: an answer in about 1-2 minutes when the window is minutes long or holds a
 handful of sessions, under 10 minutes for a busy day. A `Last run:` 24 hours old or more runs Steps 0-6 in full.
 
-1. **Ledger:** read from the top to `## Closed items` (Last run, Runs, open items, "Checked, no action"). Grep the
-   closed items by `Signal:` only when a candidate needs matching.
-2. **One scan** of the window (Step 1). Nothing else is scanned: no `--since <Done>` for a Done time before
-   `Last run:` (Step 2 tallies).
-3. **Tallies:** add this window's counts from `scan.json` to each `Since Done:` line and judge on the sums (Step 2).
-4. **New signals:** only what this window's scan shows and the ledger does not hold yet. No helper agent, unless a
-   new signal truly needs transcript reading; then one. The playbook is opened only for such a signal.
-5. **/insights:** start no new run while the newest report is under 24 hours old (it can only repeat itself); run
-   `insights_diff.py` (under a second) and judge only what sessions after `Last run:` added (Step 1b). **/doctor**
-   only when he typed it.
-6. **Answer in a few lines.** Nothing changed: one line, "Nothing new to improve since <Last run>", plus any
+1. **One command, no ledger read.** Grep the ledger's `Last run:` line (Step 0), then run, in one Bash call:
+   ```bash
+   S="<this skill>/scripts"; O="<scratchpad>"; L="<ledger path>"
+   python "$S/scan.py" --from-ledger "$L" --out "$O/scan.md" --json "$O/scan.json" && python "$S/insights_diff.py" --since "<Last run>" --out "$O/insights-diff.md" && python "$S/quick_ledger.py" --ledger "$L" --scan-json "$O/scan.json" --start-tallies "$O"
+   ```
+   `quick_ledger.py` prints what the quick path needs from the ledger: Last run, the last Runs row, each open item
+   with its Verify by and its `Since Done:` tally already brought to the window's end (`New:`; `Start:` from the one
+   scan it runs for a Done inside the window), a "too early" mark under 10 sessions, and every "Checked, no action"
+   point, and each closed item's `Signal:` line (ID, status, Signal). Do not read or grep the ledger file; match a
+   candidate on those printed lines. Nothing else is scanned.
+2. **Tallies:** judge each item on its `New:` or `Start:` line (Step 2). A "too early" item needs nothing more. A
+   count marked "no scan key" is read in context only when the item could change status now.
+3. **New signals:** read `scan.md` and `insights-diff.md`; keep only what the ledger view does not hold yet. No
+   helper agent, unless a new signal truly needs transcript reading; then one. The playbook is opened only for such
+   a signal.
+4. **/insights:** start no new run while the newest report is under 24 hours old (it can only repeat itself); judge
+   only what sessions after `Last run:` added (Step 1b). **/doctor** only when he typed it.
+5. **Answer in a few lines.** Nothing changed: one line, "Nothing new to improve since <Last run>", plus any
    tally that moved an item (verified, not working). A pop-up only for items that need his answer.
-7. **Record** as Step 6: `Last run:` = the scan's end, one Runs row, the updated `Since Done:` lines.
+6. **Record** as Step 6: `Last run:` = the scan's end, one Runs row, and every `Since Done:` line brought to that
+   end (copy the `New:` and `Start:` lines), a newly verified item's too.
 
 ## Rules that hold in every run
 
@@ -71,7 +79,7 @@ handful of sessions, under 10 minutes for a busy day. A `Last run:` 24 hours old
    Claude setup, or of the current folder), create it from `references/ledger-format.md`, and write
    `~/.claude/claude-improve.json` as `{"ledger": "<absolute path>"}`.
 
-Read the ledger **in full** (quick path: up to `## Closed items`). Note its `Last run:` date and every item's
+Read the ledger **in full** (quick path: `quick_ledger.py` instead). Note its `Last run:` date and every item's
 status.
 
 ## Step 1 - Scan
@@ -132,7 +140,7 @@ For every ledger item, in this order:
 
 | Status | What to do this run |
 |---|---|
-| `done` | Judge it ONLY on traffic after its `Done:` time, from its running tally, the `Since Done:` line (`references/ledger-format.md`): add this window's counts from `scan.json` (`sessions.count`, `sessions.startup`, the metric's `.count`) and judge on the sum. Never re-scan a window an earlier run scanned. `scan.py --since "<Done>" --until "<window end>"` runs only when Done falls inside this window (it starts the tally), or once for an item with no `Since Done:` line yet whose History gives no counts (it covers this window too; do not add the window again). Fewer than 10 sessions in the tally -> "too early", stays `done`. A fix that needs a restart (settings env, MCP, profile) counts only sessions with start source `startup`: a /clear or /compact session keeps its old process. Improved as expected -> `verified` (before -> after). No change -> `not working`; it goes back to the owner. Never judge a fix on traffic from before it landed. |
+| `done` | Judge it ONLY on traffic after its `Done:` time, from its running tally, the `Since Done:` line (`references/ledger-format.md`): add this window's counts from `scan.json` (`sessions.count`, `sessions.startup`, the metric's `.count`; `quick_ledger.py --scan-json` prints the sums) and judge on the sum. Never re-scan a window an earlier run scanned. `scan.py --since "<Done>" --until "<window end>"` runs only when Done falls inside this window (it starts the tally), or once for an item with no `Since Done:` line yet whose History gives no counts (it covers this window too; do not add the window again). Fewer than 10 sessions in the tally -> "too early", stays `done`. A fix that needs a restart (settings env, MCP, profile) counts only sessions with start source `startup`: a /clear or /compact session keeps its old process. Improved as expected -> `verified` (before -> after). No change -> `not working`; it goes back to the owner. Never judge a fix on traffic from before it landed. |
 | `open` | Raised but never answered: ask again in Step 5, with this run's numbers. |
 | `not working` | Ask again in Step 5 with a different next move, never the same fix twice. |
 | `approved` | Still not done after 2 runs -> list it under "stuck on our side" with the reason. |

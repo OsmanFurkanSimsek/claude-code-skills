@@ -28,6 +28,7 @@ laws: a signal matters when it costs the owner time, money, trust or context.
 | Edit `not_read_first` / `no_match` / `modified_since` | Stale reads, guessed strings | Usually benign at low counts; a spike means edits from a stale view - re-read before editing |
 | MCP server with many errors | Which calls: wrong arguments, timeouts, auth? | Document the working call shape in the project instructions; fix the server config |
 | API errors clustered on some days | Outage or local proxy/network? | Usually not actionable; note it, don't recommend |
+| A count of leftover files (snapshots, logs, caches, temp files) | What deletes the healthy ones? A normal end often does, so the folder keeps mostly the failures: survivors, not a sample | Measure with a fresh test run of the real tool; read the program's code when its behaviour is the question |
 
 ## Guardrails and hooks
 

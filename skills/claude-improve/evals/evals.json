@@ -30,9 +30,13 @@
     {
       "id": 3,
       "name": "nothing-new-is-a-valid-result",
-      "prompt": "Do the claude-improve review for this week. The scan shows 12 sessions, 1 Bash error, no hook blocks, context share above 300K at 8%, and no owner corrections. The ledger has two done items whose metrics both improved past their targets.",
+      "prompt": "Do the claude-improve review for this week. The scan shows 12 sessions, 1 Bash error, no hook blocks, context share above 300K at 8%, and no owner corrections. The ledger has two done items whose metrics both improved past their targets. Everything is in this folder (invented test data): the ledger in project-memory/claude-improve-ledger.md, this week's scan in scan.md, and the scan.py --since re-runs for the two done items in since-done.md. The transcripts behind the scan are not available, so take the scan's lines as read in context.",
       "expected_output": "A short report: both done items move to verified with before -> after numbers, the New section says in one line that nothing new was found, and no invented recommendations appear.",
-      "files": [],
+      "files": [
+        "evals/files/e3/project-memory/claude-improve-ledger.md",
+        "evals/files/e3/scan.md",
+        "evals/files/e3/since-done.md"
+      ],
       "expectations": [
         "Marks both done items as verified with before -> after numbers",
         "States plainly that there are no new recommendations",
@@ -43,14 +47,18 @@
     {
       "id": 4,
       "name": "repeated-rule-gets-enforcement-not-a-copy",
-      "prompt": "Review our Claude Code sessions for improvements. In the scan's owner-correction section, the owner said three times in different weeks 'run the check now, don't schedule it for later', and that rule already exists in one project's decisions file.",
+      "prompt": "Review our Claude Code sessions for improvements. In the scan's owner-correction section, the owner said three times in different weeks 'run the check now, don't schedule it for later', and that rule already exists in one project's decisions file. Everything is in this folder (invented test data): the ledger in project-memory/claude-improve-ledger.md, the scan in scan.md, and that project's decisions file in report-builder/project-memory/decisions.md. The transcripts behind the scan are not available, so take the scan's lines as read in context.",
       "expected_output": "One recommendation, backed by the three dated corrections, that moves the rule to where every session sees it (global instructions or a check), not a second copy in the same project file.",
-      "files": [],
+      "files": [
+        "evals/files/e4/project-memory/claude-improve-ledger.md",
+        "evals/files/e4/scan.md",
+        "evals/files/e4/report-builder/project-memory/decisions.md"
+      ],
       "expectations": [
         "Cites the repeated corrections with counts or dates as evidence",
         "Recommends moving or enforcing the rule where every session sees it",
         "Does not recommend writing the same rule again in the same project file",
-        "Asks the owner with the do-it / later / never choices"
+        "Asks the owner in a pop-up whose chips include a do-it option and 'Never - mute it' (owner, 2026-10-09: muting stays one click)"
       ]
     },
     {

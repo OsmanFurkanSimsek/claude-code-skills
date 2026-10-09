@@ -161,13 +161,17 @@ never part of a clean-up item.
 - `D. Your own idea` - preview: "Pick this, press n, and type what you want instead."
 
 If the owner's setup defines its own decision format (a rules file or CLAUDE.md), follow that
-instead. Without a pop-up tool, ask the same choices in one short numbered list.
+instead, but keep `C. Never - mute it` on every item: A-B are the two best options (one may be `Later`), C mutes,
+D is his own idea (owner, 2026-10-09: muting stays one click, the ledger depends on it). Without a pop-up tool,
+ask the same choices in one short numbered list.
 
 ## Step 6 - Record, then act
 
 1. **Ledger first, right after the answers:** status, the owner's words in `Owner:` (verbatim when
-   short), today's date in `History:`. Set `Last run:` to now as `YYYY-MM-DD HH:MM` UTC (the next
-   run's `--since`) and add one `Runs` row whose Window shows the exact from and to scanned.
+   short), today's date in `History:`. Set `Last run:` to the END of the window this run scanned (the
+   scan's first line), as `YYYY-MM-DD HH:MM` UTC: it is the next run's `--since`, and the time of writing would
+   leave the sessions between the scan and the write unscanned for good. Add one `Runs` row whose Window
+   shows the exact from and to scanned.
 2. **Do it** + small and reversible (under ~30 minutes): do it now, verify it, set `done` with
    `Done: YYYY-MM-DD HH:MM` UTC, `Verify by` + baseline. Larger: status `approved` and add it to the project's plan as its own
    chunk; say which session will do it.

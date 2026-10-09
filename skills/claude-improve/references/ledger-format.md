@@ -32,7 +32,8 @@ Last run: YYYY-MM-DD HH:MM UTC
 
 "Checked, no action" holds every /insights point or suggestion and every /doctor extension verdict that needed no
 item, so the next run skips it (rule "Never redo audited work"). Re-open a line only when evidence after `Last run:`
-changes it; then it becomes an item.
+changes it; then it becomes an item. An /insights point no session after `Last run:` backs gets at most one line
+("no case after <Last run>"), however its title is worded in the new report.
 
 ## One item
 
@@ -43,6 +44,7 @@ changes it; then it becomes an item.
 - Evidence: 39 EOF errors in 10 weeks, 13 of them with the apostrophe path in the command
 - Fix: rule "write scripts to a file, run by path" in ~/.claude/CLAUDE.md
 - Verify by: bash.err.heredoc_eof.per_week below 2 (baseline 3.9)
+- Since Done: 23 sessions (9 startup), 1 heredoc_eof error, through 2026-10-09 12:01 UTC
 - Owner: "fix it"
 - History: 2026-09-27 raised, approved, done
 ```
@@ -67,6 +69,22 @@ Fields:
 - **Fix** - the smallest change and where it lives (file, hook, rule, skill).
 - **Verify by** - metric key + target + baseline. Required before an item can be `done`.
 - **Done** - when the fix landed (UTC). Only traffic after it counts when judging the fix.
+- **Since Done** - the running tally a fix is judged on, so no run re-scans days an earlier run scanned:
+  `<N> sessions (<M> startup), <count> <what the Verify by metric counts>, through <YYYY-MM-DD HH:MM> UTC`.
+  Every `done` item has one, and so does a `later` or `not working` item that still watches its fix.
+  - **Start:** when Done falls inside a run's window, `scan.py --since "<Done>" --until "<window end>"` gives the
+    first numbers. An item from before this line existed (2026-10-09) gets it once: from the numbers its History
+    already states through `Last run:` when they name sessions and the metric's count, else one
+    `scan.py --since "<Done>" --until "<window end>"` run, which already covers this window.
+  - **Each later run:** add the window's own counts from `scan.json` (`sessions.count`, `sessions.startup`, the
+    metric's `<key>.count`) and set "through" to the window's end, the new `Last run:`. A session active across a
+    window's edge counts in both windows' `sessions`, so that sum runs a little high; `startup` counts each fresh
+    start once, and event counts never repeat.
+  - **Not a plain count:** a share keeps its numerator and denominator ("3 of 23 outputs untouched"); a median or
+    another number that cannot be summed lists each window's value with its sessions ("10-09: median 1 in 11
+    sessions; 10-10: median 2 in 6"). A metric only reading can count (owner asks, a test child) names the count
+    read in context. A one-time full re-scan written into `Verify by` with its date (for example "judge on
+    11-05 with `--since 10-08`") is the only planned re-scan.
 - **Owner** - the owner's answer, verbatim when short; for `muted`, the reason.
 - **History** - dated one-liners: raised, answered, done, verified / not working.
 

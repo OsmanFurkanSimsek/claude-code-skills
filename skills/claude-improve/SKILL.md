@@ -15,6 +15,28 @@ The ledger is what makes this a continuing review instead of a one-off: it remem
 owner's answer, the baseline number, and how to check it. An item the owner muted is never raised
 again.
 
+## Quick path: `Last run:` is under 24 hours old
+
+A second or third run on one day checks only what changed since the last run. The owner, 2026-10-09: "When I run
+it a second time, you should just check what has changed between the first and second runs and tell me if there is
+nothing to improve", and of a run minutes after the last one: "It takes forever, and I don't want that if I run it
+with only a 3-minute difference." Target: an answer in about 1-2 minutes when the window is minutes long or holds a
+handful of sessions, under 10 minutes for a busy day. A `Last run:` 24 hours old or more runs Steps 0-6 in full.
+
+1. **Ledger:** read from the top to `## Closed items` (Last run, Runs, open items, "Checked, no action"). Grep the
+   closed items by `Signal:` only when a candidate needs matching.
+2. **One scan** of the window (Step 1). Nothing else is scanned: no `--since <Done>` for a Done time before
+   `Last run:` (Step 2 tallies).
+3. **Tallies:** add this window's counts from `scan.json` to each `Since Done:` line and judge on the sums (Step 2).
+4. **New signals:** only what this window's scan shows and the ledger does not hold yet. No helper agent, unless a
+   new signal truly needs transcript reading; then one. The playbook is opened only for such a signal.
+5. **/insights:** start no new run while the newest report is under 24 hours old (it can only repeat itself); run
+   `insights_diff.py` (under a second) and judge only what sessions after `Last run:` added (Step 1b). **/doctor**
+   only when he typed it.
+6. **Answer in a few lines.** Nothing changed: one line, "Nothing new to improve since <Last run>", plus any
+   tally that moved an item (verified, not working). A pop-up only for items that need his answer.
+7. **Record** as Step 6: `Last run:` = the scan's end, one Runs row, the updated `Since Done:` lines.
+
 ## Rules that hold in every run
 
 - **Never redo audited work.** Every source starts at the ledger's `Last run:`; what came before was audited by
@@ -49,7 +71,8 @@ again.
    Claude setup, or of the current folder), create it from `references/ledger-format.md`, and write
    `~/.claude/claude-improve.json` as `{"ledger": "<absolute path>"}`.
 
-Read the ledger **in full**. Note its `Last run:` date and every item's status.
+Read the ledger **in full** (quick path: up to `## Closed items`). Note its `Last run:` date and every item's
+status.
 
 ## Step 1 - Scan
 
@@ -65,10 +88,11 @@ python "<this skill>/scripts/scan.py" --from-ledger "<ledger path>" --out "<scra
 
 `--from-ledger` applies exactly these rules; the report's first line states the window it used.
 
-About one minute per 50 sessions; read-only. Read `scan.md` in full (about 25 KB). Its last section is
-the metrics JSON with stable keys, normalised to per-7-days, which the ledger's `Verify by` lines use.
-If the scan shows something it cannot explain (a zero where there should be traffic, an impossible
-number), fix `scan.py` first and re-run; a wrong scan poisons every step after it.
+Seconds, not minutes (3.7 s for a 5-hour window, 2026-10-09); read-only. Read `scan.md` in full (about 25 KB). Its
+last section is the metrics JSON with stable keys, normalised to per-7-days, which the ledger's `Verify by` lines
+use; `scan.json` also holds each one's raw count (`<key>.count`, plus `sessions.startup`, `window.start`,
+`window.end`) for the tallies in Step 2. If the scan shows something it cannot explain (a zero where there should be
+traffic, an impossible number), fix `scan.py` first and re-run; a wrong scan poisons every step after it.
 
 ## Step 1b - Setup health (/doctor) and Claude Code's own session report (/insights)
 
@@ -85,14 +109,22 @@ anything"). Neither changes anything; their findings become candidates like any 
   re-judged only when its counter moved. Skip its own confirm-and-apply
   questions: its proposals go through Step 5. Without /doctor in his message, say in one line that it was not
   included and how to include it next time.
-- **/insights** runs without him, in a background print-mode child (about 70 s, cwd in the scratchpad):
-  `MSYS_NO_PATHCONV=1 env -u ANTHROPIC_API_KEY claude -p "/insights" --disallowedTools "Write,Edit,NotebookEdit,Agent" --no-session-persistence`
-  (`MSYS_NO_PATHCONV=1`, or Git Bash turns `/insights` into a folder path). It prints the report path
-  (`~/.claude/usage-data/report-<date>.html`); `scripts/html2text.py <html> <txt>` makes it readable. Its points are
-  model-estimated over months, but it caches each session's analysis and adds only new sessions. Map EVERY point
-  and suggestion: one already under "Checked, no action" or in an item is skipped unless it names something after
-  `Last run:`; a new one gets its item or a verdict, confirmed only in transcripts after `Last run:` (a helper for
-  more than a few reads). Record each verdict under "Checked, no action" in the ledger.
+- **/insights** is Claude Code's own report over every session it has analysed (months). Each report rewrites its
+  whole text, so two reports of one day share few lines and a line diff marks every point as new (10-09: 3 of 17
+  titles alike, 6 hours apart). What can be new is only what sessions after `Last run:` brought: it keeps one
+  analysis per session ("facet") and adds only new sessions.
+  1. Start a run only when the newest `~/.claude/usage-data/report-*.html` is 24 hours old or more, or when he asks;
+     otherwise use the newest report as it is. The run goes without him, in a background print-mode child (about
+     70 s, cwd in the scratchpad):
+     `MSYS_NO_PATHCONV=1 env -u ANTHROPIC_API_KEY claude -p "/insights" --disallowedTools "Write,Edit,NotebookEdit,Agent" --no-session-persistence`
+     (`MSYS_NO_PATHCONV=1`, or Git Bash turns `/insights` into a folder path).
+  2. `python "<this skill>/scripts/insights_diff.py" --since "<Last run>" --out "<scratchpad>/insights-diff.md"`
+     (under a second): the newest report and the one before it as text in the scratchpad, the new report's points and suggestions
+     (marked same or new title), and every facet of a session active after `Last run:` with its friction line.
+  3. Judge only what those facets back. A point or suggestion no listed facet backs has all its cases before
+     `Last run:`: if the ledger does not hold it yet, one line under "Checked, no action" ("no case after
+     <Last run>"); no helper, no transcript reading. A point a listed facet backs is a Step 3 candidate (read that
+     session in context); a new one gets its item or a verdict. Record each verdict under "Checked, no action".
 
 ## Step 2 - Check the past before the new
 
@@ -100,7 +132,7 @@ For every ledger item, in this order:
 
 | Status | What to do this run |
 |---|---|
-| `done` | Judge it ONLY on traffic after its `Done:` time: re-run `scan.py --since "<Done time>"` for that metric. Fewer than 10 sessions since then -> "too early", stays `done`. A fix that needs a restart (settings env, MCP, profile) counts only sessions with start source `startup`: a /clear or /compact session keeps its old process (`scan.py` prints the source). Improved as expected -> `verified` (before -> after). No change -> `not working`; it goes back to the owner. Never judge a fix on traffic from before it landed. |
+| `done` | Judge it ONLY on traffic after its `Done:` time, from its running tally, the `Since Done:` line (`references/ledger-format.md`): add this window's counts from `scan.json` (`sessions.count`, `sessions.startup`, the metric's `.count`) and judge on the sum. Never re-scan a window an earlier run scanned. `scan.py --since "<Done>" --until "<window end>"` runs only when Done falls inside this window (it starts the tally), or once for an item with no `Since Done:` line yet whose History gives no counts (it covers this window too; do not add the window again). Fewer than 10 sessions in the tally -> "too early", stays `done`. A fix that needs a restart (settings env, MCP, profile) counts only sessions with start source `startup`: a /clear or /compact session keeps its old process. Improved as expected -> `verified` (before -> after). No change -> `not working`; it goes back to the owner. Never judge a fix on traffic from before it landed. |
 | `open` | Raised but never answered: ask again in Step 5, with this run's numbers. |
 | `not working` | Ask again in Step 5 with a different next move, never the same fix twice. |
 | `approved` | Still not done after 2 runs -> list it under "stuck on our side" with the reason. |
@@ -139,11 +171,13 @@ In this order, plain words, numbers inline:
 5. **New** - numbered; each: plain-words title, evidence (counts + one short example), the smallest
    fix and where it lives, effort, and the metric that will show at the next run whether it worked.
 6. **Setup health (/doctor)** - one line per check, a keep or turn-off verdict with one reason for every unused
-   extension, then **/insights** - every point and suggestion with its item or a yes/no and one reason.
+   extension, then **/insights** - one line per point or suggestion a session after `Last run:` backs (its item, or
+   a yes/no and one reason), and one count line for the rest ("14 points, no case after <Last run>").
 7. **Muted** - one line: "N muted items skipped" (list them only if asked).
 
 Nothing new? Say so in one line under **New**. Always save the full report as
-`reports/YYYY-MM-DD_claude-improve.md` in the ledger's project. If the owner's rules say nothing may
+`reports/YYYY-MM-DD_claude-improve.md` in the ledger's project; a second run on the same day adds its own section
+(heading = its window) at the end of that file and never overwrites the first. If the owner's rules say nothing may
 come before a decision pop-up, show the pop-up first (the report path in the first question) and the
 chat summary after the answers.
 
@@ -171,7 +205,7 @@ ask the same choices in one short numbered list.
    short), today's date in `History:`. Set `Last run:` to the END of the window this run scanned (the
    scan's first line), as `YYYY-MM-DD HH:MM` UTC: it is the next run's `--since`, and the time of writing would
    leave the sessions between the scan and the write unscanned for good. Add one `Runs` row whose Window
-   shows the exact from and to scanned.
+   shows the exact from and to scanned. Bring every `Since Done:` line up to the same end time.
 2. **Do it** + small and reversible (under ~30 minutes): do it now, verify it, set `done` with
    `Done: YYYY-MM-DD HH:MM` UTC, `Verify by` + baseline. Larger: status `approved` and add it to the project's plan as its own
    chunk; say which session will do it.
@@ -190,7 +224,8 @@ ask the same choices in one short numbered list.
 | Proposing a new skill or hook first | Name the existing home that could hold it, or why none can |
 | Dumping transcripts into the main context | Helper agent writes to a file; read only what you need |
 | Handing /doctor's checks to a helper | It refuses; the main session runs them on the owner's own /doctor |
-| "Nothing new from /insights" after checking only some of its points | Map every point and suggestion, one line each |
+| Re-mapping /insights points whose cases all predate `Last run:` | `insights_diff.py`; judge only what sessions after `Last run:` back, the rest in one count line |
+| Re-scanning from an old `Done:` time to judge a fix | Add this window's counts to the item's `Since Done:` tally |
 | Leaving "not working" fixes silently `done` | Re-open them with the numbers; they go to the owner |
 
 ## Reminder (optional, never a limit)

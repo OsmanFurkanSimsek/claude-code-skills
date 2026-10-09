@@ -1,0 +1,25 @@
+Claude Code Insights
+# Claude Code Insights
+455 messages across 64 sessions (78 total) | 2026-07-01 to 2026-10-09
+## Where Things Go Wrong
+Outputs longer than asked
+Claude often wrote more than the ask needed. State the length up front.
+- The weekly summary for the notes-app came out three pages long when one was asked for (10-03).
+- A status reply listed every file touched instead of the one result (10-05).
+Long sessions without a handoff
+Some sessions ran long before the work was written down for the next one.
+- A data-pipeline session ran 3 hours before the plan was saved (10-04).
+Same test suite re-run after small edits
+Claude sometimes ran the whole test suite again after a one-line change.
+- In a report-builder session the 140-test suite ran twice after one-line edits, about 2 minutes in all (10-09).
+## Existing CC Features to Try
+## Scope
+- Do only what was asked.
+Hooks
+Run commands at events.
+Custom Skills
+Reusable prompts.
+## New Ways to Use Claude Code
+Ask for the short version first
+## On the Horizon
+Parallel checks

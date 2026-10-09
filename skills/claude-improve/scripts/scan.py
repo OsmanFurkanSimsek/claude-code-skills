@@ -4,11 +4,12 @@
 Reads ~/.claude/projects/*/*.jsonl (main sessions) and their subagent files, counts only
 entries whose timestamp falls inside the window, and writes:
   --out   a markdown report the agent reads (numbers + a few examples per signal)
-  --json  stable metric keys, normalised to "per 7 days", for comparing runs
+  --json  stable metric keys, normalised to "per 7 days", for comparing runs, plus each one's raw <key>.count
 
 Usage:
   python scan.py --days 7 --out scan.md --json scan.json
   python scan.py --since 2026-09-20 --out scan.md --json scan.json
+  python scan.py --since "2026-10-09 10:30" --until "2026-10-09 12:00" --json since-done.json   (a Done inside the window)
 Standard library only. Read-only: it never writes anywhere except --out / --json.
 Test runs (eval relays, temp-folder child runs) stay out of every metric and are counted in the header;
 --include-test-runs keeps them in.
@@ -39,6 +40,11 @@ BASH_ERR = {
 # Project folders of test runs, not the owner's work: eval relays (skill-creator `*-workspace-*`) and child
 # runs started in a temp or scratchpad folder. 2026-10-08: 379 of 444 sessions in one window were these.
 TEST_RUN_DIR = re.compile(r"AppData-Local-Temp|-workspace-", re.I)
+# An env var set by the command itself: `export NAME=` only at a command position (start, after ; & | ( or a
+# newline, or after then/do/else). `grep -q '^export PATH='` reads a file and is no export (2026-10-09 replay: 17 of 17 PATH hits).
+EXPORT_AT_COMMAND = re.compile(r"(?:(?:^|[;&|(\n])\s*|\b(?:then|do|else)\s+)export\s+([A-Za-z_][A-Za-z0-9_]*)=")
+# First line of the Stop gate's block when project files changed but PROJECT.md did not (hooks/furkan-stop-gate.js).
+STOP_PROJECT_MD = "PROJECT.md was NOT updated"
 EDIT_ERR = {
     "not_read_first": r"has not been read|must Read|Read it first",
     "no_match": r"String to replace not found|not found in file|old_string",
@@ -148,6 +154,8 @@ def main():
                     "use a fix's Done time to judge it only on traffic after the fix")
     ap.add_argument("--from-ledger", help="ledger file: scan from its 'Last run:' date/time to now, however "
                     "long or short that is (no Last run: every transcript on disk). Overrides --since/--days")
+    ap.add_argument("--until", help="'YYYY-MM-DD HH:MM' UTC, exclusive (default: now); a Done time inside this "
+                    "run's window is scanned --since Done --until the window's end, so its tally stops where the window does")
     ap.add_argument("--projects-dir", default=os.path.join(CLAUDE, "projects"))
     ap.add_argument("--out", help="markdown report path (default: stdout)")
     ap.add_argument("--json", help="metrics JSON path")
@@ -171,7 +179,8 @@ def main():
         else:
             last = dt.datetime.fromisoformat(m.group(1) + " " + (m.group(2) or "00:00"))
             since = last.replace(tzinfo=dt.timezone.utc)
-    days = max((now - since).total_seconds() / 86400, 1e-9)
+    end = dt.datetime.fromisoformat(a.until).replace(tzinfo=dt.timezone.utc) if a.until else now
+    days = max((end - since).total_seconds() / 86400, 1e-9)
     per_week = lambda n: round(n * 7 / days, 2)
     since_ms = since.timestamp()
 
@@ -210,7 +219,7 @@ def main():
     band_tok = C(); band_turns = C(); compacts = C(); api_err = C(); interrupts = 0
     corrections = []; toolsearch = []; turn_ms = []; ss_sizes = []; cwd_seen = C()
     model_tok = C(); heredoc_used = 0; secrets_in_cmds = 0; secret_where = set(); empty_sessions = 0
-    twin_fork = 0
+    twin_fork = 0; stop_blocks = 0; stop_followed = 0; stop_unfollowed = []
 
     for f in main_files:
         try:
@@ -221,6 +230,7 @@ def main():
         sid = os.path.basename(f)[:-6]
         s = None
         id2 = {}; seen_msg = set(); reads = C(); ts_n = 0; cost = None; cost_models = {}
+        stop_pm = []; pm_edits = []        # Stop blocks "PROJECT.md was NOT updated"; Edit/Write of a PROJECT.md
         with open(f, encoding="utf-8", errors="replace") as fh:
             for line in fh:
                 try:
@@ -232,7 +242,7 @@ def main():
                     cost = o.get("totalCostUSD"); cost_models = o.get("modelUsage") or {}
                     continue
                 ts = parse_ts(o.get("timestamp") or "")
-                if ts is None or ts < since:
+                if ts is None or ts < since or ts >= end:
                     continue
                 if s is None:
                     s = sessions[sid] = {"project": "?", "first": ts, "last": ts, "max_ctx": 0, "turns": 0}
@@ -266,6 +276,8 @@ def main():
                             script = hook_script(at.get("command") or (pm.group(1) if pm else "")) or (ev.lower() + "-hook")
                             first = (pm.group(2) if pm else msg).strip().split("\n")[0]
                             hook_msgs[(ev, script, one_line(first, 110))] += 1
+                            if ev == "Stop" and typ == "hook_blocking_error" and STOP_PROJECT_MD in msg:
+                                stop_pm.append(ts)   # ledger CI-3: is each block followed by a reconcile?
                         if ev == "SessionStart" and at.get("content"):
                             ss_sizes.append(len(text_of(at.get("content"))))
                         # Non-blocking lint notes after a write (since 2026-09-28 the PROJECT.md gate no
@@ -310,8 +322,11 @@ def main():
                             if SECRET.search(cmd):
                                 secrets_in_cmds += 1
                                 secret_where.add(s["project"] + " " + sid[:8] + " " + ts.strftime("%m-%d"))
-                            for var in re.findall(r"\bexport\s+([A-Za-z_][A-Za-z0-9_]*)=", cmd):
+                            for var in EXPORT_AT_COMMAND.findall(cmd):
                                 exports[var] += 1
+                        if nm in ("Edit", "Write", "MultiEdit") and \
+                                re.split(r"[\\/]", str(inp.get("file_path") or ""))[-1].upper() == "PROJECT.MD":
+                            pm_edits.append(ts)
                 elif t == "user":
                     m = o.get("message") or {}
                     c = m.get("content")
@@ -374,6 +389,12 @@ def main():
             s = None
         if s is not None:
             s["cost"] = cost; s["models"] = cost_models; s["toolsearch"] = ts_n
+            for bt in stop_pm:
+                stop_blocks += 1
+                if any(e > bt for e in pm_edits):
+                    stop_followed += 1
+                elif len(stop_unfollowed) < a.examples + 3:
+                    stop_unfollowed.append(f"{s['project']} {sid[:8]} {bt:%m-%d %H:%M}")
             for fp, n in reads.items():
                 if n >= 3:
                     reads_rep.append((n, s["project"], os.path.basename(fp)))
@@ -399,7 +420,7 @@ def main():
                 except Exception:
                     continue
                 ts = parse_ts(o.get("timestamp") or "")
-                if not ts or ts < since:
+                if not ts or ts < since or ts >= end:
                     continue
                 msg = o.get("message") or {}
                 mdl = mdl or msg.get("model"); eff = eff or o.get("effort")
@@ -476,56 +497,59 @@ def main():
     S = list(sessions.values())
     if open_start and S:            # first run over every transcript: the window starts at the oldest one
         since = min(x["first"] for x in S)
-        days = max((now - since).total_seconds() / 86400, 1e-9)   # per_week() reads this at call time
+        days = max((end - since).total_seconds() / 86400, 1e-9)   # per_week() reads this at call time
     tot_tok = sum(band_tok.values()) or 1
     share = lambda keys: round(100 * sum(band_tok[k] for k in keys) / tot_tok, 1)
     spend = sum(x["cost"] or 0 for x in S)
     over300 = [x for x in S if x["max_ctx"] > 300e3]
     over200 = [x for x in S if x["max_ctx"] > 200e3]
     bash_calls = tool_calls["Bash"] + tool_calls["PowerShell"]
+    starts = C(x.get("source", "?") for x in S)
+    counts = C()                       # raw count behind every .per_week key, for the ledger's Since Done: tallies
+
+    def rate(key, n):
+        """Set a .per_week metric (summed when the key repeats) and keep its raw count as <key>.count."""
+        metrics[key] = round(metrics[key] + per_week(n), 2) if key in metrics else per_week(n)
+        counts[key[:-len(".per_week")] + ".count"] += n
+
     metrics = {
         "window.days": round(days, 1), "window.since": since.strftime("%Y-%m-%d"),
-        "sessions": len(S), "sessions.per_week": per_week(len(S)),
+        "window.start": since.strftime("%Y-%m-%d %H:%M"), "window.end": end.strftime("%Y-%m-%d %H:%M"),
+        "sessions": len(S), "sessions.startup": starts["startup"],
         "spend.usd": round(spend, 2), "spend.usd.per_week": per_week(spend),
         "spend.over300k_sessions.pct": round(100 * sum(x["cost"] or 0 for x in over300) / spend, 1) if spend else 0,
         "ctx.tokens.m": round(tot_tok / 1e6, 1),
         "ctx.share_above_200k.pct": share(["200_300k", "300_500k", "gt500k"]),
         "ctx.share_above_300k.pct": share(["300_500k", "gt500k"]),
-        "ctx.sessions_over_300k.per_week": per_week(len(over300)), "ctx.sessions_over_200k.per_week": per_week(len(over200)),
-        "bash.heredoc_used.per_week": per_week(heredoc_used),
-        "bash.err.windows_twin.fork.per_week": per_week(twin_fork),
-        "secrets.in_commands.per_week": per_week(secrets_in_cmds),
         "sessions.empty_skipped": empty_sessions,
         "sessions.test_runs_left_out": test_n,
-        "compactions.per_week": per_week(sum(compacts.values())),
-        "bash.calls.per_week": per_week(bash_calls),
-        "bash.errors.per_week": per_week(tool_err["Bash"] + tool_err["PowerShell"]),
-        "interrupts.per_week": per_week(interrupts),
-        "subagents.per_week": per_week(sub_n),
-        "toolsearch.per_week": per_week(sum(toolsearch)),
-        "big_outputs_25k.per_week": per_week(len(big_out)),
-        "repeated_reads.per_week": per_week(len(reads_rep)),
+        "hook.stop.project_md.blocks": stop_blocks, "hook.stop.project_md.reconciled": stop_followed,
     }
+    for key, n in (("sessions.per_week", len(S)),
+                   ("ctx.sessions_over_300k.per_week", len(over300)), ("ctx.sessions_over_200k.per_week", len(over200)),
+                   ("bash.heredoc_used.per_week", heredoc_used), ("bash.err.windows_twin.fork.per_week", twin_fork),
+                   ("secrets.in_commands.per_week", secrets_in_cmds),
+                   ("compactions.per_week", sum(compacts.values())), ("bash.calls.per_week", bash_calls),
+                   ("bash.errors.per_week", tool_err["Bash"] + tool_err["PowerShell"]), ("interrupts.per_week", interrupts),
+                   ("subagents.per_week", sub_n), ("toolsearch.per_week", sum(toolsearch)),
+                   ("big_outputs_25k.per_week", len(big_out)), ("repeated_reads.per_week", len(reads_rep))):
+        rate(key, n)
     for k, v in bash_err.items():
-        metrics["bash.err." + k + ".per_week"] = per_week(v)
+        rate("bash.err." + k + ".per_week", v)
     for k, v in edit_err.items():
-        metrics["edit.err." + k + ".per_week"] = per_week(v)
+        rate("edit.err." + k + ".per_week", v)
     for (ev, script, _), v in hook_msgs.items():
-        key = "hook.block." + ev + "." + script + ".per_week"
-        metrics[key] = round(metrics.get(key, 0) + per_week(v), 2)
+        rate("hook.block." + ev + "." + script + ".per_week", v)
     for (tool, script), v in pre_blocks.items():
-        key = "hook.block.PreToolUse." + script + ".per_week"
-        metrics[key] = round(metrics.get(key, 0) + per_week(v), 2)
+        rate("hook.block.PreToolUse." + script + ".per_week", v)
     for (ev, script), v in gate_notes.items():
-        key = "hook.context." + ev + "." + script + ".per_week"
-        metrics[key] = round(metrics.get(key, 0) + per_week(v), 2)
+        rate("hook.context." + ev + "." + script + ".per_week", v)
     for k, v in exports.items():
-        metrics["bash.export." + k + ".per_week"] = per_week(v)
+        rate("bash.export." + k + ".per_week", v)
     for k, v in skills_win.items():                  # plugin:name and name count as one skill
-        key = "skill.calls." + k.split(":")[-1] + ".per_week"
-        metrics[key] = round(metrics.get(key, 0) + per_week(v), 2)
+        rate("skill.calls." + k.split(":")[-1] + ".per_week", v)
     for k, v in sub_effort.items():                  # helper effort tiers (ledger CI-23)
-        metrics["subagents.effort." + k + ".per_week"] = per_week(v)
+        rate("subagents.effort." + k + ".per_week", v)
         metrics["subagents.median_minutes." + k] = round(statistics.median(sub_min[k]), 1)
         metrics["subagents.median_output_tokens." + k] = int(statistics.median(sub_out[k]))
     all_min = [x for v in sub_min.values() for x in v]; all_out = [x for v in sub_out.values() for x in v]
@@ -538,15 +562,15 @@ def main():
             src_chars[src] += v; src_n[src] += out_n[nm]; src_big[src] += out_big[nm]
             src_max[src] = max(src_max[src], out_max[nm])
     for src, v in src_chars.items():
-        metrics["tool.out." + src + ".calls.per_week"] = per_week(src_n[src])
-        metrics["tool.out." + src + ".chars.per_week"] = per_week(v)
+        rate("tool.out." + src + ".calls.per_week", src_n[src])
+        rate("tool.out." + src + ".chars.per_week", v)
         metrics["tool.out." + src + ".avg"] = v // max(1, src_n[src])
         metrics["tool.out." + src + ".max"] = src_max[src]
-        metrics["tool.out." + src + ".over_25k.per_week"] = per_week(src_big[src])
+        rate("tool.out." + src + ".over_25k.per_week", src_big[src])
 
     # ---- local add-ons (scripts/*.private.py, see private_sections) ----
     addon_lines, addon_metrics = private_sections(a.private_dir, {
-        "projects_dir": a.projects_dir, "since": since, "now": now, "days": days, "examples": a.examples})
+        "projects_dir": a.projects_dir, "since": since, "now": end, "days": days, "examples": a.examples})
     metrics.update(addon_metrics)
 
     # ---- report ----
@@ -554,7 +578,7 @@ def main():
     P = L.append
     P("# Claude Code usage scan")
     P("")
-    P(f"Window: {since:%Y-%m-%d %H:%M} to {now:%Y-%m-%d %H:%M} UTC ({days:.1f} days). Sessions: {len(S)} "
+    P(f"Window: {since:%Y-%m-%d %H:%M} to {end:%Y-%m-%d %H:%M} UTC ({days:.1f} days). Sessions: {len(S)} "
       f"(+{empty_sessions} with no assistant turn skipped); subagent runs: {sub_n}. "
       + (f"Left out: {test_n} test-run session files (${test_cost:,.2f}; eval and temp-folder runs, "
          "`--include-test-runs` keeps them). " if test_n else "") +
@@ -589,7 +613,6 @@ def main():
         P(f"  - {k}: {v}")
         for cmd, err in bash_ex[k]:
             P(f"    - `{cmd}` -> {err}")
-    starts = C(x.get("source", "?") for x in sessions.values())
     P(f"- Sessions by start source: " + ", ".join(f"{k} {v}" for k, v in starts.most_common())
       + f"; Windows-twin failures in forked sessions: {twin_fork}")
     if edit_err:
@@ -620,6 +643,8 @@ def main():
     if gate_notes:
         P("- Non-blocking lint notes after writes (event, script, count): "
           + ", ".join(f"{ev} / {script}: {v}" for (ev, script), v in gate_notes.most_common()))
+    P(f"- Stop blocks \"{STOP_PROJECT_MD}\": {stop_blocks}, followed by an Edit/Write of a PROJECT.md later in the "
+      f"same session: {stop_followed}" + (" (not followed: " + "; ".join(stop_unfollowed) + ")" if stop_unfollowed else ""))
     if ss_sizes:
         P(f"- SessionStart hook output: {len(ss_sizes)} injections, max {max(ss_sizes)} chars, avg {sum(ss_sizes)//len(ss_sizes)}")
     P("")
@@ -669,6 +694,8 @@ def main():
     L.extend(addon_lines)
     P("")
     P("## 7. Metrics (per 7 days unless named otherwise)")
+    P("Raw counts: the `--json` file also holds `<key>.count` for every `.per_week` key below (the window's own "
+      "count, for the ledger's `Since Done:` tallies).")
     P("```json")
     P(json.dumps(metrics, indent=1, sort_keys=True))
     P("```")
@@ -681,7 +708,7 @@ def main():
         sys.stdout.write(report)
     if a.json:
         with open(a.json, "w", encoding="utf-8") as fh:
-            json.dump(metrics, fh, indent=1, sort_keys=True)
+            json.dump({**metrics, **counts}, fh, indent=1, sort_keys=True)
     print(f"scan: {len(S)} sessions, {days:.1f} days, report {len(report)//1024} KB"
           + (f" -> {a.out}" if a.out else ""), file=sys.stderr)
 

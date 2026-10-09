@@ -22,8 +22,17 @@ Last run: YYYY-MM-DD HH:MM UTC
 
 ## Open items
 
+## Checked, no action
+
+| Checked | Source | Point | Verdict and where it is handled |
+|---|---|---|---|
+
 ## Closed items
 ```
+
+"Checked, no action" holds every /insights point or suggestion and every /doctor extension verdict that needed no
+item, so the next run skips it (rule "Never redo audited work"). Re-open a line only when evidence after `Last run:`
+changes it; then it becomes an item.
 
 ## One item
 

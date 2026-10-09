@@ -1,6 +1,6 @@
 ---
 name: claude-improve
-description: Use when the user types /claude-improve, asks for the Claude Code review (weekly, monthly, or whenever), or asks to go through past Claude Code conversations or transcripts to find what to improve ("how can we use Claude Code better", "review our sessions", "what keeps going wrong", "improve my Claude setup", "audit my transcripts"), or when a session-start note says the review is due. Do NOT use to debug one live failure, to review a code diff, or to sync or back up skills.
+description: Use when the user types /claude-improve, asks for the Claude Code review (weekly, monthly, or whenever), or asks to go through past Claude Code conversations or transcripts to find what to improve ("how can we use Claude Code better", "review our sessions", "what keeps going wrong", "improve my Claude setup", "audit my transcripts"), types /doctor or asks for /insights together with the review, or when a session-start note says the review is due. Do NOT use to debug one live failure, to review a code diff, or to sync or back up skills.
 ---
 
 # Claude Improve - review how Claude Code has been working since the last review
@@ -17,6 +17,11 @@ again.
 
 ## Rules that hold in every run
 
+- **Never redo audited work.** Every source starts at the ledger's `Last run:`; what came before was audited by
+  the previous run. A point already in the ledger (an item, or a line under "Checked, no action") is skipped
+  unless new evidence after `Last run:` changes it. The owner, 2026-10-09: "be sure to save time when we run it, so
+  we don't rerun the already audited sessions ... check when we did it last time and solve the problem we haven't
+  solved yet. I don't want double work."
 - **No number, no recommendation.** Every finding cites counts from this run's scan and at least one
   real example. "Might be nice" ideas without evidence stay out.
 - **The ledger decides what is new.** Match each candidate against it before writing anything:
@@ -65,13 +70,37 @@ the metrics JSON with stable keys, normalised to per-7-days, which the ledger's 
 If the scan shows something it cannot explain (a zero where there should be traffic, an impossible
 number), fix `scan.py` first and re-run; a wrong scan poisons every step after it.
 
+## Step 1b - Setup health (/doctor) and Claude Code's own session report (/insights)
+
+Two more sources for Step 3, in every run (owner, 2026-10-09: "make them part of" the review "so we don't miss
+anything"). Neither changes anything; their findings become candidates like any scan signal.
+
+- **/doctor** (the built-in setup check: install, unused extensions, CLAUDE.md size, slow hooks, version,
+  permissions) is reserved for the owner to start. When he typed it with the review (`/claude-improve /doctor`),
+  the MAIN session runs its checks read-only itself; a helper cannot load it and refuses its check list (10-09,
+  twice). Data first, one read-only script: `python "<this skill>/scripts/doctor_data.py" "<scratchpad>/doctor-data.md"
+  "<project dir>" "<Last run, YYYY-MM-DD HH:MM>"` (config and parse checks, lifetime usage counters, plugins; hook
+  durations, calls and denials only since `Last run:`; never `env` values; about 5 s), then judge each check and
+  write one line per check, "nothing found" included. An extension verdict already under "Checked, no action" is
+  re-judged only when its counter moved. Skip its own confirm-and-apply
+  questions: its proposals go through Step 5. Without /doctor in his message, say in one line that it was not
+  included and how to include it next time.
+- **/insights** runs without him, in a background print-mode child (about 70 s, cwd in the scratchpad):
+  `MSYS_NO_PATHCONV=1 env -u ANTHROPIC_API_KEY claude -p "/insights" --disallowedTools "Write,Edit,NotebookEdit,Agent" --no-session-persistence`
+  (`MSYS_NO_PATHCONV=1`, or Git Bash turns `/insights` into a folder path). It prints the report path
+  (`~/.claude/usage-data/report-<date>.html`); `scripts/html2text.py <html> <txt>` makes it readable. Its points are
+  model-estimated over months, but it caches each session's analysis and adds only new sessions. Map EVERY point
+  and suggestion: one already under "Checked, no action" or in an item is skipped unless it names something after
+  `Last run:`; a new one gets its item or a verdict, confirmed only in transcripts after `Last run:` (a helper for
+  more than a few reads). Record each verdict under "Checked, no action" in the ledger.
+
 ## Step 2 - Check the past before the new
 
 For every ledger item, in this order:
 
 | Status | What to do this run |
 |---|---|
-| `done` | Judge it ONLY on traffic after its `Done:` time: re-run `scan.py --since "<Done time>"` for that metric. Fewer than 10 sessions since then -> "too early", stays `done`. Improved as expected -> `verified` (before -> after). No change -> `not working`; it goes back to the owner. Never judge a fix on traffic from before it landed. |
+| `done` | Judge it ONLY on traffic after its `Done:` time: re-run `scan.py --since "<Done time>"` for that metric. Fewer than 10 sessions since then -> "too early", stays `done`. A fix that needs a restart (settings env, MCP, profile) counts only sessions with start source `startup`: a /clear or /compact session keeps its old process (`scan.py` prints the source). Improved as expected -> `verified` (before -> after). No change -> `not working`; it goes back to the owner. Never judge a fix on traffic from before it landed. |
 | `open` | Raised but never answered: ask again in Step 5, with this run's numbers. |
 | `not working` | Ask again in Step 5 with a different next move, never the same fix twice. |
 | `approved` | Still not done after 2 runs -> list it under "stuck on our side" with the reason. |
@@ -109,7 +138,9 @@ In this order, plain words, numbers inline:
 4. **Still waiting** - on the owner / on us, one line each with the date first raised.
 5. **New** - numbered; each: plain-words title, evidence (counts + one short example), the smallest
    fix and where it lives, effort, and the metric that will show at the next run whether it worked.
-6. **Muted** - one line: "N muted items skipped" (list them only if asked).
+6. **Setup health (/doctor)** - one line per check, a keep or turn-off verdict with one reason for every unused
+   extension, then **/insights** - every point and suggestion with its item or a yes/no and one reason.
+7. **Muted** - one line: "N muted items skipped" (list them only if asked).
 
 Nothing new? Say so in one line under **New**. Always save the full report as
 `reports/YYYY-MM-DD_claude-improve.md` in the ledger's project. If the owner's rules say nothing may
@@ -120,6 +151,9 @@ chat summary after the answers.
 
 Use the AskUserQuestion pop-up: one question per new, `open` or `not working` item, up to 4 questions per
 pop-up (a second pop-up for the rest). Chips, in this order:
+
+A change that lets more run without asking (a default permission mode, an allow rule) is always its own question,
+never part of a clean-up item.
 
 - `A. Do it (Recommended)` - preview: WHAT IT TAKES (1-3 bullets), RISKS (with high / medium / low)
 - `B. Later` - preview: what waiting costs until the next run, in the scan's numbers
@@ -151,6 +185,8 @@ instead. Without a pop-up tool, ask the same choices in one short numbered list.
 | Believing a keyword hit (a "correction" that was a new request) | Read the case in context first |
 | Proposing a new skill or hook first | Name the existing home that could hold it, or why none can |
 | Dumping transcripts into the main context | Helper agent writes to a file; read only what you need |
+| Handing /doctor's checks to a helper | It refuses; the main session runs them on the owner's own /doctor |
+| "Nothing new from /insights" after checking only some of its points | Map every point and suggestion, one line each |
 | Leaving "not working" fixes silently `done` | Re-open them with the numbers; they go to the owner |
 
 ## Reminder (optional, never a limit)

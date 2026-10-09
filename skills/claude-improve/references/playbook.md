@@ -47,7 +47,8 @@ laws: a signal matters when it costs the owner time, money, trust or context.
 | Helper agents all on the most expensive model | Does the owner want quality first? Check the ledger before raising | If the owner has not decided: offer a cheaper model for search-only helpers |
 | Owner correction lines (section 6) | Read each in context. Count only real corrections: the owner repeating a rule, undoing something, or pushing back | A rule said 3+ times belongs in the global instructions (or a hook), not in one project |
 | Owner stepping in to ask for a handoff or a stop | Was the context large? Did the agent miss a stopping point? | Same as the context fixes above |
-| /insights facets friction (if present) | The facet text names the sessions; confirm the pattern repeats | Treat as candidates, never as findings on their own |
+| /insights points and suggestions (every run, Step 1b) | Did it happen after the fix that covers it? Read the owner's words in recent transcripts | Map each to its ledger item; a suggestion his rules already cover gets "no" plus where it lives |
+| /doctor findings (when he typed /doctor) | Usage counters are lifetime; helper and test-run transcripts count separately; a synced or rule-named extension may be on purpose | Every unused extension gets keep or turn off with one reason; turning off is one settings line, reversible |
 
 ## Usually not a problem
 

@@ -52,6 +52,19 @@
         "Does not recommend writing the same rule again in the same project file",
         "Asks the owner with the do-it / later / never choices"
       ]
+    },
+    {
+      "id": 5,
+      "name": "doctor-and-insights-join-the-review",
+      "prompt": "/claude-improve /doctor - run the review and include the setup health check. The ledger is at project-memory/claude-improve-ledger.md (last run yesterday).",
+      "expected_output": "A plan or run that adds both extra sources: the main session runs the /doctor checks read-only itself (never a helper), /insights runs in a background claude -p child with MSYS_NO_PATHCONV=1, and every /insights point and every unused extension gets a verdict; nothing is applied before the owner answers.",
+      "files": [],
+      "expectations": [
+        "Runs or plans the /doctor checks in the main session, not in a helper agent",
+        "Runs or plans /insights as a background claude -p child with MSYS_NO_PATHCONV=1",
+        "Treats both as candidates matched against the ledger, with a verdict for every /insights point and unused extension",
+        "Applies no change before the owner's answer in the pop-up"
+      ]
     }
   ]
 }

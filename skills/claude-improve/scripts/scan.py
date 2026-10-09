@@ -32,6 +32,9 @@ BASH_ERR = {
     "permission": r"Permission denied|Access is denied|EPERM|EACCES",
     "powershell_parse": r"ParserError|CommandNotFoundException|ParameterBindingException",
     "hook_block": r"hook error|blocked by|BLOCKED",
+    # Ledger CI-21: a Windows twin of a shell tool answered (System32 find/sort/timeout, WSL bash).
+    "windows_twin": r"FIND: Parameter format not correct|Input file specified two times|"
+                    r"ERROR: Invalid value for timeout|Windows Subsystem for Linux has no installed",
 }
 # Project folders of test runs, not the owner's work: eval relays (skill-creator `*-workspace-*`) and child
 # runs started in a temp or scratchpad folder. 2026-10-08: 379 of 444 sessions in one window were these.
@@ -207,6 +210,7 @@ def main():
     band_tok = C(); band_turns = C(); compacts = C(); api_err = C(); interrupts = 0
     corrections = []; toolsearch = []; turn_ms = []; ss_sizes = []; cwd_seen = C()
     model_tok = C(); heredoc_used = 0; secrets_in_cmds = 0; secret_where = set(); empty_sessions = 0
+    twin_fork = 0
 
     for f in main_files:
         try:
@@ -250,6 +254,10 @@ def main():
                     if typ.startswith("hook"):
                         ev = str(at.get("hookName", "?")).split(":")[0]
                         hook_att[(typ, ev)] += 1
+                        # How the session started (startup, resume, clear, compact, fork): a /clear or
+                        # /compact session keeps the process, MCP servers and settings env it came from.
+                        if ev == "SessionStart" and "source" not in s:
+                            s["source"] = str(at.get("hookName", "")).partition(":")[2] or "?"
                         if typ in ("hook_blocking_error", "hook_error", "hook_non_blocking_error"):
                             be = at.get("blockingError")
                             msg = str(be.get("blockingError") if isinstance(be, dict) else (be or at.get("stderr") or ""))
@@ -348,6 +356,8 @@ def main():
                             for k, p in BASH_ERR.items():
                                 if re.search(p, txt):
                                     bash_err[k] += 1; hit = True
+                                    if k == "windows_twin" and s.get("source") == "fork":
+                                        twin_fork += 1   # owner 2026-10-09: forks are watched, not hooked
                                     if len(bash_ex[k]) < a.examples:
                                         bash_ex[k].append((f"[{sid[:8]} {ts:%m-%d %H:%M}] " + one_line(inp.get("command", ""), 120), one_line(txt, 160)))
                             if not hit:
@@ -483,6 +493,7 @@ def main():
         "ctx.share_above_300k.pct": share(["300_500k", "gt500k"]),
         "ctx.sessions_over_300k.per_week": per_week(len(over300)), "ctx.sessions_over_200k.per_week": per_week(len(over200)),
         "bash.heredoc_used.per_week": per_week(heredoc_used),
+        "bash.err.windows_twin.fork.per_week": per_week(twin_fork),
         "secrets.in_commands.per_week": per_week(secrets_in_cmds),
         "sessions.empty_skipped": empty_sessions,
         "sessions.test_runs_left_out": test_n,
@@ -578,6 +589,9 @@ def main():
         P(f"  - {k}: {v}")
         for cmd, err in bash_ex[k]:
             P(f"    - `{cmd}` -> {err}")
+    starts = C(x.get("source", "?") for x in sessions.values())
+    P(f"- Sessions by start source: " + ", ".join(f"{k} {v}" for k, v in starts.most_common())
+      + f"; Windows-twin failures in forked sessions: {twin_fork}")
     if edit_err:
         P("- Edit/Write errors: " + ", ".join(f"{k} {v}" for k, v in edit_err.most_common()))
         for k, ex in edit_ex.items():

@@ -1,15 +1,25 @@
-"""Read-only data pass for Claude Code's /doctor checks, used by claude-improve Step 1b ONLY when the owner typed
-/doctor himself (the built-in is reserved for him). Prints counts and names only: never env/header values, never
-whole settings files, hook commands reduced to script basenames.
-Usage: doctor_data.py <out.md> [project dir] [since "YYYY-MM-DD HH:MM" UTC = the ledger's Last run]
-The transcript part reads only lines after <since>: sessions before it were audited by the previous review (owner,
-2026-10-09: "I don't want double work"). Config checks and the lifetime usage counters need no transcripts."""
+"""Read-only data pass for Claude Code's /doctor checks, run by claude-improve Step 1b in EVERY run (owner,
+2026-10-09: /doctor and /insights are part of the review, without a full pass over periods already audited). Prints
+counts and names only: never env/header values, never whole settings files, hook commands reduced to script basenames.
+Usage: doctor_data.py <out.md> [project dir] [since "YYYY-MM-DD HH:MM" UTC = the ledger's Last run] [--no-save] [--seed]
+No double work, two ways. (1) The transcript part reads only lines after <since>: sessions before it were audited by
+the previous review. (2) The config part (settings, agents, skills, plugins, MCP, hooks) is compared with a baseline
+kept in ~/.claude/claude-improve-doctor-state.json (a regenerable cache; missing = a full first pass): <out.md> lists
+only what moved, plus standing lines; the full dump goes to <out>.full.md. The baseline is keyed by <since>: the same
+<since> is the same review, so a retry compares with the same baseline again and never hides what moved; a later
+<since> is a new review, and the previous review's last pass becomes its baseline. --no-save writes nothing; --seed
+makes this pass the baseline for <since> (first install, after a restore). A usage counter is listed when its
+extension was at 2 uses or fewer (the unused ones a verdict is about); counters of extensions already in use are only
+counted."""
 import calendar, glob, json, os, re, sys, time, collections, statistics
 
+ARGS = [a for a in sys.argv[1:] if not a.startswith("--")]
+NO_SAVE = "--no-save" in sys.argv
+SEED = "--seed" in sys.argv
 HOME = os.path.expanduser("~")
 CL = os.path.join(HOME, ".claude")
-PROJ = (sys.argv[2] if len(sys.argv) > 2 else os.getcwd()).replace("\\", "/")
-SINCE = sys.argv[3] if len(sys.argv) > 3 else time.strftime("%Y-%m-%d %H:%M", time.gmtime(time.time() - 14 * 86400))
+PROJ = (ARGS[1] if len(ARGS) > 1 else os.getcwd()).replace("\\", "/")
+SINCE = ARGS[2] if len(ARGS) > 2 else time.strftime("%Y-%m-%d %H:%M", time.gmtime(time.time() - 14 * 86400))
 since = calendar.timegm(time.strptime(SINCE, "%Y-%m-%d %H:%M"))
 SINCE_ISO = SINCE.replace(" ", "T")
 DAYS = round((time.time() - since) / 86400, 1)
@@ -40,7 +50,8 @@ for k, p in files.items():
     data[k] = d
     P(f"- {k}: {err or 'OK'}")
 cj = data["~/.claude.json"] or {}
-P(f"- installMethod={cj.get('installMethod')!r} autoUpdates={cj.get('autoUpdates')!r} numStartups={cj.get('numStartups')}")
+P(f"- installMethod={cj.get('installMethod')!r} autoUpdates={cj.get('autoUpdates')!r}")
+P(f"- numStartups={cj.get('numStartups')} (not compared)")
 for p in [f"{HOME}/.local/bin/claude", f"{HOME}/.local/bin/claude.exe", f"{CL}/local"]:
     P(f"- exists {p.replace(HOME, '~')}: {os.path.exists(p)}")
 us = data["user settings"] or {}
@@ -108,6 +119,7 @@ inst, _ = load(f"{CL}/plugins/installed_plugins.json")
 inst_keys = list((inst or {}).get("plugins", {}).keys()) if isinstance(inst, dict) else []
 pu = cj.get("pluginUsage") or {}
 plug_listing = {}
+unused_plugins = []
 for key in sorted(set(inst_keys) | set(ep.keys())):
     if not re.fullmatch(r"[\w.@:-]+", key):
         P(f"- SUSPICIOUS key skipped"); continue
@@ -124,6 +136,8 @@ for key in sorted(set(inst_keys) | set(ep.keys())):
                 chars += len(str(fm.get("name", ""))) + len(str(fm.get("description", "")))
     u = pu.get(key) or {}
     plug_listing[key] = chars if enabled else 0
+    if enabled and nsk and not u.get("usageCount"):
+        unused_plugins.append(f"{key} ({chars} chars)")
     P(f"- {key}: enabled={enabled} items={nsk} listing_chars={chars} usage_total={u.get('usageCount', 0)} last={str(u.get('lastUsedAt', ''))[:10]}")
 
 # ---- MCP config
@@ -234,7 +248,113 @@ for n, c in denials.most_common(15):
     P(f"  - {n}: {c} {dict(denial_kind[n])}")
 P(f"- plugin listing chars enabled total {sum(plug_listing.values())} (est. {sum(plug_listing.values())//4} tok)")
 
-text = "\n".join(out)
-dst = sys.argv[1] if len(sys.argv) > 1 else "doctor-data.md"
+# ---- compare the config part with the previous pass (no double work)
+STATE = os.path.join(CL, "claude-improve-doctor-state.json")
+DIFFABLE = ("check 0", "plugins", "mcp config", "skillUsage (lifetime)", "hooks config (user)")
+PROBLEM = re.compile(r"PARSE ERROR|COLLISION|NO description|YAML error|unreadable|no frontmatter|unterminated|SUSPICIOUS")
+LOW_USE = 2
+
+def split_sections(lines):
+    secs, name = collections.OrderedDict(), None
+    for ln in lines:
+        if ln.startswith("## "):
+            name = ln[3:]
+            secs[name] = []
+        elif name is not None:
+            secs[name].append(ln)
+    return secs
+
+def parts(line):
+    """(key, struct, counter): a usage counter is compared apart from the rest of its line."""
+    s = line.strip()
+    m = re.search(r"usage_total=(\d+)", s) or re.search(r": (\d+) last ", s)
+    counter = int(m.group(1)) if m else None
+    struct = re.sub(r"usage_total=\d+", "usage_total=#", s)
+    struct = re.sub(r": \d+ last .*$", ": # last ...", struct)
+    struct = re.sub(r"last=\S*", "last=...", struct)
+    key = struct.split(": ", 1)[0] if ": " in struct else struct
+    return key, struct, counter
+
+def keyed(lines):
+    d = {}
+    for ln in lines:
+        if "(not compared)" in ln:
+            continue
+        key, struct, counter = parts(ln)
+        n = 1
+        while key in d:
+            n += 1
+            key = f"{key}#{n}"
+        d[key] = (struct, counter, ln.strip())
+    return d
+
+secs = split_sections(out)
+cur = {n: secs.get(n, []) for n in DIFFABLE}
+try:
+    with open(STATE, encoding="utf-8") as fh:
+        st = json.load(fh)
+except Exception:
+    st = {}
+if st.get("since") == SINCE:            # the same review again (a retry): the same baseline
+    prev, saved_at = st.get("baseline"), st.get("baseline_saved")
+elif st:                                # a later review: the previous review's last pass is the baseline
+    prev, saved_at = st.get("latest"), st.get("saved")
+else:
+    prev, saved_at = None, None
+
+problems = [ln.strip() for n in DIFFABLE for ln in cur[n] if PROBLEM.search(ln)]
+short = []
+S = short.append
+S("## problems (standing; each needs a verdict only if the ledger does not hold it)")
+S("\n".join(f"- {p}" for p in problems) if problems else "- none")
+S("- enabled plugins with 0 uses (standing; a verdict is needed only if the ledger holds none): "
+  + (", ".join(unused_plugins) if unused_plugins else "none"))
+if prev is None:
+    S("## changed since the last doctor pass")
+    S("- no baseline yet: first pass, so the whole config part is new (full dump below)")
+    for n in DIFFABLE:
+        S(f"### {n}")
+        short.extend(cur[n])
+else:
+    changes, same, quiet = [], 0, 0
+    for n in DIFFABLE:
+        old, new = keyed(prev.get(n, [])), keyed(cur[n])
+        for k, (struct, counter, line) in new.items():
+            if k not in old:
+                changes.append(f"+ [{n}] {line}")
+            elif old[k][0] != struct:
+                changes.append(f"~ [{n}] {old[k][2]}  ->  {line}")
+            elif old[k][1] != counter:
+                if (old[k][1] or 0) <= LOW_USE:
+                    changes.append(f"~ [{n}] {old[k][2]}  ->  {line}")
+                else:
+                    quiet += 1
+            else:
+                same += 1
+        for k, (struct, counter, line) in old.items():
+            if k not in new:
+                changes.append(f"- [{n}] {line}")
+    S(f"## changed since the last doctor pass (saved {saved_at})")
+    S("\n".join(changes) if changes else "- nothing moved")
+    S(f"- {same} config lines identical; {quiet} usage counters of extensions already in use moved up (not listed)")
+for n, lines in secs.items():
+    if n.startswith("transcripts since"):
+        short.append("## " + n)
+        short.extend(lines)
+
+full = "\n".join(out)
+text = "\n".join(short)
+dst = ARGS[0] if ARGS else "doctor-data.md"
+open(os.path.splitext(dst)[0] + ".full.md", "w", encoding="utf-8").write(full)
 open(dst, "w", encoding="utf-8").write(text)
 print(text)
+if not NO_SAVE:
+    now = time.strftime("%Y-%m-%d %H:%M UTC", time.gmtime())
+    new_state = {"since": SINCE, "baseline": prev, "baseline_saved": saved_at, "latest": cur, "saved": now}
+    if SEED:
+        new_state.update(baseline=cur, baseline_saved=now)
+    try:
+        with open(STATE, "w", encoding="utf-8") as fh:
+            json.dump(new_state, fh, indent=1)
+    except Exception as e:
+        print(f"(baseline not saved: {type(e).__name__})")

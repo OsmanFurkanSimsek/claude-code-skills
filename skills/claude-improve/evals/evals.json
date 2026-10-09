@@ -64,21 +64,23 @@
     {
       "id": 5,
       "name": "doctor-and-insights-join-the-review",
-      "prompt": "/claude-improve /doctor - run the review and include the setup health check. The ledger is at project-memory/claude-improve-ledger.md (last run yesterday).",
-      "expected_output": "A plan or run that adds both extra sources: the main session runs the /doctor checks read-only itself (never a helper), /insights runs in a background claude -p child with MSYS_NO_PATHCONV=1 when the newest report is 24 hours old or more (else the newest report is used as it is), and every /insights point a session after Last run backs and every unused extension gets a verdict; nothing is applied before the owner answers.",
-      "files": [],
+      "prompt": "/claude-improve - run the full review. The ledger is at project-memory/claude-improve-ledger.md (Last run: 2026-10-08 12:00 UTC); it is now 2026-10-09 15:00 UTC. The folder holds invented test data and you cannot run commands: describe each step you would run, with its command, and what you would do with its output.",
+      "expected_output": "A plan or run that adds both extra sources without being asked: the main session runs the /doctor checks read-only itself with scripts/doctor_data.py (never a helper), which compares the config part with the baseline the previous pass saved and prints only what moved; /insights runs in a background claude -p child with MSYS_NO_PATHCONV=1 when the newest report is 24 hours old or more (else the newest report is used as it is); every /insights point a session after Last run backs and every moved or new extension gets a verdict; nothing is applied before the owner answers.",
+      "files": [
+        "evals/files/e5/project-memory/claude-improve-ledger.md"
+      ],
       "expectations": [
-        "Runs or plans the /doctor checks in the main session, not in a helper agent",
+        "Runs or plans the /doctor checks in the main session with doctor_data.py (only what moved since the previous pass), not in a helper agent, although the owner did not type /doctor (owner, 2026-10-09)",
         "Runs or plans /insights as a background claude -p child with MSYS_NO_PATHCONV=1, or uses the newest report when it is under 24 hours old (owner, 2026-10-09)",
-        "Treats both as candidates matched against the ledger, with a verdict for every /insights point a session after Last run backs (the rest in one line) and for every unused extension",
+        "Treats both as candidates matched against the ledger, with a verdict for every /insights point a session after Last run backs (the rest in one line) and for every moved or new extension",
         "Applies no change before the owner's answer in the pop-up"
       ]
     },
     {
       "id": 6,
       "name": "same-day-rerun-takes-the-quick-path",
-      "prompt": "/claude-improve - I already ran it this morning, run it again. The ledger is at project-memory/claude-improve-ledger.md (Last run: 2026-10-09 09:00 UTC); it is now 2026-10-09 12:00 UTC. Everything is in this folder (invented test data): this window's scan in scan.md and scan.json, the one in-window re-run for CI-7 in since-done.md, the ledger view in quick-ledger.md (the output of scripts/quick_ledger.py --scan-json scan.json), and the /insights files: insights-diff.md (the output of scripts/insights_diff.py --since the ledger's Last run), insights-prev.txt (the report the morning run mapped, made 09:05 UTC) and insights-new.txt (a report I made myself at 11:30 UTC, 30 minutes ago). The transcripts behind the scan are not available, so take the scan's and the facets' lines as read in context.",
-      "expected_output": "A short quick-path answer: no new /insights run, no /doctor, no helper; CI-6 verified on its running tally (8 + 4 = 12 sessions after Done, 0 heredoc errors, 5.0 -> 0) without re-scanning from its 10-02 Done time; CI-7 too early (2 sessions); only the one /insights point a session after Last run backs (the test suite re-run, 1 case) is judged, in one line; nothing needs the owner's decision; Last run set to 2026-10-09 12:00 UTC and both Since Done lines written through 12:00.",
+      "prompt": "/claude-improve - I already ran it this morning, run it again. The ledger is at project-memory/claude-improve-ledger.md (Last run: 2026-10-09 09:00 UTC); it is now 2026-10-09 12:00 UTC. Everything is in this folder (invented test data): this window's scan in scan.md and scan.json, the one in-window re-run for CI-7 in since-done.md, the ledger view in quick-ledger.md (the output of scripts/quick_ledger.py --scan-json scan.json), and the /insights files: insights-diff.md (the output of scripts/insights_diff.py --since the ledger's Last run), insights-prev.txt (the report the morning run mapped, made 09:05 UTC) and insights-new.txt (a report I made myself at 11:30 UTC, 30 minutes ago), and doctor-data.md (the output of scripts/doctor_data.py for this window). The transcripts behind the scan are not available, so take the scan's and the facets' lines as read in context.",
+      "expected_output": "A short quick-path answer: no new /insights run, no helper, one setup-health line from doctor-data.md (nothing moved); CI-6 verified on its running tally (8 + 4 = 12 sessions after Done, 0 heredoc errors, 5.0 -> 0) without re-scanning from its 10-02 Done time; CI-7 too early (2 sessions); only the one /insights point a session after Last run backs (the test suite re-run, 1 case) is judged, in one line; nothing needs the owner's decision; Last run set to 2026-10-09 12:00 UTC and both Since Done lines written through 12:00.",
       "files": [
         "evals/files/e6/project-memory/claude-improve-ledger.md",
         "evals/files/e6/scan.md",
@@ -87,10 +89,11 @@
         "evals/files/e6/quick-ledger.md",
         "evals/files/e6/insights-diff.md",
         "evals/files/e6/insights-prev.txt",
-        "evals/files/e6/insights-new.txt"
+        "evals/files/e6/insights-new.txt",
+        "evals/files/e6/doctor-data.md"
       ],
       "expectations": [
-        "Takes the quick path: starts no new /insights run (the newest report is 30 minutes old), leaves /doctor out with one line (not typed), and uses no helper agent",
+        "Takes the quick path: starts no new /insights run (the newest report is 30 minutes old), covers /doctor in one line from doctor-data.md (nothing moved, no config line re-judged), and uses no helper agent",
         "Judges CI-6 on its running tally (8 + 4 = 12 sessions after Done, 0 heredoc errors) and calls it verified (5.0 -> 0), without re-running scan.py --since its 10-02 Done time or re-reading days before Last run",
         "Judges only the one /insights point a session after Last run backs (the test suite re-run, 1 case) and does not re-map the points already under 'Checked, no action' one by one",
         "Ends short: nothing new needs the owner's decision (CI-7 too early with 2 sessions), Last run becomes 2026-10-09 12:00 UTC, and both Since Done lines run through 12:00"
@@ -112,6 +115,25 @@
         "Decides from the four check outputs that nothing changed (no changed skill, claude.ai copies in step, the imported skill up to date, a clean repo)",
         "Runs or plans no backup snapshot, commit, push, public sync or upload for this no-op",
         "Answers short: one or two lines saying the setup is backed up and nothing changed"
+      ]
+    },
+    {
+      "id": 8,
+      "name": "doctor-judges-only-what-moved",
+      "prompt": "/claude-improve - I ran it at 14:00 UTC, run it again; it is now 15:00 UTC. The ledger is at project-memory/claude-improve-ledger.md (Last run: 2026-10-09 14:00 UTC). Everything is in this folder (invented test data): this window's scan in scan.md, the ledger view in quick-ledger.md (the output of scripts/quick_ledger.py), the /insights diff in insights-diff.md, and doctor-data.md (the output of scripts/doctor_data.py, which already compared the setup with its previous pass). The transcripts behind the scan are not available, so take the files as read in context.",
+      "expected_output": "A short quick-path answer with one setup-health part: the docs-helper plugin, kept earlier because it had 0 uses, now has 4 uses, so its old verdict is closed (in use: keep); the new chart-kit plugin (0 uses, 840 listing characters) gets its own verdict with one reason and no change is applied; nothing else in the setup is re-judged; no new /insights run, no helper; nothing needs the owner's decision; Last run becomes 2026-10-09 15:00 UTC.",
+      "files": [
+        "evals/files/e8/project-memory/claude-improve-ledger.md",
+        "evals/files/e8/quick-ledger.md",
+        "evals/files/e8/scan.md",
+        "evals/files/e8/insights-diff.md",
+        "evals/files/e8/doctor-data.md"
+      ],
+      "expectations": [
+        "Runs /doctor in the main session on doctor-data.md and judges only its two moved lines (docs-helper@acme, chart-kit@acme); does not re-judge the 76 identical config lines, the hook timing in the transcript part (nothing timed out, failed or was denied) or the other counters",
+        "Closes the docs-helper verdict because its counter moved from 0 to 4 uses (now in use), and says so in one line",
+        "Gives the new chart-kit@acme plugin a verdict with one reason (for example too new to judge or small listing cost) and applies no change to the setup",
+        "Starts no new /insights run (the newest report is 40 minutes old), uses no helper agent, and ends short with Last run set to 2026-10-09 15:00 UTC"
       ]
     }
   ]

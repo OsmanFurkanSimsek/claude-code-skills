@@ -19,7 +19,10 @@ Every run ends with the **update step** (Step 7) when the owner's setup has one:
 changed, so the ledger and every fix of the run are saved too. **Asked only to sync or back up skills**
 ("/skill-update", "sync my skills", "back up my skills"): run only Step 7, no scan and no review. The final
 answer stays short; "Nothing new to improve since <Last run>" plus "Setup backed up, nothing changed" is a
-valid whole answer. Speed comes only from never redoing audited work, never from a lower effort.
+valid whole answer. Every full or quick run also includes **/doctor** and **/insights** (Step 1b), each only on what
+moved since the last run (owner, 2026-10-09: "be sure /doctor /insights are also part of /claude-improve like
+/skill-update ... but be sure you dont make full run for the same periods so you avoid double work"). Speed comes
+only from never redoing audited work, never from a lower effort.
 
 ## Quick path: `Last run:` is under 24 hours old
 
@@ -32,8 +35,10 @@ handful of sessions, under 10 minutes for a busy day. A `Last run:` 24 hours old
 1. **One command, no ledger read.** Grep the ledger's `Last run:` line (Step 0), then run, in one Bash call:
    ```bash
    S="<this skill>/scripts"; O="<scratchpad>"; L="<ledger path>"
-   python "$S/scan.py" --from-ledger "$L" --out "$O/scan.md" --json "$O/scan.json" && python "$S/insights_diff.py" --since "<Last run>" --out "$O/insights-diff.md" && python "$S/quick_ledger.py" --ledger "$L" --scan-json "$O/scan.json" --start-tallies "$O"
+   python "$S/scan.py" --from-ledger "$L" --out "$O/scan.md" --json "$O/scan.json" && python "$S/insights_diff.py" --since "<Last run>" --out "$O/insights-diff.md" && python "$S/doctor_data.py" "$O/doctor-data.md" "<project dir>" "<Last run>" && python "$S/quick_ledger.py" --ledger "$L" --scan-json "$O/scan.json" --start-tallies "$O"
    ```
+   (`doctor_data.py` prints only what moved in the setup since the previous pass, standing problems and the
+   transcript part since `Last run:`; about 3 s; Step 1b.)
    `quick_ledger.py` prints what the quick path needs from the ledger: Last run, the last Runs row, each open item
    with its Verify by and its `Since Done:` tally already brought to the window's end (`New:`; `Start:` from the one
    scan it runs for a Done inside the window), a "too early" mark under 10 sessions, and every "Checked, no action"
@@ -48,12 +53,16 @@ handful of sessions, under 10 minutes for a busy day. A `Last run:` 24 hours old
 3. **New signals:** read `scan.md` and `insights-diff.md`; keep only what the ledger view does not hold yet. No
    helper agent, unless a new signal truly needs transcript reading; then one. The playbook is opened only for such
    a signal.
-4. **/insights:** start no new run while the newest report is under 24 hours old (it can only repeat itself); judge
-   only what sessions after `Last run:` added (Step 1b). **/doctor** only when he typed it.
+4. **/insights and /doctor** (Step 1b, both in every run, both only on what moved): start no new /insights run
+   while the newest report is under 24 hours old (it can only repeat itself); judge only the analyses added since
+   the report the previous review saw. Judge /doctor only on the `doctor_data.py` output the one command printed: its "changed"
+   lines and standing lines; the transcript part (hook times, calls) needs a line only if it shows a timeout, an
+   error, a denial or a hook slower than its verdict under "Checked, no action". Nothing else to open.
 5. **Answer in a few lines; no plan and no full report.** Nothing changed: one line, "Nothing new to improve since
    <Last run>". Then the too-early items in one line by ID (the reason in a few words), one line per item that moved
-   (verified, not working) or needs his answer, and one line per new signal kept. A pop-up only for items that
-   need his answer.
+   (verified, not working) or needs his answer, and one line per new signal kept, and one setup-health line
+   ("/doctor: nothing moved since <Last run>", or one line per moved check). A pop-up only for items that need his
+   answer.
 6. **Record** as Step 6: `Last run:` = the scan's end, one Runs row, and every `Since Done:` line brought to that
    end (copy the `New:` and `Start:` lines), a newly verified item's too.
 7. **Update step** as Step 7, as in every run: its checks decide; with no change beyond the ledger it is one line.
@@ -121,19 +130,28 @@ Two more sources for Step 3, in every run (owner, 2026-10-09: "make them part of
 anything"). Neither changes anything; their findings become candidates like any scan signal.
 
 - **/doctor** (the built-in setup check: install, unused extensions, CLAUDE.md size, slow hooks, version,
-  permissions) is reserved for the owner to start. When he typed it with the review (`/claude-improve /doctor`),
-  the MAIN session runs its checks read-only itself; a helper cannot load it and refuses its check list (10-09,
-  twice). Data first, one read-only script: `python "<this skill>/scripts/doctor_data.py" "<scratchpad>/doctor-data.md"
-  "<project dir>" "<Last run, YYYY-MM-DD HH:MM>"` (config and parse checks, lifetime usage counters, plugins; hook
-  durations, calls and denials only since `Last run:`; never `env` values; about 5 s), then judge each check and
-  write one line per check, "nothing found" included. An extension verdict already under "Checked, no action" is
-  re-judged only when its counter moved. Skip its own confirm-and-apply
-  questions: its proposals go through Step 5. Without /doctor in his message, say in one line that it was not
-  included and how to include it next time.
+  permissions) runs in every run, and only on what moved (owner, 2026-10-09; until then it ran only when he typed it).
+  The MAIN session runs its checks read-only itself; a helper cannot load it and refuses its check list (10-09,
+  twice). One read-only script, about 3 s: `python "<this skill>/scripts/doctor_data.py" "<scratchpad>/doctor-data.md"
+  "<project dir>" "<Last run, YYYY-MM-DD HH:MM>"`. It compares the config part (parse checks, installs, agents,
+  skills, plugins, MCP, hooks, lifetime usage counters) with the baseline the previous review's last pass saved
+  (`~/.claude/claude-improve-doctor-state.json`, a regenerable cache; missing = a full first pass; keyed by `Last
+  run:`, so a retry in the same review compares with the same baseline and never hides what moved), prints only what
+  moved plus standing lines and the transcript part since `Last run:` (hook durations, calls, denials); the full dump
+  is `doctor-data.full.md` (open it only for the context of a moved line). `--seed` once after a restore. Never
+  `env` values. Judge only the printed lines and write one line: "nothing moved since <Last run>", or one line per
+  moved check. The transcript part (hook times, calls, denials) needs a line only for a timeout, an error, a denial or
+  a hook slower than its verdict under "Checked, no action"; do not restate timings that look normal. A moved counter
+  of an extension that has a verdict under "Checked, no action" re-opens that verdict (the script lists counters of
+  extensions at 2 uses or fewer, and only counts the rest). A new extension with 0 uses is "too new to judge": no
+  question; its standing line (enabled plugins with 0 uses) brings it back every run until the ledger holds a verdict
+  or it has been used. `--no-save` makes a dry run. Skip its own confirm-and-apply questions: its proposals go through
+  Step 5.
 - **/insights** is Claude Code's own report over every session it has analysed (months). Each report rewrites its
   whole text, so two reports of one day share few lines and a line diff marks every point as new (10-09: 3 of 17
-  titles alike, 6 hours apart). What can be new is only what sessions after `Last run:` brought: it keeps one
-  analysis per session ("facet") and adds only new sessions.
+  titles alike, 6 hours apart). What can be new is only the analyses added since the report the previous review
+  saw: it keeps one analysis per session ("facet") and adds only new ones, so a session that ended between two
+  reports is judged once, in the review after its facet appears, never skipped and never twice.
   1. Start a run only when the newest `~/.claude/usage-data/report-*.html` is 24 hours old or more, or when he asks;
      otherwise use the newest report as it is. The run goes without him, in a background print-mode child (about
      70 s, cwd in the scratchpad):
@@ -141,10 +159,13 @@ anything"). Neither changes anything; their findings become candidates like any 
      (`MSYS_NO_PATHCONV=1`, or Git Bash turns `/insights` into a folder path).
   2. `python "<this skill>/scripts/insights_diff.py" --since "<Last run>" --out "<scratchpad>/insights-diff.md"`
      (under a second): the newest report and the one before it as text in the scratchpad, the new report's points and suggestions
-     (marked same or new title), and every facet of a session active after `Last run:` with its friction line.
-  3. Judge only what those facets back. A point or suggestion no listed facet backs has all its cases before
-     `Last run:`: if the ledger does not hold it yet, one line under "Checked, no action" ("no case after
-     <Last run>"); no helper, no transcript reading. A point a listed facet backs is a Step 3 candidate (read that
+     (marked same or new title), and every facet written after the report the previous review saw, with its friction
+     line. It keeps that report in `~/.claude/claude-improve-insights-state.json`, keyed by `Last run:` like the
+     /doctor baseline (the same `Last run:` is the same review, so a retry lists the same facets again; a regenerable
+     cache; `--seed` once after a restore, `--no-save` for a dry run).
+  3. Judge only what those facets back. A point or suggestion no listed facet backs has all its cases in analyses an
+     earlier review already saw: if the ledger does not hold it yet, one line under "Checked, no action" ("no new case
+     since <Last run>"); no helper, no transcript reading. A point a listed facet backs is a Step 3 candidate (read that
      session in context); a new one gets its item or a verdict. Record each verdict under "Checked, no action".
 
 ## Step 2 - Check the past before the new
@@ -191,9 +212,10 @@ In this order, plain words, numbers inline:
 4. **Still waiting** - on the owner / on us, one line each with the date first raised.
 5. **New** - numbered; each: plain-words title, evidence (counts + one short example), the smallest
    fix and where it lives, effort, and the metric that will show at the next run whether it worked.
-6. **Setup health (/doctor)** - one line per check, a keep or turn-off verdict with one reason for every unused
-   extension, then **/insights** - one line per point or suggestion a session after `Last run:` backs (its item, or
-   a yes/no and one reason), and one count line for the rest ("14 points, no case after <Last run>").
+6. **Setup health (/doctor)** - "nothing moved since <Last run>", or one line per moved check, with a keep or
+   turn-off verdict and one reason for every extension that moved or is new; then **/insights** - one line per
+   point or suggestion a new analysis backs (its item, or
+   a yes/no and one reason), and one count line for the rest ("14 points, no new case since <Last run>").
 7. **Muted** - one line: "N muted items skipped" (list them only if asked).
 
 Nothing new? Say so in one line under **New**. Always save the full report as
@@ -266,8 +288,9 @@ the owner's own instructions); without one, Step 6 ends the run.
 | Believing a keyword hit (a "correction" that was a new request) | Read the case in context first |
 | Proposing a new skill or hook first | Name the existing home that could hold it, or why none can |
 | Dumping transcripts into the main context | Helper agent writes to a file; read only what you need |
-| Handing /doctor's checks to a helper | It refuses; the main session runs them on the owner's own /doctor |
-| Re-mapping /insights points whose cases all predate `Last run:` | `insights_diff.py`; judge only what sessions after `Last run:` back, the rest in one count line |
+| Handing /doctor's checks to a helper | It refuses; the main session runs `doctor_data.py` itself, in every run |
+| Leaving /doctor out, or re-judging config lines that did not move | It runs in every run; judge only its "changed" lines and problems |
+| Re-mapping /insights points whose cases all predate `Last run:` | `insights_diff.py`; judge only what the new analyses back, the rest in one count line |
 | Re-scanning from an old `Done:` time to judge a fix | Add this window's counts to the item's `Since Done:` tally |
 | Leaving "not working" fixes silently `done` | Re-open them with the numbers; they go to the owner |
 | Ending a run without the update step, or running a snapshot, sync or upload its checks found no need for | Step 7 once, last; its checks decide; nothing changed is one line |

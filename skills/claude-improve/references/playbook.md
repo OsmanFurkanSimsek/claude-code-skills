@@ -49,7 +49,7 @@ laws: a signal matters when it costs the owner time, money, trust or context.
 | Owner correction lines (section 6) | Read each in context. Count only real corrections: the owner repeating a rule, undoing something, or pushing back | A rule said 3+ times belongs in the global instructions (or a hook), not in one project |
 | Owner stepping in to ask for a handoff or a stop | Was the context large? Did the agent miss a stopping point? | Same as the context fixes above |
 | /insights points and suggestions backed by a session after `Last run:` (`insights_diff.py`, Step 1b) | Did it happen after the fix that covers it? Read that session's case in context | Map it to its ledger item; a suggestion his rules already cover gets "no" plus where it lives. A point no such session backs needs no reading |
-| /doctor findings (when he typed /doctor) | Usage counters are lifetime; helper and test-run transcripts count separately; a synced or rule-named extension may be on purpose | Every unused extension gets keep or turn off with one reason; turning off is one settings line, reversible |
+| /doctor findings (`doctor_data.py` "changed" lines and problems, every run) | Usage counters are lifetime; helper and test-run transcripts count separately; a synced or rule-named extension may be on purpose | Every unused extension gets keep or turn off with one reason; turning off is one settings line, reversible |
 
 ## Usually not a problem
 

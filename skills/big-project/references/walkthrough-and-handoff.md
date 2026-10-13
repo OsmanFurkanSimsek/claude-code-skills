@@ -34,7 +34,7 @@ Use for any work the owner must do himself. **The walkthrough IS `live-document`
 
 PROJECT.md's `**Next action (on continue):**` names this file, so the next agent opens it by itself.
 
-**Chunking:** more than ~10 steps -> deliver 5-10 at a time, one chunk per turn; wait for the owner to confirm the chunk is done or report what failed before sending the next. Update `PROJECT.md` (chunk statuses in Plan / workstreams, active chunk in Current state) before the next chunk, per `live-document`.
+**Chunking:** only for steps the owner does himself: more than ~10 -> deliver 5-10 at a time, one chunk per turn; wait for him to confirm the chunk is done or report what failed. The agent's own work is not chunked; it goes on in the same turn until an owner decision, the one "check it", finished work or about 30% context. Update `PROJECT.md` (chunk statuses in Plan / workstreams, active chunk in Current state) before the next chunk, per `live-document`.
 
 ---
 

@@ -71,7 +71,7 @@ When the owner must do something himself, write it as a numbered list, **one cli
 
 **Why:** the owner often works alone against the walkthrough, sometimes a day later; every compressed sub-step is a place he can get stuck.
 
-**How to apply:** for more than ~10 steps, deliver in chunks of 5-10 and wait for confirmation before the next chunk. See `walkthrough-and-handoff.md`.
+**How to apply:** for more than ~10 steps the owner does himself, deliver in chunks of 5-10 and wait for confirmation before the next chunk (the agent's own work is never chunked). See `walkthrough-and-handoff.md`.
 
 ## 6. Code versioning + full QA
 

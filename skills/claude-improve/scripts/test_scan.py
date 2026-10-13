@@ -121,7 +121,8 @@ def test_owner_time_asks_voice_corrections_and_missing_tools_are_counted(project
 
 def test_new_owner_keys_are_zero_when_nothing_matches(projects):
     _, m = run_scan(projects)
-    for k in ("owner.time_asks", "owner.corrections", "owner.corrections.voice", "tool.err.no_such_tool"):
+    for k in ("owner.time_asks", "owner.corrections", "owner.corrections.voice", "tool.err.no_such_tool",
+              "reply.continue_ask_under_28pct"):
         assert m[k + ".count"] == 0 and m[k + ".per_week"] == 0
 
 
@@ -164,3 +165,65 @@ def test_time_left_and_time_estimate_count_as_time_asks(projects):
         fh.write("\n".join(rows) + "\n")
     _, m = run_scan(projects)
     assert m["owner.time_asks.count"] == 2
+
+
+# ---- ledger CI-43: final replies that ask for "continue" under 28% (rules shared with the review-gate hook) ----
+def say(ts, mid, text, tokens, entry="cli"):
+    return line(type="assistant", timestamp=ts, cwd="/work/proj", entrypoint=entry,
+                message={"id": mid, "model": "m", "content": [{"type": "text", "text": text}],
+                         "usage": {"input_tokens": 5, "cache_read_input_tokens": tokens - 5}})
+
+
+def end_turn(ts):
+    return line(type="system", subtype="turn_duration", timestamp=ts, cwd="/work/proj", durationMs=1000)
+
+
+def steps_reply(last):
+    return "## Summary\nB1 is built.\n\n## What you should do\n\n" + last + "\n"
+
+
+ASK = steps_reply("Nothing to do now. Next, when you type `continue`, I start B2 (tickets and reviews).")
+
+
+def test_continue_asks_under_28pct_are_counted_on_final_replies(projects):
+    d = projects / "projects" / "-work-proj"
+    rows = [user("2026-10-09T10:40:00Z", "go"), say("2026-10-09T10:41:00Z", "c1", ASK, 150000),
+            end_turn("2026-10-09T10:41:01Z"),                                                   # counted
+            user("2026-10-09T10:50:00Z", "go"), say("2026-10-09T10:51:00Z", "c2", ASK, 300000),
+            end_turn("2026-10-09T10:51:01Z"),                                                   # 30%: the handoff
+            user("2026-10-09T11:00:00Z", "go"),
+            say("2026-10-09T11:01:00Z", "c3", steps_reply("Nothing else. Your feedback \"don't ask me to say "
+                                                          "continue\" is saved."), 150000),
+            end_turn("2026-10-09T11:01:01Z"),                                                   # his words quoted
+            user("2026-10-09T11:10:00Z", "go"),
+            line(type="assistant", timestamp="2026-10-09T11:10:30Z", cwd="/work/proj",
+                 message={"id": "c4", "model": "m", "usage": {"input_tokens": 1000},
+                          "content": [{"type": "tool_use", "id": "q1", "name": "AskUserQuestion", "input": {}}]}),
+            line(type="user", timestamp="2026-10-09T11:10:40Z", cwd="/work/proj",
+                 message={"role": "user", "content": [{"type": "tool_result", "tool_use_id": "q1", "is_error": True,
+                                                       "content": "The user doesn't want to proceed with this tool use."}]}),
+            say("2026-10-09T11:11:00Z", "c5", ASK, 150000), end_turn("2026-10-09T11:11:01Z"),     # pop-up still open
+            user("2026-10-09T11:20:00Z", "go"),
+            say("2026-10-09T11:21:00Z", "c6", steps_reply("1. When your usage limit resets, type `continue`."), 150000),
+            end_turn("2026-10-09T11:21:01Z"),                                                   # a reason of his own
+            user("2026-10-09T11:30:00Z", "go"), say("2026-10-09T11:31:00Z", "c7", ASK, 150000)]   # no turn end yet
+    (d / "ci43a-scan-test.jsonl").write_text("\n".join(rows) + "\n", encoding="utf-8")
+    sdk = [user("2026-10-09T10:40:00Z", "go"), say("2026-10-09T10:41:00Z", "p1", ASK, 150000, entry="sdk-cli"),
+           end_turn("2026-10-09T10:41:01Z")]                                                   # `claude -p`
+    (d / "ci43b-scan-test.jsonl").write_text("\n".join(sdk) + "\n", encoding="utf-8")
+    md, m = run_scan(projects)
+    assert m["reply.continue_ask_under_28pct.count"] == 1
+    assert m["reply.continue_ask_under_28pct.per_week"] > 0
+    assert ('asked the owner to type "continue" while the context was under 28% (ledger CI-43): 1 - '
+            '[proj ci43a-sc 10-09 10:41] 150K "Next, when you type `continue`, I start B2 (tickets and"') in md
+    assert "reply.continue_ask_under_28pct.count" not in md            # raw counts live in the --json file only
+
+
+def test_continue_rules_read_the_turn_like_the_hook():
+    rows = [json.loads(say("2026-10-09T10:41:00Z", "c1", "Working on it.", 150000)),
+            json.loads(user("2026-10-09T10:42:00Z", "go")), json.loads(say("2026-10-09T10:43:00Z", "c2", ASK, 150000))]
+    slim = [scan.slim_row(r) for r in rows]
+    assert scan.turn_parts(slim) == [ASK]                              # the turn starts at his message
+    assert scan.context_used(slim, "ci43-no-such-session") == (150000, scan.CONT_WINDOW)
+    assert scan.continue_hit(scan.turn_parts(slim), slim, "ci43-no-such-session") == (
+        150000, "Next, when you type `continue`, I start B2 (tickets and")

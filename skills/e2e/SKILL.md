@@ -94,7 +94,7 @@ Pick the mode with one test: does the user need to DO something themselves?
 2. **Reasoning** - why we are doing it, plain words.
 3. **Steps** - numbered and concrete, in super simple language. One action per step: where to click, what to type, what to run, and what the user should see if it worked. Write as if the user is seeing the screen for the first time. A high-level instruction like "configure the connector" is a bug; spell out every click.
 
-**Chunking rule** - for Action-mode work with more than about 10 steps, or any multi-part plan:
+**Chunking rule** - for Action-mode work (steps the user does) with more than about 10 steps, or any multi-part plan for the user; the agent's own work is never chunked into turns:
 
 - Never dump the full step list. Split the work into chunks of roughly 5-10 steps and deliver ONE chunk per turn.
 - End every chunk by asking the user to confirm when the chunk is done, or to report what failed. Do not send the next chunk before that confirmation.

@@ -42,9 +42,9 @@ Owner: <owner>. Project: <one line>. Dominant rule: <the one constraint that gov
 - Change/approach hierarchy: <smallest viable change first; <other project-specific ordering>>.
 - Ask before assuming - a clarifying question beats a wrong assumption.
 - When the user must act: give Summary, then Reasoning, then numbered Steps in super simple words.
-  Big work goes in chunks of 5-10 steps, ONE chunk per turn; wait for confirmation, update
-  PROJECT.md first (chunk statuses in Plan / workstreams, active chunk in Current state), then say
-  the context can be cleared safely. Pure questions: same three parts, Summary = the answer, Steps = "Nothing to do".
+  Steps the user does himself: chunks of 5-10, ONE per turn; wait, update PROJECT.md first (chunk
+  statuses, active chunk). The agent's own work goes on until an owner decision, finished work or
+  about 30% context, then say the context can be cleared safely. Pure questions: same three parts, Summary = the answer, Steps = "Nothing to do".
 - Real handoffs (3+ steps or any chunk) also get a Next Actions file in `next-actions/`:
   an interactive self-contained <YYYY-MM-DD_HH-MM>-next-actions.html (TLDR paragraph, then
   reasoning with alternatives, then simple steps). Before writing one, move every older-dated

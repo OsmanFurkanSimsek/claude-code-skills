@@ -16,7 +16,7 @@ Test runs (eval relays, temp-folder child runs) stay out of every metric and are
 --include-test-runs keeps them in.
 """
 import argparse, collections, datetime as dt, glob, json, os, re, statistics, sys
-import contextlib, importlib.util
+import contextlib, importlib.util, tempfile
 
 C = collections.Counter
 HOME = os.path.expanduser("~")
@@ -67,6 +67,38 @@ NO_SUCH_TOOL = "No such tool available"
 BANDS = [(100e3, "lt100k"), (200e3, "100_200k"), (300e3, "200_300k"), (500e3, "300_500k"), (float("inf"), "gt500k")]
 # First line of the PROJECT.md gate's non-blocking note (hooks/furkan-project-md-gate.js NOTE_HEAD).
 GATE_NOTE = "PROJECT.md lint - new since your last write"
+
+# ---- ledger CI-43: a final reply that asks the owner to type or say "continue" while the context is under 28% ----
+# (reply.continue_ask_under_28pct). A copy of the rules of the Stop check that sends such a reply back
+# (hooks/furkan-review-gate.py: continue_hits and the helpers it calls); that hook's tests compare both on the same
+# replies, so change them together. Counted on turn ends: the replies that reached the owner.
+CONT_PCT = 28
+CONT_WINDOW = 1000000           # when the status line names no window for the session
+STATUS_DIR = os.path.join(os.environ.get("TEMP") or tempfile.gettempdir(), "claude-statusline")
+STEPS_HEAD = re.compile(r"what you should do|what i need from you|^#+\s*(?:next )?steps\b|\*\*(?:next )?steps:?\*\*|"
+                        r"ne yapman(?:ız)? gerek|yapman(?:ız)? gerekenler|ne yapmalısın", re.I | re.M)
+NOT_STEP_TEXT = re.compile(r"```.*?```|^[ \t]*>.*$|https?://\S+|`[^`\n]*[\\/.][^`\n]*`", re.S | re.M)
+CONT_ASK = re.compile(
+    r"\b(?:type|say|write|send|reply|enter)\b\s*:?\s*(?:(?:me|us|the word|only|just|back)\s+)?[`\"'\u201c\u2018*]*"
+    r"continue\b|[`\"'\u201c\u2018]+continue[`\"'\u201d\u2019]+\s+(?:yaz|de)\w*", re.I)
+NOT_ASK = re.compile(r"n['\u2019]t\b|\b(?:not|never|no need|without|instead of|rather than|stop|asks?|asked|asking)\b",
+                     re.I)
+ANY_QUOTE = re.compile("\"([^\"\\n]{1,400})\"|\u201c([^\u201d\\n]{1,400})\u201d")
+QUESTION = re.compile(r"[^.!?\n]*\?")
+GO_ON_Q = re.compile(r"\b(?:shall|should|can|may)\s+I\s+(?:continue|go on|proceed|keep going|carry on|start|begin|"
+                     r"move on)\b|\bwant me to (?:continue|go on|proceed|keep going|carry on|start|begin|move on)\b", re.I)
+CONT_OK = re.compile(
+    r"\busage (?:limit|resets?)\b|\byour limit\b|\blimit resets?\b|\brate limit\b|"
+    r"\btomorrow\b|\btonight\b|\bnext week\b|\b(?:on|until|by) (?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|"
+    r"Sunday)\b|\b(?:after|until|till) (?:about |around )?\d{1,2}[:.]\d{2}\b|\bat \d{1,2}[:.]\d{2},? (?:open|type|come "
+    r"back|start)\b|\bwhen (?:[\w'-]+\s){1,3}(?:answers|replies|writes back|responds)\b|"
+    r"\bnew terminal\b|\btype `?claude\b(?!-)|\bopen Claude Code\b|\bother (?:session|window|terminal)\b|"
+    r"\bin (?:your|that|the other) [^.\n]{1,40}? (?:window|session|terminal)\b|"
+    r"\byour (?:notes?|answers?|verdict|decisions?|choice|pick|feedback|changes|comments?|go|ok|okay|approval)\b|"
+    r"(?:^|[.!?:;,(]\s*|\b(?:and|then|or)\s+)(?:please\s+)?(?:paste|send|approve|decide|sign in|log ?in|authenticate|"
+    r"answer|reply)\b", re.I | re.M)
+POPUP_TOOLS = ("AskUserQuestion", "ExitPlanMode")
+POPUP_NOT_ANSWERED = re.compile(r"doesn.t want to proceed|was rejected|wants to clarify|declined", re.I)
 
 
 def band(ctx):
@@ -156,6 +188,188 @@ def private_sections(folder, ctx):
     return lines, metrics
 
 
+# ---- ledger CI-43 helpers (copies of hooks/furkan-review-gate.py; keep in step, see the constants above) ----
+def _texts(c):
+    if isinstance(c, str):
+        return c
+    if isinstance(c, list):
+        return "\n".join(b.get("text", "") for b in c if isinstance(b, dict) and b.get("type") == "text")
+    return ""
+
+
+def _is_tool_result(c):
+    return isinstance(c, list) and any(isinstance(b, dict) and b.get("type") == "tool_result" for b in c)
+
+
+def slim_row(o):
+    """The parts of a transcript row the CI-43 count reads (kept per file, so a big transcript stays small)."""
+    t = o.get("type")
+    r = {"type": t, "timestamp": o.get("timestamp"), "isSidechain": o.get("isSidechain"), "isMeta": o.get("isMeta"),
+         "subtype": o.get("subtype")}
+    m = o.get("message") or {}
+    c = m.get("content")
+    if isinstance(c, list):
+        keep = []
+        for b in c:
+            if not isinstance(b, dict):
+                continue
+            bt = b.get("type")
+            if bt == "text":
+                keep.append({"type": "text", "text": b.get("text", "")})
+            elif bt == "tool_use":
+                keep.append({"type": "tool_use", "id": b.get("id"), "name": b.get("name")})
+            elif bt == "tool_result":
+                keep.append({"type": "tool_result", "tool_use_id": b.get("tool_use_id"), "is_error": b.get("is_error"),
+                             "content": _texts(b.get("content"))[:600]})
+        c = keep
+    r["message"] = {"content": c, "usage": m.get("usage") if t == "assistant" else None}
+    return r
+
+
+def turn_parts(rows):
+    """Claude's text blocks of the current turn (since the last user line that is not a tool result, or a turn end)."""
+    parts = []
+    for o in reversed(rows):
+        if o.get("isSidechain"):
+            continue
+        t, c = o.get("type"), (o.get("message") or {}).get("content")
+        if t == "system" and o.get("subtype") == "turn_duration":
+            break
+        if t == "assistant" and isinstance(c, list):
+            parts.extend(reversed([b["text"] for b in c if isinstance(b, dict) and b.get("type") == "text"
+                                   and b.get("text", "").strip()]))
+        elif t == "user" and o.get("timestamp") and not _is_tool_result(c):
+            break
+    return parts[::-1]
+
+
+def steps_section(parts):
+    """The text after the last steps heading (inside the message that holds it), else the last paragraph."""
+    parts = [p for p in (parts or []) if p and p.strip()]
+    for p in reversed(parts):
+        hs = list(STEPS_HEAD.finditer(p))
+        if hs:
+            return p[hs[-1].end():]
+    paras = [x for x in re.split(r"\n\s*\n", parts[-1].strip()) if x.strip()] if parts else []
+    return paras[-1][-600:] if paras else ""
+
+
+def continue_asks(sec):
+    """The "type continue" asks in a last section (code and links out); [] for a quote of his words, a negation, a
+    reason of his own to wait (CONT_OK) or a real question to him."""
+    sec = ANY_QUOTE.sub(lambda m: m.group(0) if re.fullmatch(r"\W*continue\W*", m.group(1) or m.group(2) or "", re.I)
+                        else " ", sec)
+    out = []
+    for m in CONT_ASK.finditer(sec):
+        start = max(sec.rfind(c, 0, m.start()) for c in ".!?\n") + 1
+        if not NOT_ASK.search(sec[start:m.start()]):
+            a = start if m.start() - start <= 40 else sec.find(" ", m.start() - 40, m.start()) + 1 or m.start()
+            b = m.end() + 30 if m.end() + 30 < len(sec) else len(sec)
+            b = max(sec.rfind(" ", m.end(), b), m.end()) if b < len(sec) else b
+            out.append(" ".join(sec[a:b].split()).strip("*_ "))
+    if not out or CONT_OK.search(sec):
+        return []
+    for q in QUESTION.finditer(sec):
+        if q.group(0).strip(" ?*_`\t") and not (GO_ON_Q.search(q.group(0)) and not re.search(r"\bor\b", q.group(0), re.I)):
+            return []
+    return out
+
+
+def popup_open(rows):
+    """True when the current turn holds an AskUserQuestion / ExitPlanMode call he has not answered."""
+    results = {}
+    for o in reversed(rows):
+        if o.get("isSidechain"):
+            continue
+        t, c = o.get("type"), (o.get("message") or {}).get("content")
+        if t == "system" and o.get("subtype") == "turn_duration":
+            return False
+        if t == "user" and isinstance(c, list):
+            for b in c:
+                if isinstance(b, dict) and b.get("type") == "tool_result":
+                    results[b.get("tool_use_id")] = (bool(b.get("is_error")), _texts(b.get("content")))
+        if t == "assistant" and isinstance(c, list):
+            for b in c:
+                if isinstance(b, dict) and b.get("type") == "tool_use" and b.get("name") in POPUP_TOOLS:
+                    err, txt = results.get(b.get("id"), (True, ""))
+                    if err or POPUP_NOT_ANSWERED.search(txt[:600]):
+                        return True
+        if t == "user" and not o.get("isMeta") and o.get("timestamp") and not _is_tool_result(c):
+            return False
+    return False
+
+
+def context_used(rows, sid):
+    """(tokens, window): the newest main-thread usage, and the window the status line wrote for the session."""
+    tokens = 0
+    for o in reversed(rows):
+        if o.get("type") != "assistant" or o.get("isSidechain"):
+            continue
+        u = (o.get("message") or {}).get("usage") or {}
+        tokens = sum(u.get(k) or 0 for k in ("input_tokens", "cache_read_input_tokens", "cache_creation_input_tokens"))
+        if tokens:
+            break
+    window = 0
+    try:
+        with open(os.path.join(STATUS_DIR, re.sub(r"[^A-Za-z0-9_-]", "_", sid or "") + ".txt"), encoding="utf-8") as fh:
+            m = re.search(r"^window=(\d+)\s*$", fh.read(), re.M)
+            window = int(m.group(1)) if m else 0
+    except (OSError, ValueError):
+        pass
+    return tokens, window or CONT_WINDOW
+
+
+def continue_hit(parts, rows, sid, handover=None):
+    """(tokens, phrase) when the last section asks for "continue" under CONT_PCT % with no open pop-up and no
+    hand-over (`handover(text)`, when the private counter is there); None otherwise."""
+    if not parts:
+        return None
+    asks = continue_asks(NOT_STEP_TEXT.sub(" ", steps_section(parts)))
+    if not asks or popup_open(rows) or (handover and handover("\n".join(parts)) is not None):
+        return None
+    tokens, window = context_used(rows, sid)
+    if not tokens or tokens * 100 >= CONT_PCT * window:
+        return None
+    return tokens, asks[0]
+
+
+def continue_stops(rows, sid, since, end, handover=None):
+    """[(ts, tokens, phrase)] for each turn end in [since, end) whose final reply asks for "continue" (continue_hit)."""
+    out = []
+    for i, o in enumerate(rows):
+        if not (o.get("type") == "system" and o.get("subtype") == "turn_duration"):
+            continue
+        ts = parse_ts(o.get("timestamp") or "")
+        if ts is None or ts < since or ts >= end:
+            continue
+        j = i
+        while j > 0 and rows[j - 1].get("type") != "assistant":
+            j -= 1                     # rows the stop wrote itself (hook feedback) come before the turn end
+        cut = rows[:j]
+        hit = continue_hit(turn_parts(cut), cut, sid, handover)
+        if hit:
+            out.append((ts, hit[0], hit[1]))
+    return out
+
+
+def load_handover(folder):
+    """is_handover() of the private counter (taste_metrics.private.py) when it is there, else None."""
+    path = os.path.join(folder, "taste_metrics.private.py")
+    if not os.path.isfile(path):
+        return None
+    keep_flag = sys.dont_write_bytecode
+    sys.dont_write_bytecode = True
+    try:
+        spec = importlib.util.spec_from_file_location("scan_taste_metrics", path)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        return getattr(mod, "is_handover", None)
+    except Exception:
+        return None
+    finally:
+        sys.dont_write_bytecode = keep_flag
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--days", type=float, default=7)
@@ -230,6 +444,8 @@ def main():
     model_tok = C(); heredoc_used = 0; secrets_in_cmds = 0; secret_where = set(); empty_sessions = 0
     twin_fork = 0; stop_blocks = 0; stop_followed = 0; stop_unfollowed = []
     time_asks = 0; voice_corr = 0; no_such_tool = 0
+    cont_asks = []                     # ledger CI-43: (project, sid, ts, tokens, phrase)
+    handover = load_handover(a.private_dir)
 
     for f in main_files:
         try:
@@ -241,6 +457,7 @@ def main():
         s = None
         id2 = {}; seen_msg = set(); reads = C(); ts_n = 0; cost = None; cost_models = {}
         stop_pm = []; pm_edits = []        # Stop blocks "PROJECT.md was NOT updated"; Edit/Write of a PROJECT.md
+        conv = []; print_mode = False      # slim rows for the CI-43 count (a turn may start before the window)
         with open(f, encoding="utf-8", errors="replace") as fh:
             for line in fh:
                 try:
@@ -248,6 +465,9 @@ def main():
                 except Exception:
                     continue
                 t = o.get("type")
+                if t in ("assistant", "user") or (t == "system" and o.get("subtype") == "turn_duration"):
+                    conv.append(slim_row(o))
+                    print_mode = print_mode or o.get("entrypoint") == "sdk-cli"   # `claude -p`: the hook passes it
                 if t == "cost-state":           # cumulative; keep the latest in the file
                     cost = o.get("totalCostUSD"); cost_models = o.get("modelUsage") or {}
                     continue
@@ -406,6 +626,8 @@ def main():
             s = None
         if s is not None:
             s["cost"] = cost; s["models"] = cost_models; s["toolsearch"] = ts_n
+            for ts, tok, phrase in ([] if print_mode else continue_stops(conv, sid, since, end, handover)):
+                cont_asks.append((s["project"], sid, ts, tok, phrase))
             for bt in stop_pm:
                 stop_blocks += 1
                 if any(e > bt for e in pm_edits):
@@ -551,7 +773,8 @@ def main():
                    ("subagents.per_week", sub_n), ("toolsearch.per_week", sum(toolsearch)),
                    ("big_outputs_25k.per_week", len(big_out)), ("repeated_reads.per_week", len(reads_rep)),
                    ("owner.time_asks.per_week", time_asks), ("owner.corrections.per_week", len(corrections)),
-                   ("owner.corrections.voice.per_week", voice_corr), ("tool.err.no_such_tool.per_week", no_such_tool)):
+                   ("owner.corrections.voice.per_week", voice_corr), ("tool.err.no_such_tool.per_week", no_such_tool),
+                   ("reply.continue_ask_under_28pct.per_week", len(cont_asks))):
         rate(key, n)
     for k, v in bash_err.items():
         rate("bash.err." + k + ".per_week", v)
@@ -704,6 +927,10 @@ def main():
     P("## 6. Owner friction")
     P(f"- Interrupts: {interrupts}. API/system errors: {dict(api_err) or 0}. Owner asks about the time left: "
       f"{time_asks}. Calls to a tool that does not exist: {no_such_tool}")
+    P(f"- Final replies that asked the owner to type \"continue\" while the context was under {CONT_PCT}% (ledger "
+      f"CI-43): {len(cont_asks)}" + (" - " + "; ".join(
+          f"[{proj} {sid[:8]} {ts:%m-%d %H:%M}] {tok // 1000}K \"{one_line(phrase, 90)}\""
+          for proj, sid, ts, tok, phrase in sorted(cont_asks, key=lambda x: x[2])[:3]) if cont_asks else ""))
     P(f"- Owner messages that read like a correction ({len(corrections)} candidates; read in context before counting any):")
     for proj, day, txt in corrections[:40]:
         P(f"  - [{proj} {day}] {txt}")

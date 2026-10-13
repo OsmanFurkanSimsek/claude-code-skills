@@ -264,8 +264,10 @@ rest of the setup. It runs when the owner's setup has one (a backup repo or a mi
 the owner's own instructions); without one, Step 6 ends the run.
 
 1. **Check first; the checks decide.** What changed since the last snapshot: the skill folders against the
-   backup (content hashes, not file times), the repo's own uncommitted files, and whatever this run's fixes
-   touched. Each check takes seconds.
+   backup (content hashes, not file times), the repo's own uncommitted files, whatever this run's fixes
+   touched, and the setup files sessions in other projects changed (hooks, settings, plans, memory). When the
+   snapshot script is the one copy list, run it first and let the repo's status decide: a second list of
+   locations drifts. Each check takes seconds.
 2. **Nothing changed** -> one line, "Setup backed up, nothing changed", and no snapshot, sync, commit or upload.
    A review run always changed its ledger, so after a review the least this step does is commit that: "Setup
    backed up: ledger and report only, nothing else changed".

@@ -159,7 +159,8 @@ def main():
         seen = dt.datetime.fromtimestamp(judged_at).strftime("%Y-%m-%d %H:%M local")
         L += ["", f"## New /insights analyses since the report the last review saw ({seen})", "",
               f"{len(faceted)} sessions have an analysis (facet) written after it (test runs left out); "
-              f"{len(after)} sessions were active after {since:%Y-%m-%d %H:%M} UTC. A session without a facet was too "
+              f"{len(after)} sessions known to /insights (its session-meta, written only by an /insights run) were active "
+              f"after {since:%Y-%m-%d %H:%M} UTC; the scan's session count is the full one. A session without a facet was too "
               "short or is not analysed yet: its facet appears in the next report and is listed then.", ""]
     for last, sid, proj, f in sorted(faceted, key=lambda x: x[0]):
         fr = ", ".join(f"{k} {v}" for k, v in (f.get("friction_counts") or {}).items()) or "none"

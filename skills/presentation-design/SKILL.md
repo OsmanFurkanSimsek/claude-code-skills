@@ -110,6 +110,9 @@ them isn't finished:
   other's colors.
 - **A file the user sends always wins:** if they send you the official logo, image, or photo
   file themselves, don't search the web for it - embed exactly what they sent (as base64).
+- **Generated images never carry a logo or brand text.** In a branded deck, AI-generated pictures
+  follow the template's palette, but the logo comes only from the official file; never ask an image
+  model to draw it.
 - **Never fake a screenshot.** If one is needed and unavailable, draw a realistic mockup instead;
   swap in the real thing if and when they send it.
 - **NO WATERMARKED STOCK IMAGES.** Never use or embed a watermarked preview image from
@@ -190,7 +193,10 @@ them isn't finished:
   offline).
 - **An in-house audience gets that organization's own template**, not the dark cinematic default -
   this is a project-specific style call and never gets written back into this skill (that
-  organization's colors and logo stay in that project's own design file, not here). Before
+  organization's colors and logo stay in that project's own design file, not here). One exception:
+  the presenter's OWN employer, when every work deck uses its template, may get one "Work
+  presentations" section in this skill (palette, the official logo file, a reference title slide);
+  every other organization's template still stays in its project. Before
   researching a brand online, ask: "is there an existing deck or PDF already built on this
   template?" If so, measure it exactly instead of guessing - dominant colors from the page's own
   pixels, fonts via `pdffonts`, the logo re-vectorized via `pdftocairo -svg`. An hour of web

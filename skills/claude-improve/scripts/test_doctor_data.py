@@ -7,10 +7,11 @@ SCRIPT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "doctor_data.p
 A, B, C = "2026-10-09 12:00", "2026-10-09 17:00", "2026-10-10 09:00"     # three Last run values = three reviews
 
 
-def run(home, *extra, since=A):
+def run(home, *extra, since=A, proj="proj"):
     env = dict(os.environ, USERPROFILE=home, HOME=home, PYTHONUTF8="1")
     out = os.path.join(home, "out.md")
-    proc = subprocess.run([sys.executable, "-I", SCRIPT, out, os.path.join(home, "proj"), since, *extra],
+    # -E -P, not -I: -I also drops the user site, where yaml lives on this laptop (ledger CI-45)
+    proc = subprocess.run([sys.executable, "-E", "-P", SCRIPT, out, os.path.join(home, proj), since, *extra],
                           capture_output=True, text=True, env=env, encoding="utf-8")
     assert proc.returncode == 0, proc.stderr
     return proc.stdout
@@ -107,6 +108,25 @@ class DoctorData(unittest.TestCase):
         second = run(self.home, since=B)
         self.assertIn("- nothing moved", second)                       # unchanged config is not re-listed ...
         self.assertIn("p1@m (", second.split("## changed")[0])         # ... but the unused plugin stays on the standing line
+
+    def test_review_from_another_project_is_not_a_move(self):
+        # 10-14: a review run from another folder listed that folder's own settings and agents as "moved"
+        local = os.path.join(self.home, "proj", ".claude", "settings.local.json")
+        write_json(local, {"permissions": {"allow": ["Bash(ls)"] * 5}})
+        os.makedirs(os.path.join(self.home, "proj2", ".claude", "agents"))
+        with open(os.path.join(self.home, "proj2", ".claude", "agents", "r.md"), "w", encoding="utf-8") as f:
+            f.write("---\nname: r\ndescription: a reviewer\n---\nbody\n")
+        run(self.home, since=A)
+        other = run(self.home, since=B, proj="proj2")
+        changed = other.split("## changed")[1].split("## transcripts")[0]
+        self.assertIn("- nothing moved", changed)
+        self.assertNotIn("~ [check 0] - project", changed)
+        self.assertIn("first pass for this project", changed)
+        self.assertIn("project agent definitions with a name: 1", changed)
+        write_json(local, {"permissions": {"allow": ["Bash(ls)"] * 6}})
+        back = run(self.home, since=C).split("## changed")[1]   # compared with proj's own last pass
+        self.assertIn("allow rules=5  ->  - project settings.local: defaultMode=None, allow rules=6", back)
+        self.assertNotIn("first pass for this project", back)
 
     def test_no_save_keeps_the_state(self):
         run(self.home, since=A)

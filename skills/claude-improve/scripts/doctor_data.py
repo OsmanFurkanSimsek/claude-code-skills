@@ -84,20 +84,25 @@ def frontmatter(path):
 
 P("- agents:")
 names = collections.defaultdict(list)
+UA = os.path.normcase(os.path.normpath(f"{CL}/agents"))
 for p in glob.glob(f"{CL}/agents/*.md") + glob.glob(f"{PROJ}/.claude/agents/**/*.md", recursive=True):
+    user = os.path.normcase(os.path.normpath(os.path.dirname(p))) == UA
+    label = os.path.basename(p) if user else "project agent " + os.path.basename(p)
     fm, err = frontmatter(p)
     if err:
-        P(f"  - {os.path.basename(p)}: {err}")
+        P(f"  - {label}: {err}")
         continue
     if "name" not in fm:
         continue
     names[(os.path.dirname(p), fm["name"])].append(os.path.basename(p))
     if not fm.get("description"):
-        P(f"  - {os.path.basename(p)}: name but NO description (never loads)")
+        P(f"  - {label}: name but NO description (never loads)")
 for (d, n), fs in names.items():
     if len(fs) > 1:
         P(f"  - COLLISION name {n!r}: {fs}")
-P(f"  - agent definitions with a name: {sum(len(v) for v in names.values())}")
+user_agents = sum(len(v) for (d, n), v in names.items() if os.path.normcase(os.path.normpath(d)) == UA)
+P(f"  - agent definitions with a name: {user_agents}")
+P(f"  - project agent definitions with a name: {sum(len(v) for v in names.values()) - user_agents}")
 
 P("- skills (user):")
 skill_desc = {}
@@ -288,34 +293,17 @@ def keyed(lines):
         d[key] = (struct, counter, ln.strip())
     return d
 
-secs = split_sections(out)
-cur = {n: secs.get(n, []) for n in DIFFABLE}
-try:
-    with open(STATE, encoding="utf-8") as fh:
-        st = json.load(fh)
-except Exception:
-    st = {}
-if st.get("since") == SINCE:            # the same review again (a retry): the same baseline
-    prev, saved_at = st.get("baseline"), st.get("baseline_saved")
-elif st:                                # a later review: the previous review's last pass is the baseline
-    prev, saved_at = st.get("latest"), st.get("saved")
-else:
-    prev, saved_at = None, None
+def proj_scoped(line):
+    return line.strip().startswith("- project")
 
-problems = [ln.strip() for n in DIFFABLE for ln in cur[n] if PROBLEM.search(ln)]
-short = []
-S = short.append
-S("## problems (standing; each needs a verdict only if the ledger does not hold it)")
-S("\n".join(f"- {p}" for p in problems) if problems else "- none")
-S("- enabled plugins with 0 uses (standing; a verdict is needed only if the ledger holds none): "
-  + (", ".join(unused_plugins) if unused_plugins else "none"))
-if prev is None:
-    S("## changed since the last doctor pass")
-    S("- no baseline yet: first pass, so the whole config part is new (full dump below)")
-    for n in DIFFABLE:
-        S(f"### {n}")
-        short.extend(cur[n])
-else:
+def pick(st):
+    if st.get("since") == SINCE:        # the same review again (a retry): the same baseline
+        return st.get("baseline"), st.get("baseline_saved")
+    if st:                              # a later review: the previous review's last pass is the baseline
+        return st.get("latest"), st.get("saved")
+    return None, None
+
+def diff(prev, cur):
     changes, same, quiet = [], 0, 0
     for n in DIFFABLE:
         old, new = keyed(prev.get(n, [])), keyed(cur[n])
@@ -334,9 +322,50 @@ else:
         for k, (struct, counter, line) in old.items():
             if k not in new:
                 changes.append(f"- [{n}] {line}")
+    return changes, same, quiet
+
+secs = split_sections(out)
+cur_all = {n: secs.get(n, []) for n in DIFFABLE}
+# The review runs from whatever folder he is in: project lines are compared only with a pass of the same project.
+cur = {n: [ln for ln in v if not proj_scoped(ln)] for n, v in cur_all.items()}
+cur_p = {n: [ln for ln in v if proj_scoped(ln)] for n, v in cur_all.items()}
+PKEY = PROJ.rstrip("/").lower()
+try:
+    with open(STATE, encoding="utf-8") as fh:
+        st = json.load(fh)
+except Exception:
+    st = {}
+prev, saved_at = pick(st)
+if prev is not None:
+    prev = {n: [ln for ln in v if not proj_scoped(ln)] for n, v in prev.items()}
+projects = st.get("projects") or {}
+prev_p, saved_p = pick(projects.get(PKEY) or {})
+
+problems = [ln.strip() for n in DIFFABLE for ln in cur_all[n] if PROBLEM.search(ln)]
+short = []
+S = short.append
+S("## problems (standing; each needs a verdict only if the ledger does not hold it)")
+S("\n".join(f"- {p}" for p in problems) if problems else "- none")
+S("- enabled plugins with 0 uses (standing; a verdict is needed only if the ledger holds none): "
+  + (", ".join(unused_plugins) if unused_plugins else "none"))
+if prev is None:
+    S("## changed since the last doctor pass")
+    S("- no baseline yet: first pass, so the whole config part is new (full dump below)")
+    for n in DIFFABLE:
+        S(f"### {n}")
+        short.extend(cur_all[n])
+else:
+    changes, same, quiet = diff(prev, cur)
     S(f"## changed since the last doctor pass (saved {saved_at})")
     S("\n".join(changes) if changes else "- nothing moved")
     S(f"- {same} config lines identical; {quiet} usage counters of extensions already in use moved up (not listed)")
+    if prev_p is None:
+        S(f"- project part ({PROJ}): first pass for this project, shown once:")
+        short.extend("  " + ln.strip() for n in DIFFABLE for ln in cur_p[n])
+    else:
+        pch, psame, _ = diff(prev_p, cur_p)
+        S(f"- project part ({PROJ}, its last pass saved {saved_p}): " + (f"{len(pch)} moved" if pch else f"nothing moved ({psame} lines)"))
+        short.extend(pch)
 for n, lines in secs.items():
     if n.startswith("transcripts since"):
         short.append("## " + n)
@@ -350,9 +379,12 @@ open(dst, "w", encoding="utf-8").write(text)
 print(text)
 if not NO_SAVE:
     now = time.strftime("%Y-%m-%d %H:%M UTC", time.gmtime())
-    new_state = {"since": SINCE, "baseline": prev, "baseline_saved": saved_at, "latest": cur, "saved": now}
+    p_state = {"since": SINCE, "baseline": prev_p, "baseline_saved": saved_p, "latest": cur_p, "saved": now}
+    new_state = {"since": SINCE, "baseline": prev, "baseline_saved": saved_at, "latest": cur, "saved": now,
+                 "projects": {**projects, PKEY: p_state}}
     if SEED:
         new_state.update(baseline=cur, baseline_saved=now)
+        p_state.update(baseline=cur_p, baseline_saved=now)
     try:
         with open(STATE, "w", encoding="utf-8") as fh:
             json.dump(new_state, fh, indent=1)

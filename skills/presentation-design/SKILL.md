@@ -23,9 +23,10 @@ them isn't finished:
    numbered, contrasting phrases ("6 = 6", "Started" / "Never finished", "Not finished?" / "Take
    it back"). In persuasion decks: give / get / guarantee structure, and the closing slide is a
    single, clear ask.
-3. **Visual plus animation on every slide.** No text-only slides. As much visual weight as
-   possible, clean and visually appealing motion; everything appears one click at a time (see
-   "Animation standard" below for the concrete pattern library).
+3. **Visual plus animation on every slide, as much as possible.** No text-only slides. As many
+   visuals and visualizations as possible (diagrams, charts, counters, grids, timelines), with
+   clean and visually appealing motion; everything appears one click at a time (see "Animation
+   standard" below for the concrete pattern library).
 4. **The slide explains itself.** A visual has to say what it means without narration: label
    abstract shapes, write out what a number is counting. If the presenter can't tell what a slide
    means at a glance, the slide has failed.
@@ -143,6 +144,14 @@ them isn't finished:
   limit, so it can't even be uploaded there. Correct approach: a clickable "watch online" link
   card on the slide, plus a local `.mp4` file on the presenting laptop's desktop; put "copy the
   mp4 locally" on the presentation-day checklist.
+- **A background image prompt that worked** (any image generator): an abstract "scientific
+  visualization" scene that tells the topic, plus this ending, with your own palette: "Rendered as
+  a refined scientific visualization: precise thin luminous lines, fine particle fields, crisp
+  geometry, subtle depth of field, a deep <background color> background, slightly darker toward the
+  edges, a restrained palette of soft white, silver and pale blue light with one warm <accent
+  color> accent, high detail, rich and full-frame, elegant, calm and professional. No people, no
+  faces, no cartoon, clay or mascot look, no text, no letters, no numbers, no logos, no brand
+  names." The title goes on the image's empty half (or add a side shade in the background color).
 
 ## Animation and transitions
 
@@ -154,8 +163,14 @@ them isn't finished:
 - Video slides go full screen; videos are never embedded in the HTML itself (see the
   video-embedding trap above) - use a link card plus a local file.
 - Respect `prefers-reduced-motion`.
-- **Animation standard:** every slide's motion has to SHOW the idea, never decorate it - stay
-  simple, one main move per slide, all of it click-triggered. Reusable patterns worth reaching for:
+- **Animation standard:** every slide's motion has to SHOW the idea, never decorate it: one main
+  move per slide that carries the idea, and as many animations and visualizations as the slide can
+  carry with meaning. A good measure is three layers on one slide: (a) items that arrive one per
+  click, (b) the main move that shows the idea (a grid wave, a cable that draws itself, a filling
+  rail, a counter), (c) a calm ambient motion (Ken Burns, a slowly floating arc, pulse rings, a
+  screenshot that scrolls slowly in its frame). Every layer carries meaning, none is fast or
+  distracting, and the main move and the click items come on the presenter's click. Reusable
+  patterns worth reaching for:
   1. A signature element that travels across the deck (a marker moving along an underline; it
      turns red/dashed through the problem section, resolves by the end).
   2. An arrow that flies in and lands DEAD CENTER on its target, with a slight shake on impact.
@@ -176,6 +191,8 @@ them isn't finished:
      soft color transitions between light and dark backgrounds.
   10. Small repeating loops only when they carry meaning (a searching magnifying glass, a badge
       passed between team icons).
+  11. A column chart that draws itself: the key column in the accent color, values on top of the
+      columns, the target line drawn on its own click, real dates on the axis (not week numbers).
 - **Render QA is mandatory, not optional.** Serve the deck locally (`python -m http.server` -
   browser automation blocks `file:` URLs); screenshot EVERY slide at its final click state, at
   both 1920x1080 and 1366x768, and actually look at each screenshot; check for overflow
@@ -204,6 +221,15 @@ them isn't finished:
   minutes and matched exactly. If the template has no built-in warning color, ask the client which
   color to use for problem/risk content. An open-license font can still be embedded as base64; the
   "system fonts only" default is only for fonts you can't license that way.
+- **An approved work deck becomes the starter deck.** When the presenter approves a deck built on
+  their employer's template, save it in that "Work presentations" section as a starter kit: the
+  deck engine with its sample slides and backup index, a build script that embeds the images and
+  draws the diagrams and charts, a render-check script, and text-free, logo-free background images
+  in the palette. Every later work deck starts from a copy of it (texts in the template; nodes,
+  charts and grids in the build script's lists), then gets the usual render QA, and every
+  screenshot is still looked at. Write down what made the approved deck work (one design language,
+  a signature element, image "breathing" slides, real screenshots in frames, a flow diagram that
+  grows per click, a numbered closing ask) as the bar the next deck keeps.
 - **Layout ideas worth borrowing from templates, in any style:** a bold title top-left; numbered
   colored squares (01, 02, 03) for agendas and ordered lists; a small tab-shaped label top-right
   for "source / scope" context (e.g. "team estimate", "whole system"); light background as the

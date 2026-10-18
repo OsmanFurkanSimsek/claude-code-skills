@@ -93,6 +93,19 @@ def test_until_stops_the_window_and_counts_stay_raw(projects):
     assert "bash.calls.count" not in md               # raw counts live in the --json file only
 
 
+def test_a_transcript_removed_during_the_scan_is_skipped(projects, monkeypatch):
+    # 2026-10-18: an /insights run removed its own transcript after the listing, and the all-time skill count crashed
+    real, gone = scan.glob.glob, str(projects / "projects" / "-work-proj" / "gone.jsonl")
+    listing = os.path.join(str(projects / "projects"), "*", "*.jsonl")
+    monkeypatch.setattr(scan.glob, "glob", lambda p, *a, **k: real(p, *a, **k) + ([gone] if p == listing else []))
+    js = projects / "scan.json"
+    monkeypatch.setattr(sys, "argv", ["scan.py", "--since", "2026-10-09 09:00", "--projects-dir", str(projects / "projects"),
+                                      "--private-dir", str(projects / "addons"), "--out", str(projects / "scan.md"),
+                                      "--json", str(js)])
+    scan.main()
+    assert json.loads(js.read_text(encoding="utf-8"))["sessions.count"] == 1
+
+
 def user(ts, text):
     return line(type="user", timestamp=ts, cwd="/work/proj", message={"role": "user", "content": text})
 

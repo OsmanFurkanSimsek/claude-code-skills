@@ -680,7 +680,11 @@ def main():
     # ---- all-time skill use (fast path: only lines that can hold a skill call) ----
     skills_all = C(); skills_last = {}
     for f in main_files:
-        with open(f, encoding="utf-8", errors="replace") as fh:
+        try:
+            fh = open(f, encoding="utf-8", errors="replace")
+        except OSError:                # removed after the listing (an /insights run's own transcript)
+            continue
+        with fh:
             for line in fh:
                 if '"name":"Skill"' not in line and "<command-name>" not in line:
                     continue

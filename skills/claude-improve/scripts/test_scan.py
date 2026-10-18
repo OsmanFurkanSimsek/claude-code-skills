@@ -240,3 +240,47 @@ def test_continue_rules_read_the_turn_like_the_hook():
     assert scan.context_used(slim, "ci43-no-such-session") == (150000, scan.CONT_WINDOW)
     assert scan.continue_hit(scan.turn_parts(slim), slim, "ci43-no-such-session") == (
         150000, "Next, when you type `continue`, I start B2 (tickets and")
+
+
+# ---- CI-51 follow-up (2026-10-18): the count agrees with the hook's rule 3 and reads past a quoted line ----
+STOPPING = "Save everything to the project.md. Tell me when I can close the terminal because I will stop working."
+
+
+def queued(ts, text):
+    return line(type="attachment", timestamp=ts, cwd="/work/proj",
+                attachment={"type": "queued_command", "prompt": text, "commandMode": "prompt", "origin": {"kind": "human"}})
+
+
+def test_continue_after_he_says_he_is_stopping_is_not_counted(projects):
+    d = projects / "projects" / "-work-proj"
+    rows = [user("2026-10-09T10:40:00Z", "go"), say("2026-10-09T10:41:00Z", "c1", ASK, 150000),
+            end_turn("2026-10-09T10:41:01Z"),                                                   # counted
+            user("2026-10-09T10:50:00Z", STOPPING), say("2026-10-09T10:51:00Z", "c2", ASK, 150000),
+            end_turn("2026-10-09T10:51:01Z"),                                                   # he is stopping
+            user("2026-10-09T11:00:00Z", "Build the page."), tool("2026-10-09T11:00:30Z", "c3", "Bash", {"command": "x"}),
+            queued("2026-10-09T11:00:40Z", "Bugünlük bu kadar, her şeyi kaydet."),
+            say("2026-10-09T11:01:00Z", "c4", ASK, 150000), end_turn("2026-10-09T11:01:01Z"),     # queued while working
+            user("2026-10-09T11:10:00Z", "Stop asking me questions and keep going."),
+            say("2026-10-09T11:11:00Z", "c5", ASK, 150000), end_turn("2026-10-09T11:11:01Z")]     # no stop: counted
+    (d / "ci51b-scan-test.jsonl").write_text("\n".join(rows) + "\n", encoding="utf-8")
+    _, m = run_scan(projects)
+    assert m["reply.continue_ask_under_28pct.count"] == 2
+
+
+def test_his_last_message_reads_typed_and_queued_messages_like_the_hook():
+    rows = [json.loads(user("2026-10-09T10:40:00Z", STOPPING)), json.loads(say("2026-10-09T10:41:00Z", "c1", "ok", 9))]
+    assert scan.his_last_message([scan.slim_row(r) for r in rows]) == STOPPING
+    rows += [json.loads(queued("2026-10-09T10:42:00Z", "<command-name>/btw</command-name><command-args>go on with B4"
+                                                        "</command-args>"))]
+    assert scan.his_last_message([scan.slim_row(r) for r in rows]) == "go on with B4"
+    note = json.loads(user("2026-10-09T10:43:00Z", "<task-notification><task-id>a</task-id></task-notification>"))
+    assert scan.his_last_message([scan.slim_row(r) for r in rows + [note]]) == "go on with B4"
+
+
+def test_a_continue_ask_after_a_quoted_line_is_counted():
+    quote = steps_reply("1. Read Alex's note:\n> The numbers look right.\n2. Then type `continue` and I write the mail.")
+    slim = [scan.slim_row(json.loads(r)) for r in (user("2026-10-09T10:42:00Z", "go"),
+                                                    say("2026-10-09T10:43:00Z", "c2", quote, 150000))]
+    assert scan.continue_hit(scan.turn_parts(slim), slim, "ci43-no-such-session") == (
+        150000, "Then type `continue` and I write the mail.")
+    assert scan.NOT_STEP_TEXT.sub("", "> quoted\nx\n```\n> in code\ny\n```\nz") == "\nx\n\nz"

@@ -78,7 +78,8 @@ CONT_WINDOW = 1000000           # when the status line names no window for the s
 STATUS_DIR = os.path.join(os.environ.get("TEMP") or tempfile.gettempdir(), "claude-statusline")
 STEPS_HEAD = re.compile(r"what you should do|what i need from you|^#+\s*(?:next )?steps\b|\*\*(?:next )?steps:?\*\*|"
                         r"ne yapman(?:ız)? gerek|yapman(?:ız)? gerekenler|ne yapmalısın", re.I | re.M)
-NOT_STEP_TEXT = re.compile(r"```.*?```|^[ \t]*>.*$|https?://\S+|`[^`\n]*[\\/.][^`\n]*`", re.S | re.M)
+# a quote drops only its own line (with re.S a `.*` ran on to the end of the section; CI-51 follow-up, 2026-10-18)
+NOT_STEP_TEXT = re.compile(r"```.*?```|^[ \t]*>[^\n]*$|https?://\S+|`[^`\n]*[\\/.][^`\n]*`", re.S | re.M)
 CONT_ASK = re.compile(
     r"\b(?:type|say|write|send|reply|enter)\b\s*:?\s*(?:(?:me|us|the word|only|just|back)\s+)?[`\"'\u201c\u2018*]*"
     r"continue\b|[`\"'\u201c\u2018]+continue[`\"'\u201d\u2019]+\s+(?:yaz|de)\w*", re.I)
@@ -98,6 +99,19 @@ CONT_OK = re.compile(
     r"\byour (?:notes?|answers?|verdict|decisions?|choice|pick|feedback|changes|comments?|go|ok|okay|approval)\b|"
     r"(?:^|[.!?:;,(]\s*|\b(?:and|then|or)\s+)(?:please\s+)?(?:paste|send|approve|decide|sign in|log ?in|authenticate|"
     r"answer|reply)\b", re.I | re.M)
+# CI-51 rule 3: no count when his last message (typed, or queued while Claude worked) says he is stopping or asks when
+# he can close the terminal
+HIS_STOP = re.compile(
+    r"\bI(?:'ll|’ll| will|'m|’m| am)?\s+(?:going to\s+)?stop(?:ping)?\s+(?:work(?:ing)?|for (?:today|the day|"
+    r"tonight|now)|here|now)\b|"
+    r"\b(?:(?:when|whether|if)\s+)?(?:can|may|could|should)\s+I\s+close\s+(?:the\s+|this\s+|my\s+)?(?:terminal|session|"
+    r"window|claude|tab|laptop|computer|pc)\b|\b(?:tell|let)\s+me\s+(?:know\s+)?when\s+I\s+(?:can|may)\s+(?:close|stop|"
+    r"leave)\b|\b(?:I'm|I’m|I am)\s+(?:done|finished)\s+for\s+(?:today|the day|tonight|now)\b|"
+    r"\bdone for (?:today|the day|tonight)\b|\b(?:calling it a day|signing off|logging off)\b|"
+    r"\bbugünlük\s+(?:bu\s+kadar|yeter|bitti)|\b(?:çalışmayı|işi|bugünlük)\s+bırak\w*|\bpaydos\b|"
+    r"\b(?:terminal\w*|oturum\w*|pencere\w*)\s+(?:ne\s+zaman\s+)?kapat(?:abilirim|abilir\s+miyim|ayım|ıyorum|acağım)\b|"
+    r"\bne\s+zaman\s+kapat(?:abilirim|ayım)\b|"
+    r"\byarın\s+devam\w*", re.I)
 POPUP_TOOLS = ("AskUserQuestion", "ExitPlanMode")
 POPUP_NOT_ANSWERED = re.compile(r"doesn.t want to proceed|was rejected|wants to clarify|declined", re.I)
 
@@ -206,7 +220,11 @@ def slim_row(o):
     """The parts of a transcript row the CI-43 count reads (kept per file, so a big transcript stays small)."""
     t = o.get("type")
     r = {"type": t, "timestamp": o.get("timestamp"), "isSidechain": o.get("isSidechain"), "isMeta": o.get("isMeta"),
-         "subtype": o.get("subtype")}
+         "subtype": o.get("subtype"), "origin": o.get("origin"), "isCompactSummary": o.get("isCompactSummary")}
+    at = o.get("attachment")
+    if t == "attachment" and isinstance(at, dict):        # a message he typed while Claude worked (CI-51 rule 3)
+        r["attachment"] = {k: at.get(k) for k in ("type", "commandMode", "origin")}
+        r["attachment"]["prompt"] = _texts(at.get("prompt"))[:4000]
     m = o.get("message") or {}
     c = m.get("content")
     if isinstance(c, list):
@@ -320,13 +338,52 @@ def context_used(rows, sid):
     return tokens, window or CONT_WINDOW
 
 
+def _his_text(raw):
+    """What he typed (slash-command args only, pastes unwrapped), None when nothing (taste_metrics his_text)."""
+    raw = raw or ""
+    if raw.lstrip().startswith(("<local-command", "<task-notification", "<system-reminder")) or \
+            "[Request interrupted" in raw:
+        return None
+    if "<command-name>" in raw[:400] or raw.lstrip().startswith("<command-message>"):
+        m = re.search(r"<command-args>(.*?)</command-args>", raw, re.S)
+        raw = m.group(1) if m else ""
+    return re.sub(r"</?pasted_content[^>]*>", "", raw).strip() or None
+
+
+def his_last_message(rows):
+    """The text of the last message he typed in `rows` (a queued one too), "" when none."""
+    for o in reversed(rows or []):
+        if o.get("isSidechain"):
+            continue
+        at = o.get("attachment") if o.get("type") == "attachment" else None
+        if isinstance(at, dict):
+            og = at.get("origin") if isinstance(at.get("origin"), dict) else {}
+            if at.get("type") == "queued_command" and at.get("commandMode") in (None, "prompt") and \
+                    og.get("kind") in (None, "human"):
+                ht = _his_text(_texts(at.get("prompt")))
+                if ht:
+                    return ht
+            continue
+        c = (o.get("message") or {}).get("content")
+        og = o.get("origin") if isinstance(o.get("origin"), dict) else {}
+        if o.get("type") != "user" or o.get("isMeta") or o.get("isCompactSummary") or _is_tool_result(c) or \
+                og.get("kind") not in (None, "human"):
+            continue
+        ht = _his_text(_texts(c))
+        if ht:
+            return ht
+    return ""
+
+
 def continue_hit(parts, rows, sid, handover=None):
-    """(tokens, phrase) when the last section asks for "continue" under CONT_PCT % with no open pop-up and no
-    hand-over (`handover(text)`, when the private counter is there); None otherwise."""
+    """(tokens, phrase) when the last section asks for "continue" under CONT_PCT % with no open pop-up, no hand-over
+    (`handover(text)`, when the private counter is there) and no stop of his own (his last message); None otherwise."""
     if not parts:
         return None
     asks = continue_asks(NOT_STEP_TEXT.sub(" ", steps_section(parts)))
-    if not asks or popup_open(rows) or (handover and handover("\n".join(parts)) is not None):
+    if not asks or HIS_STOP.search(his_last_message(rows)):
+        return None
+    if popup_open(rows) or (handover and handover("\n".join(parts)) is not None):
         return None
     tokens, window = context_used(rows, sid)
     if not tokens or tokens * 100 >= CONT_PCT * window:
@@ -466,7 +523,8 @@ def main():
                 except Exception:
                     continue
                 t = o.get("type")
-                if t in ("assistant", "user") or (t == "system" and o.get("subtype") == "turn_duration"):
+                if t in ("assistant", "user") or (t == "system" and o.get("subtype") == "turn_duration") or (
+                        t == "attachment" and (o.get("attachment") or {}).get("type") == "queued_command"):
                     conv.append(slim_row(o))
                     print_mode = print_mode or o.get("entrypoint") == "sdk-cli"   # `claude -p`: the hook passes it
                 if t == "cost-state":           # cumulative; keep the latest in the file

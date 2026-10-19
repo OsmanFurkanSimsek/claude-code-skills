@@ -132,6 +132,15 @@ def test_closed_signal_lines_are_printed_one_each(tmp_path):
     assert "grep" not in out.split("## Closed items:")[1]
 
 
+def test_checked_bullet_rows_are_listed_with_table_rows(tmp_path):
+    led = MINI.replace("| 10-09 | /insights | Outputs too long | No case after 10-05 |\n",
+                       "| 10-09 | /insights | Outputs too long | No case after 10-05 |\n"
+                       "- 10-13 (3rd) scan: 1 Playwright snapshot of 46K\n")
+    out = run(tmp_path, led, SCAN)
+    assert "## Checked, no action (2)" in out
+    assert "- 10-09 /insights: Outputs too long" in out and "- 10-13 (3rd) scan: 1 Playwright snapshot of 46K" in out
+
+
 def test_already_through_window_end_adds_nothing(tmp_path):
     out = run(tmp_path, MINI.replace("through 2026-10-09 09:00 UTC", "through 2026-10-09 12:00 UTC"), SCAN)
     assert out.count("Already through 2026-10-09 12:00: nothing to add") == 2

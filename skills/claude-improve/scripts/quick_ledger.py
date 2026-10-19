@@ -63,6 +63,8 @@ def parse(text):
         cells = [c.strip() for c in l.strip().strip("|").split("|")]
         if l.startswith("|") and len(cells) >= 3 and cells[0] not in ("Checked",) and not set(cells[0]) <= set("-"):
             out["checked"].append(f"{cells[0]} {cells[1]}: {cells[2]}")
+        elif l.startswith("- "):                    # rows written as bullets since 10-13 ("- 10-19 scan: ...")
+            out["checked"].append(l[2:].strip())
     for st in re.findall(r"^- Status:\s*([a-z ]+?)\s*(?:\||$)", body("closed items"), re.M):
         out["closed"][st] = out["closed"].get(st, 0) + 1
     for blk in re.split(r"^### ", body("closed items"), flags=re.M)[1:]:

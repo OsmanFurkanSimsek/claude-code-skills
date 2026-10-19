@@ -1015,6 +1015,9 @@ def main():
     P("```")
 
     report = "\n".join(L) + "\n"
+    for p in (a.out, a.json):            # a fresh session's scratchpad folder may not exist yet
+        if p and os.path.dirname(p):
+            os.makedirs(os.path.dirname(p), exist_ok=True)
     if a.out:
         with open(a.out, "w", encoding="utf-8") as fh:
             fh.write(report)

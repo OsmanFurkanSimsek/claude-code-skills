@@ -118,6 +118,7 @@ def test_owner_time_asks_voice_corrections_and_missing_tools_are_counted(project
         user("2026-10-09T10:12:00Z", "That's wrong, it does not sound like me"),        # correction about voice
         user("2026-10-09T10:13:00Z", "you forgot the second table"),                     # correction, not voice
         user("2026-10-09T10:14:00Z", "<command-name>/clear</command-name> how far are you"),   # a command: no ask
+        user("2026-10-09T10:14:30Z", "Are you still active, or is it waiting for something?"),  # missed until 10-20
         tool("2026-10-09T10:15:00Z", "9", "Gone", {}),
         line(type="user", timestamp="2026-10-09T10:15:01Z", cwd="/work/proj",
              message={"role": "user", "content": [{"type": "tool_result", "tool_use_id": "t9", "is_error": True,
@@ -126,10 +127,10 @@ def test_owner_time_asks_voice_corrections_and_missing_tools_are_counted(project
     with open(d / "s1.jsonl", "a", encoding="utf-8") as fh:
         fh.write("\n".join(rows) + "\n")
     md, m = run_scan(projects)
-    assert m["owner.time_asks.count"] == 2
+    assert m["owner.time_asks.count"] == 3
     assert m["owner.corrections.count"] == 2 and m["owner.corrections.voice.count"] == 1
     assert m["tool.err.no_such_tool.count"] == 1
-    assert "Owner asks about the time left: 2. Calls to a tool that does not exist: 1" in md
+    assert "Owner asks about the time left: 3. Calls to a tool that does not exist: 1" in md
 
 
 def test_new_owner_keys_are_zero_when_nothing_matches(projects):

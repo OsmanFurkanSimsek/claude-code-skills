@@ -58,7 +58,7 @@ CORRECTION = re.compile(
     r"I already|as I said|every time|keep (doing|asking|forgetting))", re.I)
 # Owner asks about the time left while work runs (a pattern count, ledger key owner.time_asks).
 TIME_ASK = re.compile(r"\b(how far are you|how long (will|does|is|do)|how much (more )?time|when will (it|you|this|that)|"
-                      r"your estimate|time left|time estimate|take a long time|are you still (working|active|there|running)|"
+                      r"your estimate|time left|time estimate|take a long time|are you (still )?(working|active|there|running)\b|"
                       r"still running\?|is it (still )?waiting for|are you (done|finished)\b|"
                       r"is everything going well|(haven't|have not|didn't|did not) (heard|get|got) (any|an)( \w+)? update)",
                       re.I)

@@ -177,11 +177,13 @@ def test_time_left_and_time_estimate_count_as_time_asks(projects):
             user("2026-10-09T10:32:00Z", "the time table is fine"),               # no ask
             user("2026-10-09T10:33:00Z", "are you done working?"),               # missed until 10-21
             user("2026-10-09T10:34:00Z", "are you finished?"),
-            user("2026-10-09T10:35:00Z", "are you doneness-checking it")]        # no ask
+            user("2026-10-09T10:35:00Z", "are you doneness-checking it"),        # no ask
+            user("2026-10-09T10:36:00Z", "are you working?"),                    # missed until 10-22
+            user("2026-10-09T10:37:00Z", "are you workingmen")]                  # no ask
     with open(d / "s1.jsonl", "a", encoding="utf-8") as fh:
         fh.write("\n".join(rows) + "\n")
     _, m = run_scan(projects)
-    assert m["owner.time_asks.count"] == 4
+    assert m["owner.time_asks.count"] == 5
 
 
 # ---- ledger CI-43: final replies that ask for "continue" under 28% (rules shared with the review-gate hook) ----

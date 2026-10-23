@@ -186,6 +186,20 @@ def test_time_left_and_time_estimate_count_as_time_asks(projects):
     assert m["owner.time_asks.count"] == 5
 
 
+def test_a_message_typed_while_claude_works_counts_as_a_time_ask(projects):
+    # Missed until 2026-10-23: a mid-turn message is only a queued_command attachment (07241fec).
+    d = projects / "projects" / "-work-proj"
+    def queued(ts, text, kind="human"):
+        return line(type="attachment", timestamp=ts, cwd="/work/proj", attachment={
+            "type": "queued_command", "prompt": text, "commandMode": "prompt", "origin": {"kind": kind}})
+    rows = [queued("2026-10-09T10:40:00Z", "How is it going?  \nI didn't get any update from you for a long time."),
+            queued("2026-10-09T10:41:00Z", "are you working?", kind="task-notification")]   # not his
+    with open(d / "s1.jsonl", "a", encoding="utf-8") as fh:
+        fh.write("\n".join(rows) + "\n")
+    _, m = run_scan(projects)
+    assert m["owner.time_asks.count"] == 1
+
+
 # ---- ledger CI-43: final replies that ask for "continue" under 28% (rules shared with the review-gate hook) ----
 def say(ts, mid, text, tokens, entry="cli"):
     return line(type="assistant", timestamp=ts, cwd="/work/proj", entrypoint=entry,

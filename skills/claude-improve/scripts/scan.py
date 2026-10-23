@@ -551,6 +551,16 @@ def main():
                 elif t == "attachment":
                     at = (o.get("attachment") or {})
                     typ = str(at.get("type", ""))
+                    # A message he typed while Claude worked arrives only as this attachment (no user row).
+                    if typ == "queued_command" and at.get("commandMode") == "prompt" and \
+                            (at.get("origin") or {}).get("kind") == "human" and isinstance(at.get("prompt"), str):
+                        c = at["prompt"]
+                        if not c.startswith("<") and len(c) < 2000:
+                            time_asks += bool(TIME_ASK.search(c))
+                            item = (s["project"] + " " + sid[:8], ts.strftime("%m-%d %H:%M"), one_line(c, 260))
+                            if CORRECTION.search(c) and item not in corrections:
+                                corrections.append(item)
+                                voice_corr += bool(VOICE.search(c))
                     if typ.startswith("hook"):
                         ev = str(at.get("hookName", "?")).split(":")[0]
                         hook_att[(typ, ev)] += 1

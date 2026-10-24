@@ -42,7 +42,8 @@ handful of sessions, under 10 minutes for a busy day. A `Last run:` 24 hours old
    `quick_ledger.py` prints what the quick path needs from the ledger: Last run, the last Runs row, each open item
    with its Verify by and its `Since Done:` tally already brought to the window's end (`New:`; `Start:` from the one
    scan it runs for a Done inside the window), a "too early" mark under 10 sessions, and every "Checked, no action"
-   point, and each closed item's `Signal:` line (ID, status, Signal). It also prints each done item's `Hint:` (a
+   point, each closed item's `Signal:` line (ID, status, Signal), and one line counting the archive (closed items in
+   full, older checked lines; `references/ledger-format.md` § Archive). It also prints each done item's `Hint:` (a
    suggested verdict with its reason), the call count of any skill an item names (0 = not used), and one line on
    the window edge (a session crossing it counts in both windows: known, nothing to check). Do not read or grep the
    ledger file; match a candidate on those printed lines. Nothing else is scanned.
@@ -50,9 +51,9 @@ handful of sessions, under 10 minutes for a busy day. A `Last run:` 24 hours old
    apply Step 2's rules). Reason only about items marked "needs reading", on their `New:` or `Start:` line, and
    about new signals. A count marked "no scan key" is read in context only when such an item could change status
    now; a skill call count of 0 needs no read.
-3. **New signals:** read `scan.md` and `insights-diff.md`; keep only what the ledger view does not hold yet. No
-   helper agent, unless a new signal truly needs transcript reading; then one. The playbook is opened only for such
-   a signal.
+3. **New signals:** read `scan.md` and `insights-diff.md`; keep only what the ledger view does not hold yet and a
+   grep of the archive for its keywords does not find. No helper agent, unless a new signal truly needs transcript
+   reading; then one. The playbook is opened only for such a signal.
 4. **/insights and /doctor** (Step 1b, both in every run, both only on what moved): start no new /insights run
    while the newest report is under 24 hours old (it can only repeat itself); judge only the analyses added since
    the report the previous review saw. Judge /doctor only on the `doctor_data.py` output the one command printed: its "changed"
@@ -102,7 +103,10 @@ handful of sessions, under 10 minutes for a busy day. A `Last run:` 24 hours old
    `~/.claude/claude-improve.json` as `{"ledger": "<absolute path>"}`.
 
 Read the ledger **in full** (quick path: `quick_ledger.py` instead). Note its `Last run:` date and every item's
-status.
+status. Its archive (`<ledger name>-archive.md` next to it: closed items' full entries, checked lines older than 14
+days; `references/ledger-format.md` § Archive) is never read in full: grep it for a candidate's keywords before
+raising the candidate as new (Step 3), and for a closed item's baseline when its entry in the ledger has no
+`Verify by` line (Step 2).
 
 ## Step 1 - Scan
 
@@ -182,7 +186,7 @@ For every ledger item, in this order:
 | `later` | Re-raise when its metric grew, or at the second run after the answer. |
 | `muted` | Never raise, never list. Count them in one line. |
 | `benign` | Skip; re-check only if its numbers change shape (not just size). |
-| `verified` | Nothing, unless the metric regressed past its baseline; then re-open as `not working`. |
+| `verified` | Nothing, unless the metric regressed past its baseline (its `Verify by` line, else its archive entry); then re-open as `not working`. |
 
 ## Step 3 - Find what is new
 
@@ -192,9 +196,9 @@ looks worth raising:
 1. **Confirm it in the raw transcripts** before believing it: grep the example text from `scan.md` in
    `~/.claude/projects/*/*.jsonl` and read 1-3 cases in context. Many signals are benign (a gate
    that correctly blocked a real mistake, a correction that was really a new request).
-2. **Match it against the ledger** by signal AND cause: the same metric with a different cause (big
-   results from file reads vs. from web fetches) is a new item. A muted item mutes its own proposal,
-   not every future finding on that metric.
+2. **Match it against the ledger** (and a grep of its archive) by signal AND cause: the same metric with a
+   different cause (big results from file reads vs. from web fetches) is a new item. A muted item mutes its own
+   proposal, not every future finding on that metric.
 3. **Keep it only if** it recurs (3+ times, or once at real cost), has a concrete fix, and the fix
    costs less than the problem.
 
@@ -254,8 +258,12 @@ ask the same choices in one short numbered list.
    chunk; say which session will do it.
 3. **Later** -> `later`. **Never** -> `muted` with the reason. **Own idea** -> rewrite the item from
    the owner's words, then treat it as `Do it`.
-4. If the ledger lives in a git repo, Step 7 commits it with that repo's normal flow, together with the report
-   and the fixes (without an update step, commit it now).
+4. **Archive** (`references/ledger-format.md` § Archive): an item that became `verified`, `muted` or `benign` this
+   run moves to Closed items as a compact entry (heading, Status, Signal, Verify by, a `Full entry:` pointer) and
+   its full body goes to the top of the archive's Closed items; "Checked, no action" lines dated more than 7 days
+   before this run move to the end of the archive's Checked section. Lines move word for word, never edited.
+5. If the ledger lives in a git repo, Step 7 commits it and its archive with that repo's normal flow, together
+   with the report and the fixes (without an update step, commit them now).
 
 ## Step 7 - Update step: back up and sync, last in every run
 

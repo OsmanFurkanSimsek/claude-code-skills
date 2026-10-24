@@ -5,6 +5,8 @@ Prints Last run, the last Runs row, each open item (ID, title, Status, Done, Ver
 "Checked, no action" point as one line, so the model never reads the whole ledger on the quick path (an item's Fix
 line too, when only a restart decides whether its tally is too early). Closed items are counted, and each one's
 `Signal:` line is printed (ID, status, Signal; one line each) so a candidate is matched without grepping the ledger.
+One line counts what the archive next to the ledger (`<ledger name>-archive.md`: closed items' full entries, older
+checked lines) holds; the archive is read only to count (a missing archive counts 0), never printed.
 With --scan-json (this window's scan.json from scan.py) it also brings every `Since Done:` tally up to the
 window's end: sessions and startup sessions summed, and the count summed when the item's Signal or Verify by
 names a scan key (`<key>.per_week` -> `<key>.count`); a count no scan key holds is marked for reading in context.
@@ -73,6 +75,18 @@ def parse(text):
         out["signals"].append(f"{blk.split()[0]} ({st.group(1) if st else '?'}): "
                               f"{m.group(1) if m else '(no Signal line)'}")
     return out
+
+
+def archive_line(ledger):
+    """One line with the archive's counts: checked lines and closed items' full entries (missing archive: 0)."""
+    path = os.path.splitext(ledger)[0] + "-archive.md"
+    try:
+        A = parse(open(path, encoding="utf-8").read())
+        checked, items = len(A["checked"]), len(A["signals"])
+    except OSError:
+        checked = items = 0
+    return (f"Archive {os.path.basename(path)} (grep only, never read whole): {checked} older checked lines, {items} "
+            "closed items in full; grep it for a new candidate's keywords before raising it as new")
 
 
 def ts(s):
@@ -339,6 +353,7 @@ def main():
         P.append(f"This window: {scan.get('window.start')} to {scan.get('window.end')} UTC, "
                  f"{n} sessions ({scan.get('sessions.startup', 0)} startup)")
         P.append(EDGE)
+    P.append(archive_line(a.ledger))
     P += ["", f"## Open items ({len(L['items'])})"]
     for it in L["items"]:
         P.append(f"- {it['head']} | {it['state']}" + (f" | Done {it['done']} UTC" if it["done"] else ""))

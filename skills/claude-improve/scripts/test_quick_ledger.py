@@ -132,6 +132,76 @@ def test_closed_signal_lines_are_printed_one_each(tmp_path):
     assert "grep" not in out.split("## Closed items:")[1]
 
 
+ARCHIVE = """# Claude improve ledger archive
+
+## Closed items
+
+### CI-1 Old
+- Status: verified | Raised: 2026-09-18 | Answered: 2026-09-18 | Done: 2026-09-18 09:10 UTC
+- Signal: owner messages "are we there yet"
+- History: SECRET-ARCHIVE-BODY
+
+### CI-0 Oldest
+- Status: muted | Raised: 2026-09-01
+- Signal: something old
+
+## Checked, no action
+
+| Checked | Source | Point | Verdict and where it is handled |
+|---|---|---|---|
+| 09-30 | /insights | An old point | ARCHIVED-VERDICT |
+| 10-01 | scan | Another old point | No case |
+
+- 10-02 scan: an old bullet line
+
+## Since Done window notes
+
+### CI-9 Counted by a scan key
+- Since Done: 9 sessions (2 startup), window notes, through 2026-10-08 09:00 UTC
+"""
+
+COMPACT = MINI.split("## Closed items")[0] + """## Closed items
+
+Compact entries: the full entry is in the archive under the same heading.
+
+### CI-1 Old
+- Status: verified | Raised: 2026-09-18 | Answered: 2026-09-18 | Done: 2026-09-18 09:10 UTC
+- Signal: owner messages "are we there yet"
+- Verify by: owner.time_asks.per_week = 0 (baseline 7)
+- Full entry: ledger-archive.md § CI-1
+
+### CI-2 Older, no signal
+- Status: muted | Raised: 2026-09-10
+- Full entry: ledger-archive.md § CI-2
+"""
+
+
+def test_archive_next_to_the_ledger_is_counted_never_printed(tmp_path):
+    (tmp_path / "ledger-archive.md").write_text(ARCHIVE, encoding="utf-8")
+    out = run(tmp_path, COMPACT, SCAN)
+    assert ("Archive ledger-archive.md (grep only, never read whole): 3 older checked lines, 2 closed items in full; "
+            "grep it for a new candidate's keywords before raising it as new") in out
+    assert out.count("Archive ledger-archive.md") == 1
+    for body in ("SECRET-ARCHIVE-BODY", "ARCHIVED-VERDICT", "an old bullet line", "something old", "window notes"):
+        assert body not in out, body
+    assert out.index("Archive ledger-archive.md") < out.index("## Open items")    # before the item lists
+    assert "## Checked, no action (1)" in out                                      # the ledger's own rows only
+
+
+def test_missing_archive_counts_zero(tmp_path):
+    out = run(tmp_path, MINI)
+    assert ("Archive ledger-archive.md (grep only, never read whole): 0 older checked lines, 0 closed items in "
+            "full") in out
+
+
+def test_compact_closed_entries_keep_counts_and_signal_lines(tmp_path):
+    out = run(tmp_path, COMPACT, SCAN)
+    assert "## Closed items: 2 (muted 1, verified 1)" in out
+    tail = out.split("## Closed items:")[1].splitlines()[1:]
+    assert tail == ['- CI-1 (verified): owner messages "are we there yet"', "- CI-2 (muted): (no Signal line)"]
+    assert "Full entry" not in out and "Compact entries" not in out
+
+
 def test_checked_bullet_rows_are_listed_with_table_rows(tmp_path):
     led = MINI.replace("| 10-09 | /insights | Outputs too long | No case after 10-05 |\n",
                        "| 10-09 | /insights | Outputs too long | No case after 10-05 |\n"

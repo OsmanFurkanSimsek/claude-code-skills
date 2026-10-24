@@ -12,6 +12,8 @@ get checked against their baseline.
 > Every recommendation from the claude-improve review, the owner's answer, and how we check
 > it worked. Read in full at the start of each review; one heading per item. (If this project keeps
 > a PROJECT.md, its Map points here.)
+> Archive, grep only: `claude-improve-ledger-archive.md` holds closed items' full entries and "Checked, no action"
+> lines older than 7 days; grep it for a candidate's keywords before raising one as new.
 
 Last run: YYYY-MM-DD HH:MM UTC
 
@@ -92,10 +94,35 @@ Fields:
 - **Owner** - the owner's answer, verbatim when short; for `muted`, the reason.
 - **History** - dated one-liners: raised, answered, done, verified / not working.
 
+## Archive
+
+The ledger is read in full every full run, so what a run no longer needs moves to an archive next to it:
+`<ledger name>-archive.md` (for `claude-improve-ledger.md`: `claude-improve-ledger-archive.md`). The archive is
+grep only: never read it in full; grep it for a candidate's keywords or an item ID and read only the matching
+section. It uses the ledger's section names, so `quick_ledger.py` counts it (one line; a missing archive counts 0).
+
+- `## Closed items` - the full entry of every closed item, word for word, newest first. The ledger keeps a compact
+  entry under its own Closed items: the heading, the `Status:` and `Signal:` lines, the `Verify by:` line when the
+  item has one, and `- Full entry: <archive name> § CI-<n>`. That is enough to match a candidate (Signal) and to
+  check a regression (Verify by; when an older entry has none, grep its archive entry for the baseline).
+- `## Checked, no action` - lines older than 7 days, word for word, oldest first (table rows under a copy of the
+  table header, bullets after them).
+- `## Since Done window notes` - a `Since Done:` line that grew window-by-window notes: the ledger keeps the tally in
+  the standard form plus "window notes: archive § CI-<n>", and the old line moves here under the item's heading.
+
+When: at each run's Step 6, after the statuses are written. An item that became `verified`, `muted` or `benign`
+moves to Closed items as a compact entry and its full body goes to the top of the archive's Closed items; checked
+lines dated more than 7 days before the run move to the end of the archive's Checked section. A move never edits
+a line: every line stays, word for word, in one of the two files.
+
+Matching a new candidate: the ledger first (open items, checked lines, closed Signal lines), then one grep of the
+archive for its keywords. A hit in either is "already in the ledger" (rule "Never redo audited work").
+
 ## Housekeeping
 
 - Open and active items (`open`, `approved`, `done`, `not working`, `waiting on owner`, `later`)
   stay under **Open items**, newest first.
-- `verified`, `muted` and `benign` items move to **Closed items**. Keep their `Signal` line (the matcher needs
-  it); fold Evidence and History into one line when the file grows past about 30 KB.
+- `verified`, `muted` and `benign` items move to **Closed items** as a compact entry; the full entry goes to the
+  archive (§ Archive). Keep their `Signal` line in the ledger (the matcher needs it).
+- "Checked, no action" lines older than 7 days move to the archive (§ Archive).
 - The Runs table gets one row per run, never edited afterwards.

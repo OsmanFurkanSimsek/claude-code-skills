@@ -193,6 +193,23 @@ them isn't finished:
       passed between team icons).
   11. A column chart that draws itself: the key column in the accent color, values on top of the
       columns, the target line drawn on its own click, real dates on the axis (not week numbers).
+- **One element per click.** Everything builds up piece by piece (1, 2, 3); never two or three
+  items appearing together. A sequence ("Internet -> Mobile -> Cloud -> AI") is not shown as three
+  icons at once: each step arrives on its own click with its own motion.
+- **A crowded slide gets simpler, not busier.** A story slide carries ONE clear main motion that is
+  enjoyable to watch instead of many labels. No two near-synonyms in one list ("Richer" next to
+  "Wealthier" reads as a repeat).
+- **Every slide has its own visual.** Do not repeat one backdrop (a skyline, a pattern) behind every
+  slide; keep a background only on the slide whose story needs it. An idea tied to places (borders,
+  the cities where ideas were born) is told on a map, step by step.
+- **Realistic drawings.** A figure using a tool has arms and hands, and the tool looks real (a
+  shovel has a shaft, a grip and a blade) and sits in the hand. Zoom in on every drawn figure in a
+  screenshot before handing over. The punchline of a joke goes in a speech bubble that points at the
+  speaker, and the animation plays the joke.
+- **No captions that describe the slide's own parts** ("The name", "Channel picture"). A slide says
+  what it is for at first glance: the question comes before the numbers.
+- **Promise nothing that is not decided.** No "next part" or "coming soon" announcement for a topic
+  that has not been agreed; search the text for such lines before delivery.
 - **Render QA is mandatory, not optional.** Serve the deck locally (`python -m http.server` -
   browser automation blocks `file:` URLs); screenshot EVERY slide at its final click state, at
   both 1920x1080 and 1366x768, and actually look at each screenshot; check for overflow

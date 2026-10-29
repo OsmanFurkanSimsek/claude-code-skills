@@ -791,7 +791,8 @@ def main():
     proj_md = []
     for cwd, n in cwd_seen.most_common():
         if cwd:
-            b = size(os.path.join(cwd, "CLAUDE.md"))
+            # CLAUDE.local.md loads every message too (a shared repo keeps the owner's own bootstrap there)
+            b = (size(os.path.join(cwd, "CLAUDE.md")) or 0) + (size(os.path.join(cwd, "CLAUDE.local.md")) or 0)
             if b:
                 proj_md.append((os.path.basename(cwd.rstrip("\\/")), b, n))
 

@@ -42,11 +42,12 @@ handful of sessions, under 10 minutes for a busy day. A `Last run:` 24 hours old
    `quick_ledger.py` prints what the quick path needs from the ledger: Last run, the last Runs row, each open item
    with its Verify by and its `Since Done:` tally already brought to the window's end (`New:`; `Start:` from the one
    scan it runs for a Done inside the window), a "too early" mark under 10 sessions, and every "Checked, no action"
-   point, each closed item's `Signal:` line (ID, status, Signal), and one line counting the archive (closed items in
-   full, older checked lines; `references/ledger-format.md` § Archive). It also prints each done item's `Hint:` (a
+   point, a count of the closed items by status, and one line counting the archive (closed items in full, older
+   checked lines and Runs rows; `references/ledger-format.md` § Archive). It also prints each done item's `Hint:` (a
    suggested verdict with its reason), the call count of any skill an item names (0 = not used), and one line on
-   the window edge (a session crossing it counts in both windows: known, nothing to check). Do not read or grep the
-   ledger file; match a candidate on those printed lines. Nothing else is scanned.
+   the window edge (a session crossing it counts in both windows: known, nothing to check). Do not read the ledger
+   file; match a candidate on those printed lines, then one grep of the archive (closed items live only there).
+   Nothing else is scanned.
 2. **Verdicts:** accept each done item's `Hint:` unless the scan or the window shows a reason not to (the hints
    apply Step 2's rules). Reason only about items marked "needs reading", on their `New:` or `Start:` line, and
    about new signals. A count marked "no scan key" is read in context only when such an item could change status
@@ -103,10 +104,12 @@ handful of sessions, under 10 minutes for a busy day. A `Last run:` 24 hours old
    `~/.claude/claude-improve.json` as `{"ledger": "<absolute path>"}`.
 
 Read the ledger **in full** (quick path: `quick_ledger.py` instead). Note its `Last run:` date and every item's
-status. Its archive (`<ledger name>-archive.md` next to it: closed items' full entries, checked lines older than 14
-days; `references/ledger-format.md` § Archive) is never read in full: grep it for a candidate's keywords before
-raising the candidate as new (Step 3), and for a closed item's baseline when its entry in the ledger has no
-`Verify by` line (Step 2).
+status. The ledger holds only what every run needs (open items, the last 7 days of checked lines and Runs rows).
+Its archive (`<ledger name>-archive.md` next to it: every closed item in full, older checked lines and Runs rows;
+`references/ledger-format.md` § Archive) is never read in full: grep it for a candidate's keywords and Signal
+before raising the candidate as new (Step 3), and for a closed item's `Verify by` baseline when a regression check
+needs it (Step 2). The owner, 2026-10-30: "if things are getting long, move them to project memory ... That way you
+don't have to read every time. You can read only when it's needed."
 
 ## Step 1 - Scan
 
@@ -222,11 +225,12 @@ In this order, plain words, numbers inline:
    a yes/no and one reason), and one count line for the rest ("14 points, no new case since <Last run>").
 7. **Muted** - one line: "N muted items skipped" (list them only if asked).
 
-Nothing new? Say so in one line under **New**. Always save the full report as
-`reports/YYYY-MM-DD_claude-improve.md` in the ledger's project; a second run on the same day adds its own section
-(heading = its window) at the end of that file and never overwrites the first. If the owner's rules say nothing may
-come before a decision pop-up, show the pop-up first (the report path in the first question) and the
-chat summary after the answers.
+Nothing new? Say so in one line under **New**. No separate report file: the report is the chat answer, and its
+record is the ledger itself (the Runs row, the items' lines and the "Checked, no action" lines Step 6 writes),
+in the project memory where the next run reads it (owner, 2026-10-30: "You don't need to prepare one MD report per
+improvement. You can just put all these things in project memory."). If the owner's rules say nothing may come
+before a decision pop-up, show the pop-up first (the ledger path in the first question) and the chat summary after
+the answers.
 
 ## Step 5 - Ask, one decision per recommendation
 
@@ -259,11 +263,11 @@ ask the same choices in one short numbered list.
 3. **Later** -> `later`. **Never** -> `muted` with the reason. **Own idea** -> rewrite the item from
    the owner's words, then treat it as `Do it`.
 4. **Archive** (`references/ledger-format.md` § Archive): an item that became `verified`, `muted` or `benign` this
-   run moves to Closed items as a compact entry (heading, Status, Signal, Verify by, a `Full entry:` pointer) and
-   its full body goes to the top of the archive's Closed items; "Checked, no action" lines dated more than 7 days
-   before this run move to the end of the archive's Checked section. Lines move word for word, never edited.
+   run moves, its whole entry, to the top of the archive's Closed items (nothing of it stays in the ledger);
+   "Checked, no action" lines and Runs rows dated more than 7 days before this run move to the end of the archive's
+   Checked section and Runs table. Lines move word for word, never edited.
 5. If the ledger lives in a git repo, Step 7 commits it and its archive with that repo's normal flow, together
-   with the report and the fixes (without an update step, commit them now).
+   with the fixes (without an update step, commit them now).
 
 ## Step 7 - Update step: back up and sync, last in every run
 
@@ -278,7 +282,7 @@ the owner's own instructions); without one, Step 6 ends the run.
    locations drifts. Each check takes seconds.
 2. **Nothing changed** -> one line, "Setup backed up, nothing changed", and no snapshot, sync, commit or upload.
    A review run always changed its ledger, so after a review the least this step does is commit that: "Setup
-   backed up: ledger and report only, nothing else changed".
+   backed up: ledger only, nothing else changed".
 3. **Something changed** -> snapshot it, then publish only what is meant to be public, through its leak gate;
    one combined commit per repo. A gate hit stops the publish and goes to the owner; never work around it.
 4. **Asked only to sync or back up** ("/skill-update", "sync my skills", "back up my skills", "keep the private

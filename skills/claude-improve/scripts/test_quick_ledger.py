@@ -125,11 +125,12 @@ def test_waiting_item_gets_no_tally_and_closed_bodies_stay_out(tmp_path):
     assert "SECRET-CLOSED-BODY" not in out and "## Closed items: 2 (muted 1, verified 1)" in out
 
 
-def test_closed_signal_lines_are_printed_one_each(tmp_path):
+def test_closed_items_are_counted_never_listed(tmp_path):
     out = run(tmp_path, MINI, SCAN)
-    tail = out.split("## Closed items:")[1].splitlines()[1:]
-    assert tail == ['- CI-1 (verified): owner messages "are we there yet"', "- CI-2 (muted): (no Signal line)"]
-    assert "grep" not in out.split("## Closed items:")[1]
+    tail = out.split("## Closed items:")[1].splitlines()
+    assert tail[1:] == []                                       # no Signal lines (owner, 2026-10-30)
+    assert "grep the archive" in tail[0] and "a muted hit stays muted" in tail[0]
+    assert "are we there yet" not in out
 
 
 ARCHIVE = """# Claude improve ledger archive
@@ -194,12 +195,21 @@ def test_missing_archive_counts_zero(tmp_path):
             "full") in out
 
 
-def test_compact_closed_entries_keep_counts_and_signal_lines(tmp_path):
+def test_compact_closed_entries_keep_counts(tmp_path):
     out = run(tmp_path, COMPACT, SCAN)
     assert "## Closed items: 2 (muted 1, verified 1)" in out
-    tail = out.split("## Closed items:")[1].splitlines()[1:]
-    assert tail == ['- CI-1 (verified): owner messages "are we there yet"', "- CI-2 (muted): (no Signal line)"]
+    assert out.split("## Closed items:")[1].splitlines()[1:] == []
     assert "Full entry" not in out and "Compact entries" not in out
+
+
+def test_closed_items_only_in_the_archive_are_counted_once(tmp_path):
+    no_closed = MINI.split("## Closed items")[0] + "## Closed items\n"
+    (tmp_path / "ledger-archive.md").write_text(ARCHIVE, encoding="utf-8")
+    out = run(tmp_path, no_closed, SCAN)
+    assert "## Closed items: 2 (muted 1, verified 1)" in out          # CI-1 verified, CI-0 muted, from the archive
+    out = run(tmp_path, COMPACT, SCAN)                                 # CI-1 in both files counts once
+    assert "## Closed items: 3 (muted 2, verified 1)" in out
+    assert "SECRET-ARCHIVE-BODY" not in out and "something old" not in out
 
 
 def test_checked_bullet_rows_are_listed_with_table_rows(tmp_path):

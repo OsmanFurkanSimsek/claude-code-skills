@@ -3,10 +3,11 @@
 
 Prints Last run, the last Runs row, each open item (ID, title, Status, Done, Verify by, Since Done) and every
 "Checked, no action" point as one line, so the model never reads the whole ledger on the quick path (an item's Fix
-line too, when only a restart decides whether its tally is too early). Closed items are counted, and each one's
-`Signal:` line is printed (ID, status, Signal; one line each) so a candidate is matched without grepping the ledger.
-One line counts what the archive next to the ledger (`<ledger name>-archive.md`: closed items' full entries, older
-checked lines) holds; the archive is read only to count (a missing archive counts 0), never printed.
+line too, when only a restart decides whether its tally is too early). Closed items live in the archive next to the
+ledger (`<ledger name>-archive.md`: closed items' full entries, older checked lines and Runs rows); they are counted
+by status, each ID once (the archive plus any the ledger still holds), never listed: a candidate is matched with one
+grep of the archive (owner, 2026-10-30: detail lives in project memory and is read only when needed). The archive
+is read only to count (a missing archive counts 0), never printed.
 With --scan-json (this window's scan.json from scan.py) it also brings every `Since Done:` tally up to the
 window's end: sessions and startup sessions summed, and the count summed when the item's Signal or Verify by
 names a scan key (`<key>.per_week` -> `<key>.count`); a count no scan key holds is marked for reading in context.
@@ -77,16 +78,35 @@ def parse(text):
     return out
 
 
-def archive_line(ledger):
-    """One line with the archive's counts: checked lines and closed items' full entries (missing archive: 0)."""
-    path = os.path.splitext(ledger)[0] + "-archive.md"
+def archive_path(ledger):
+    return os.path.splitext(ledger)[0] + "-archive.md"
+
+
+def read_archive(ledger):
+    """The archive parsed like a ledger, or None when there is none."""
     try:
-        A = parse(open(path, encoding="utf-8").read())
-        checked, items = len(A["checked"]), len(A["signals"])
+        return parse(open(archive_path(ledger), encoding="utf-8").read())
     except OSError:
-        checked = items = 0
-    return (f"Archive {os.path.basename(path)} (grep only, never read whole): {checked} older checked lines, {items} "
-            "closed items in full; grep it for a new candidate's keywords before raising it as new")
+        return None
+
+
+def closed_counts(L, A):
+    """Closed items by status, each ID once: the archive's full entries plus any the ledger still holds."""
+    by_id = {}
+    for src in ([A] if A else []) + [L]:
+        for s in src["signals"]:
+            by_id.setdefault(s.split()[0], s.split("(", 1)[1].split(")", 1)[0])
+    counts = {}
+    for st in by_id.values():
+        counts[st] = counts.get(st, 0) + 1
+    return counts
+
+
+def archive_line(ledger, A=None):
+    """One line with the archive's counts: checked lines and closed items' full entries (missing archive: 0)."""
+    checked, items = (len(A["checked"]), len(A["signals"])) if A else (0, 0)
+    return (f"Archive {os.path.basename(archive_path(ledger))} (grep only, never read whole): {checked} older checked "
+            f"lines, {items} closed items in full; grep it for a new candidate's keywords before raising it as new")
 
 
 def ts(s):
@@ -353,7 +373,8 @@ def main():
         P.append(f"This window: {scan.get('window.start')} to {scan.get('window.end')} UTC, "
                  f"{n} sessions ({scan.get('sessions.startup', 0)} startup)")
         P.append(EDGE)
-    P.append(archive_line(a.ledger))
+    A = read_archive(a.ledger)
+    P.append(archive_line(a.ledger, A))
     P += ["", f"## Open items ({len(L['items'])})"]
     for it in L["items"]:
         P.append(f"- {it['head']} | {it['state']}" + (f" | Done {it['done']} UTC" if it["done"] else ""))
@@ -371,9 +392,10 @@ def main():
                 P.append(f"  Hint: {h}")
     P += ["", f"## Checked, no action ({len(L['checked'])}): skip these unless a session after Last run backs them"]
     P += [f"- {c}" for c in L["checked"]]
-    closed = ", ".join(f"{k} {v}" for k, v in sorted(L["closed"].items()))
-    P += ["", f"## Closed items: {sum(L['closed'].values())} ({closed}); match a candidate on these Signal lines"]
-    P += [f"- {x}" for x in L["signals"]]
+    cc = closed_counts(L, A)
+    closed = ", ".join(f"{k} {v}" for k, v in sorted(cc.items()))
+    P += ["", f"## Closed items: {sum(cc.values())} ({closed}); not listed: grep the archive (and this ledger's "
+          "Closed items, if any) for a candidate's keywords and Signal before raising it as new; a muted hit stays muted"]
     sys.stdout.write("\n".join(P) + "\n")
 
 

@@ -627,6 +627,10 @@ def main():
                         if nm in ("Edit", "Write", "MultiEdit") and \
                                 re.split(r"[\\/]", str(inp.get("file_path") or ""))[-1].upper() == "PROJECT.MD":
                             pm_edits.append(ts)
+                        elif nm in ("Bash", "PowerShell") and "PROJECT.md" in (inp.get("command") or "") and \
+                                re.search(r"sed -i|\.write|write_text|Set-Content|>\s*\"?\S*PROJECT\.md",
+                                          inp.get("command") or ""):
+                            pm_edits.append(ts)    # a shell-side reconcile (python heredoc, sed -i) counts too
                 elif t == "user":
                     m = o.get("message") or {}
                     c = m.get("content")
@@ -964,7 +968,7 @@ def main():
     if gate_notes:
         P("- Non-blocking lint notes after writes (event, script, count): "
           + ", ".join(f"{ev} / {script}: {v}" for (ev, script), v in gate_notes.most_common()))
-    P(f"- Stop blocks \"{STOP_PROJECT_MD}\": {stop_blocks}, followed by an Edit/Write of a PROJECT.md later in the "
+    P(f"- Stop blocks \"{STOP_PROJECT_MD}\": {stop_blocks}, followed by an Edit/Write (or a shell write) of a PROJECT.md later in the "
       f"same session: {stop_followed}" + (" (not followed: " + "; ".join(stop_unfollowed) + ")" if stop_unfollowed else ""))
     if ss_sizes:
         P(f"- SessionStart hook output: {len(ss_sizes)} injections, max {max(ss_sizes)} chars, avg {sum(ss_sizes)//len(ss_sizes)}")

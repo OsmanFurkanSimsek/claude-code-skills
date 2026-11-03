@@ -91,6 +91,31 @@ them isn't finished:
 - No filler phrases ("there are no stupid questions" and the like) written onto a slide - say
   those out loud, don't spend slide space on them.
 - Closing slide: a contact slide with your contact info, unless told otherwise.
+- **Lessons from a work demo deck (what a product or report demo needs):**
+  1. *Sources and challenge on one slide:* the problem slide shows the data sources with their real
+     logos and names (one box per category, logos arriving one per click) and says the challenge
+     plainly (every source has its own report; one person cannot combine them and see the pattern).
+     No second slide that tells the same story.
+  2. *No repeated screenshots:* items that would look alike (the same screenshot under different
+     names) each get their own icon (phone, PC, cloud) and a list of what they contain (for example
+     the sections of a report), so the audience understands what is inside.
+  3. *No tool brands:* do not name the coding tool behind the work on a slide; say "AI, a large
+     language model".
+  4. *The same live look for every section:* show the real output section by section, each on its
+     own slide and always with the same animation: the real image in a frame scrolls to the matching
+     part on each click, a highlight frames that part, its label appears beside it.
+  5. *Proof after content:* a verification or trust slide ("every number matches the official
+     dashboard") comes after the audience has seen the content.
+  6. *A shared resource is a clickable link:* a wiki or report archive on a slide is a real link
+     that opens in a new tab; clicking it does not advance the deck.
+  7. *Closing words:* not a request like "ask me what to change", but an invitation ("review the
+     reports and let me know if you need anything else"); the last slide is a thank-you plus a short
+     punchline ("Better data quality, better decisions").
+  8. *No overpromising roadmap:* a next step the audience has not asked for stays off the slide; keep
+     what is true today. Out loud you may offer at most "we can change the frequency if you like".
+  9. *Real team names:* never invent a team name ("app product team") on a slide or in the speech;
+     use each product's real team and owner, and write the audience's real team name under
+     "Participants", not a general phrase.
 
 ## Logo, icon, and image rules (lessons from real mistakes - do not repeat them)
 
@@ -109,6 +134,17 @@ them isn't finished:
 - **SVG id collisions:** when multiple SVGs get embedded in the same HTML file, their internal
   ids (`gradient`, `defs`, etc.) must be made unique before embedding, or logos bleed each
   other's colors.
+- **Data-source logos are official files too:** analytics tools, ticketing tools, app stores and
+  social platforms shown as sources get their official SVG (gilbarbara/logos, VectorLogoZone,
+  Wikimedia Commons); write each logo's download address into the project's asset log. Embed them
+  as `<img>` inside white tiles (no SVG id collisions that way) and give an SVG that renders tiny
+  (some Wikimedia files come out at 34 px) an explicit width and height.
+- **A new, creative title image for every deck:** decks must not become copies of each other. Make
+  a fresh picture for the title (and closing) slide of each deck with an image generator (three
+  styles, pick the best, keep the others in the log); never reuse another deck's picture or a bare
+  icon cluster. A layout that worked: keep the reference layout (an accent arc on the right), crop the
+  picture into a circle with a thin accent ring inside a dark circle, let it rotate or zoom slowly;
+  the closing slide carries a second picture in the same layout.
 - **A file the user sends always wins:** if they send you the official logo, image, or photo
   file themselves, don't search the web for it - embed exactly what they sent (as base64).
 - **Generated images never carry a logo or brand text.** In a branded deck, AI-generated pictures
@@ -186,7 +222,9 @@ them isn't finished:
      symbol like that for each specific audience.
   7. Self-drawing lines and grids that fade in progressively (hundreds of small icons appearing in
      a wave, some later fading or dropping) to make a large number felt rather than just read.
-  8. A highlighter sweep behind a key phrase, wiping in left to right.
+  8. ~~A highlighter sweep behind a key phrase~~ (dropped: a highlighter or underline under a word
+     looks odd on screen). Instead the key words themselves turn the accent color, on a click if
+     you like; this holds for every emphasis in the deck, not one slide.
   9. One large shape drifting slowly in on open and close; soft scale-and-fade between slides;
      soft color transitions between light and dark backgrounds.
   10. Small repeating loops only when they carry meaning (a searching magnifying glass, a badge
@@ -247,6 +285,11 @@ them isn't finished:
   screenshot is still looked at. Write down what made the approved deck work (one design language,
   a signature element, image "breathing" slides, real screenshots in frames, a flow diagram that
   grows per click, a numbered closing ask) as the bar the next deck keeps.
+- **A round picture fits a round shape:** when the layout has a round shape (an accent arc in a
+  corner), a round picture sits CONCENTRIC with it and attached to it: an even dark ring of space
+  between picture edge and arc all the way round, like a planet in orbit; if the arc floats, the
+  picture floats with it. Move the title aside (aligned with the logo) to make room. Past mistake: the
+  circle "floated" alone in the dark area.
 - **Layout ideas worth borrowing from templates, in any style:** a bold title top-left; numbered
   colored squares (01, 02, 03) for agendas and ordered lists; a small tab-shaped label top-right
   for "source / scope" context (e.g. "team estimate", "whole system"); light background as the

@@ -145,6 +145,13 @@ them isn't finished:
   icon cluster. A layout that worked: keep the reference layout (an accent arc on the right), crop the
   picture into a circle with a thin accent ring inside a dark circle, let it rotate or zoom slowly;
   the closing slide carries a second picture in the same layout.
+- **A picture that has to carry a contrast or a story is DRAWN, not generated.** When a slide's image
+  must say "old way versus new way", an abstract AI picture (beams, spheres, glowing networks)
+  cannot carry it; expect it to be rejected. Draw a labeled SVG and animate it on clicks (first the
+  old path, then the new one). Draw it in the deck's own icon language (same circles, line weight and
+  colors), and make the two states differ visibly (for example a message that blurs and breaks on a
+  chain of hand-offs versus clean straight lines that deliver it intact). Test: could someone who never
+  heard the talk state the idea from the picture alone? If not, redraw it.
 - **A file the user sends always wins:** if they send you the official logo, image, or photo
   file themselves, don't search the web for it - embed exactly what they sent (as base64).
 - **Generated images never carry a logo or brand text.** In a branded deck, AI-generated pictures

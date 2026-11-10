@@ -72,4 +72,4 @@ of that chunk or at the first owner decision.
 
 ### Relationship to `session-handoff`
 
-The two-step block is the lightweight close of an ordinary reply. For an explicit "wrap up session" / "summarize before I clear", use the `session-handoff` skill instead - it produces the full seven-section end-of-session summary. The two are complementary: the block for a completing reply past about 30% context or when the work is done, `session-handoff` for a deliberate wrap-up.
+The two-step block is the lightweight close of an ordinary reply. For an explicit "wrap up session" / "summarize before I clear", use the `session-handoff` skill instead (hidden from the skill list: read `~/.claude/skills/session-handoff/SKILL.md` and follow it) - it produces the full seven-section end-of-session summary. The two are complementary: the block for a completing reply past about 30% context or when the work is done, `session-handoff` for a deliberate wrap-up.

@@ -54,7 +54,7 @@ Read `references/preferences.md` in full at the start of every `big-project` ses
 
 - `PROJECT.md`, the thin `CLAUDE.md` and `project-memory/`: created and curated by `live-document`. `big-project` only injects hard-rules bullets, never rewrites the living docs.
 - Ordinary completing replies, past about 30% context or when the work is done, end with the lightweight two-step handoff block (clear now / type `continue`; from `references/walkthrough-and-handoff.md`). The handoff content itself lives in `PROJECT.md`'s next action, which `live-document` owns; `big-project` only sets how complete it must be.
-- An explicit "wrap up session" / "summarize before I clear" invokes `session-handoff` for the full seven-section summary.
+- An explicit "wrap up session" / "summarize before I clear" invokes `session-handoff` for the full seven-section summary. It is hidden from the skill list (`disable-model-invocation`), so Claude reads `~/.claude/skills/session-handoff/SKILL.md` and follows it; the owner can still type `/session-handoff`.
 - Multi-step manual work for the owner gets exactly ONE file: `live-document`'s interactive `next-actions/<YYYY-MM-DD_HH-MM>-next-actions.html`. Its content follows the walkthrough outline in `references/walkthrough-and-handoff.md`. Never a `.md` twin, never a separate `NEXT STEPS ... .md` (owner, 2026-09-02: "HTML files are enough").
 - Never hijack an active `e2e` flow; stay additive.
 

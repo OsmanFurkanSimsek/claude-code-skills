@@ -33,7 +33,7 @@ A chat reply that completes work, past about 30% context or when the work is don
 - **Only when it is true.** Never while a background agent or command is still running, or while a result sits only in the scratchpad: say "Not yet" and what is still running. Full rule: `~/.claude/rules/clear-context-only-when-saved.md` (owner, 2026-09-30: "why did you give me wrong information ... Why did you say 'clear the context'?").
 - **Only past about 30% context or when the work is done.** The block marks a safe point; it never pushes the owner to stop while there is room and work left. Below about 30% with work left, keep working (owner, 2026-10-06; earlier: "I don't need to clear the context. You just started, so you can continue doing iterations."). Home: `~/.claude/rules/clear-context-only-when-saved.md`.
 - On a bare `continue` (or "go on", "carry on") as the first message of a fresh session: read PROJECT.md in full, open the files its next action names, and carry out the agent steps without asking what to do; stop at the end of that chunk or at the first owner decision.
-- For a heavy explicit wrap-up ("summarize before I clear"), use the `session-handoff` skill's full summary instead.
+- For a heavy explicit wrap-up ("summarize before I clear"), use the `session-handoff` skill's full summary instead (hidden from the skill list: read `~/.claude/skills/session-handoff/SKILL.md`).
 
 ## 2a. Wrap-up past 30% context
 

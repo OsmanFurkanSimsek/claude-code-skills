@@ -1,6 +1,7 @@
 ---
 name: session-handoff
 description: Use when the user says "session handoff", "wrap up session", "hand off", "handoff summary", "let's wrap up", "summarize before I clear", or is about to /clear context. Produces a chat-only, fixed-structure end-of-session handoff covering decisions, shipped changes, key files, running state (including background shell IDs), verification steps, deferrals, and open questions so a fresh agent can pick up from the summary alone. Invoke proactively whenever the user signals they're about to clear context without having produced a handoff yet.
+disable-model-invocation: true
 ---
 
 # Session Handoff

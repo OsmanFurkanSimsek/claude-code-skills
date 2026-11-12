@@ -11,7 +11,7 @@ only what moved, plus standing lines; the full dump goes to <out>.full.md. The b
 makes this pass the baseline for <since> (first install, after a restore). A usage counter is listed when its
 extension was at 2 uses or fewer (the unused ones a verdict is about); counters of extensions already in use are only
 counted."""
-import calendar, glob, json, os, re, sys, time, collections, statistics
+import calendar, glob, hashlib, json, os, re, sys, time, collections, statistics
 
 ARGS = [a for a in sys.argv[1:] if not a.startswith("--")]
 NO_SAVE = "--no-save" in sys.argv
@@ -148,6 +148,11 @@ for key in sorted(set(inst_keys) | set(ep.keys())):
 # ---- MCP config
 P("## mcp config")
 P(f"- user mcpServers: {sorted((cj.get('mcpServers') or {}).keys())}")
+# One line per server with a short hash of its whole entry (command, args, env, headers): a server pointed at
+# another target shows as moved, and no value is ever printed (2026-11-12: a database server entry was moved to a
+# new host and the name list alone said "nothing moved").
+for k, v in sorted((cj.get("mcpServers") or {}).items()):
+    P(f"- mcp server {k}: cfg={hashlib.sha256(json.dumps(v, sort_keys=True).encode('utf-8')).hexdigest()[:8]}")
 pe = (cj.get("projects") or {})
 for k, v in pe.items():
     if k.replace("\\", "/").lower() == PROJ.lower():

@@ -67,6 +67,11 @@ them isn't finished:
 - One slide, one idea. At most 5-6 words or a single visual per slide; NEVER a full sentence. You
   say the sentences out loud - the slide is a memory cue, not a script.
 - Short cue words or phrases, bulleted, fragmentary.
+- **Clear with the sound off, strong and short.** Every slide explains itself. A number that
+  changes over time is a dated time chart, never two bare numbers. A range ("15 to 45 million")
+  becomes one middle figure ("about 30 million"); the range stays in the source note. No hedging
+  slides ("to be fair"): make the clear claim the evidence supports. Cut slides that only add more
+  examples or repeat a point. One color per thing: if water is blue, it stays blue.
 - **No trailing periods, no full sentences.** Nothing on a slide - title, phrase, line, card, even
   a backup-slide body - ends in a period or reads as a complete sentence (a footnote in muted
   gray citing a source is the one exception). Two-part emphasis lines break across a line, not a

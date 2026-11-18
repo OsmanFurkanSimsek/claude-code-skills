@@ -55,7 +55,9 @@ EDIT_ERR = {
 CORRECTION = re.compile(
     r"\b(why did you|why didn'?t you|I told you|I said|again\b|third time|not what I|that'?s wrong|"
     r"you forgot|you missed|don'?t (do|ask|schedule|use)|stop (doing|asking)|still not|instead of|"
-    r"I already|as I said|every time|keep (doing|asking|forgetting))", re.I)
+    r"I already|as I said|every time|keep (doing|asking|forgetting)|"
+    # 2026-11-18: a pushback worded as a misunderstanding or an excuse was missed
+    r"misunderstand|misunderstood|an excuse|not my problem)", re.I)
 # Owner asks about the time left while work runs (a pattern count, ledger key owner.time_asks).
 TIME_ASK = re.compile(r"\b(how far are you|how long (will|does|is|do)|how much (more )?time|when will (it|you|this|that)|"
                       r"your estimate|time left|time estimate|take a long time|are you (still )?(working|active|there|running)\b|"
@@ -640,12 +642,16 @@ def main():
                         cm = re.findall(r"<command-name>/?([^<\s]+)</command-name>", c)
                         if cm:
                             cmds_win[cm[0]] += 1
-                        elif not c.startswith("<") and len(c) < 2000 and not o.get("isMeta"):
-                            time_asks += bool(TIME_ASK.search(c))
-                            item = (s["project"] + " " + sid[:8], ts.strftime("%m-%d %H:%M"), one_line(c, 260))
-                            if CORRECTION.search(c) and item not in corrections:
+                        # a dictated message arrives wrapped in <pasted_content> and can run to thousands of chars:
+                        # unwrap it; a long one is read on its opening 600 chars only, where the pushback sits
+                        elif (cu := re.sub(r"</?pasted_content[^>]*>", "", c).strip()) and \
+                                not cu.startswith("<") and not o.get("isMeta"):
+                            short = len(cu) < 2000
+                            time_asks += short and bool(TIME_ASK.search(cu))
+                            item = (s["project"] + " " + sid[:8], ts.strftime("%m-%d %H:%M"), one_line(cu, 260))
+                            if CORRECTION.search(cu if short else cu[:600]) and item not in corrections:
                                 corrections.append(item)
-                                voice_corr += bool(VOICE.search(c))
+                                voice_corr += bool(VOICE.search(cu))
                         continue
                     for b in c or []:
                         if not isinstance(b, dict):

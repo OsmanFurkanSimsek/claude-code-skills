@@ -77,7 +77,7 @@ def run_scan(tmp, *extra):
 def test_stop_blocks_and_reconciles(projects):
     md, m = run_scan(projects)
     assert m["hook.stop.project_md.blocks"] == 2 and m["hook.stop.project_md.reconciled"] == 2
-    assert 'Stop blocks "PROJECT.md was NOT updated": 2, followed by an Edit/Write of a PROJECT.md' in md
+    assert 'Stop blocks "PROJECT.md was NOT updated": 2, followed by an Edit/Write (or a shell write) of a PROJECT.md' in md
     assert m["bash.export.FOO.count"] == 1 and "bash.export.PATH.per_week" not in m
     assert m["sessions.startup"] == 1 and m["sessions.count"] == 1
 

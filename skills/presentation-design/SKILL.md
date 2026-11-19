@@ -122,6 +122,15 @@ them isn't finished:
      use each product's real team and owner, and write the audience's real team name under
      "Participants", not a general phrase.
 
+- **Purpose comes first and returns at the end.** The "why are we doing this" slide (the deck's
+  strongest purpose picture or animation) is never saved for the end: it opens the first section
+  right after the agenda, and the technical explanation follows it. The agenda is 2-3 plain
+  questions the talk will answer ("Why a new tool?", "How does it work?", "How do you send your
+  feedback?"), not section labels such as "Your privacy" or "Your turn". The second-to-last slide is
+  the single call to action; the last slide is "Thank you for listening" plus the purpose sentence,
+  next to a short animation of the product's real interface (one click per step: pick, write, send,
+  the answer reaches its target).
+
 ## Logo, icon, and image rules (lessons from real mistakes - do not repeat them)
 
 - **Brand logos are sourced as ORIGINAL vectors from the internet and embedded; a hand-drawn

@@ -142,6 +142,19 @@ SECRET = re.compile(
     r"(?![$%<{(\[])(?=[^\s\"'&;|,]*\d)[^\s\"'&;|,]{12,})", re.I)   # a literal value with a digit, not $VAR/<placeholder>
 
 
+UPLOAD_URL = re.compile(r"https://api\.notion\.com/v1/mcp/file_uploads/[\w-]+/send\b")
+
+
+def is_upload_header_only(cmd):
+    """True when every token-shaped value in cmd is a Bearer header of a Notion MCP one-upload URL.
+    That authorization comes from `notion-create-file-upload`, is tied to one upload and expires in
+    minutes, so it is no secret to rotate (ledger 11-15 and 11-20). Anything else still counts."""
+    if not UPLOAD_URL.search(cmd or ""):
+        return False
+    hits = [m.group(0) for m in SECRET.finditer(cmd)]
+    return bool(hits) and all(h.lower().startswith("bearer") for h in hits)
+
+
 def redact(s):
     return SECRET.sub(lambda m: m.group(0)[:m.group(0).find("=") + 1 if "=" in m.group(0) else 6] + "[REDACTED]", s or "")
 
@@ -502,7 +515,7 @@ def main():
     skills_win = C(); cmds_win = C(); agents = C(); agent_model_arg = C()
     band_tok = C(); band_turns = C(); compacts = C(); api_err = C(); interrupts = 0
     corrections = []; toolsearch = []; turn_ms = []; ss_sizes = []; cwd_seen = C()
-    model_tok = C(); heredoc_used = 0; secrets_in_cmds = 0; secret_where = set(); empty_sessions = 0
+    model_tok = C(); heredoc_used = 0; secrets_in_cmds = 0; secret_where = set(); upload_headers = 0; empty_sessions = 0
     twin_fork = 0; stop_blocks = 0; stop_followed = 0; stop_unfollowed = []
     time_asks = 0; voice_corr = 0; no_such_tool = 0
     cont_asks = []                     # ledger CI-43: (project, sid, ts, tokens, phrase)
@@ -621,7 +634,9 @@ def main():
                                 bash_first[w[0][:25]] += 1
                             if "<<" in cmd:
                                 heredoc_used += 1
-                            if SECRET.search(cmd):
+                            if SECRET.search(cmd) and is_upload_header_only(cmd):
+                                upload_headers += 1
+                            elif SECRET.search(cmd):
                                 secrets_in_cmds += 1
                                 secret_where.add(s["project"] + " " + sid[:8] + " " + ts.strftime("%m-%d"))
                             for var in EXPORT_AT_COMMAND.findall(cmd):
@@ -916,6 +931,10 @@ def main():
         P(f"**SECRETS: {secrets_in_cmds} command(s) carried a token-shaped value in plain text** "
           f"(where: {'; '.join(sorted(secret_where)[:6])}). Count only; never print or copy the value. "
           "The fix is rotation by the owner, raised first in the report.")
+    if upload_headers:
+        P("")
+        P(f"Short-lived upload headers (not counted as secrets): {upload_headers} command(s) sent the one-upload "
+          "authorization the Notion MCP returns for a file upload (it expires in minutes; ledger 11-15, 11-20).")
     P("")
     P("## 1. Spend and context")
     no_cost = sum(1 for x in S if x["cost"] is None)

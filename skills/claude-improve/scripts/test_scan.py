@@ -31,6 +31,21 @@ def test_export_only_at_a_command_position(cmd, names):
     assert scan.EXPORT_AT_COMMAND.findall(cmd) == names
 
 
+FAKE = "Be" + "arer " + "a1b2c3d4e5" * 4                 # built here so no token shape sits in the file
+UP = "https://api.notion.com/v1/mcp/file_uploads/" + "-".join(["a" * 8, "b" * 4, "c" * 4, "d" * 4, "e" * 12]) + "/send"
+
+
+@pytest.mark.parametrize("cmd,upload_only", [
+    (f'curl -s -X POST "{UP}" -H "authorization: {FAKE}" -F "file=@a.png"', True),   # the 11-15 / 11-20 shape
+    (f'curl -s -X POST "https://api.example.com/x" -H "authorization: {FAKE}"', False),  # another host still counts
+    (f'curl "{UP}" -H "authorization: {FAKE}"; export api_key=' + "z9" * 8, False),     # a second secret still counts
+    ("curl " + UP, False),                                                           # no secret at all
+])
+def test_notion_one_upload_header_is_not_a_secret(cmd, upload_only):
+    assert bool(scan.SECRET.search(cmd)) or not upload_only
+    assert scan.is_upload_header_only(cmd) == upload_only
+
+
 def line(**o):
     return json.dumps(o)
 
